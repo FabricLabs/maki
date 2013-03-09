@@ -38,16 +38,17 @@ app.use(app.router);
 
 app.set('view engine', 'jade');
 
-passport.use(new LocalStrategy( User.authenticate() ) );
-
-passport.serializeUser( User.serializeUser() );
-passport.deserializeUser( User.deserializeUser() );
-
 /* configure some local variables for use later */
 app.use(function(req, res, next) {
   app.locals.user = req.user;
   next();
 });
+
+passport.use(new LocalStrategy( User.authenticate() ) );
+
+passport.serializeUser( User.serializeUser() );
+passport.deserializeUser( User.deserializeUser() );
+
 
 /* Configure "routes".
     "routes" are the mappings your browser/client use to 
