@@ -1,0 +1,14 @@
+form(action="/login", method="post")
+  label(for="username") Username
+  input.span12.required(type="text", name="username", tabindex="1")
+
+  small
+    a.pull-right(href="/forgot-password") Reset Password &raquo;
+  label(for="password") Password
+  input.span12.required(type="password", name="password", tabindex="2")
+
+  input.btn.btn-primary.pull-right(type="submit", value="Log In &raquo;", , tabindex="3")
+
+  .clearfix
+    a(href="/register") Register
+    |  if you don't have an account.

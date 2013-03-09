@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  if (user)
+    h2 Welcome, #{user.username}!
+
+  else
+    .hero-unit
+      h1 Hello, Startup Weekend.
+      p A simple framework for building your MVP.
+
+    .row-fluid(style="margin-top: 3em; margin-bottom: 3em;")
+
+      .span4
+        h3 Tagline 1.
+        p Super awesome pitch belongs here.
+
+      .span4
+        h3 Tagline 2.
+        p What else can sell your app?
+
+      .span4
+        h3 Already registered?
+        include forms/login

@@ -1,0 +1,42 @@
+!!! 5
+html
+  head
+    title Startup Weekend Web App Template
+    link(rel='stylesheet', href='/css/bootstrap.min.css')
+    link(rel='stylesheet', href='/css/screen.css')
+
+    script(src='/js/jquery.min.js')
+    script(src='/js/bootstrap.min.js')
+
+  body
+
+    .navbar.navbar-inverse.navbar-fixed-top
+      .navbar-inner
+        .container
+          ul.nav
+            li
+              a.brand(href="/") #SWEDU
+            li
+              a(href="/") Home
+
+            if (typeof(user) == 'undefined')
+              li
+                a(href="/register") Sign Up
+
+          ul.nav.pull-right
+            if (typeof(user) != 'undefined')
+              li
+                a(href="#") #{user.username}
+              li
+                a(href="/logout") Log Out
+            else
+              li
+                a(href="/login") Log In
+
+
+    .container
+      block content
+
+    .container
+      footer
+        small &copy; No one in particular...

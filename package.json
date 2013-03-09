@@ -1,0 +1,29 @@
+{
+  "name": "startupweekend-framework",
+  "version": "0.0.0",
+  "description": "Framework for building web applications at Startup Weekend.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/martindale/startupweekend.git"
+  },
+  "keywords": [
+    "startupweekend",
+    "framework"
+  ],
+  "author": "Eric Martindale",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "22dbaa6e09ffb728b79cecf128f4694fe12d5661",
+  "dependencies": {
+    "passport": "~0.1.16",
+    "jade": "~0.28.2",
+    "passport-local-mongoose": "~0.2.1",
+    "express": "~3.1.0",
+    "mongoose": "~3.5.7",
+    "passport-local": "~0.1.6"
+  }
+}
