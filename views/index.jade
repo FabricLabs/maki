@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  if (user)
+  if (typeof(user) != 'undefined')
     h2 Welcome, #{user.username}!
 
   else

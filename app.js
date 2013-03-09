@@ -88,6 +88,10 @@ app.post('/register', function(req, res) {
   });
 });
 
+app.post('/login', passport.authenticate('local'), function(req, res) {
+  res.redirect('/');
+});
+
 app.listen( config.appPort , function() {
   console.log('Demo application is now listening on http://localhost:' + config.appPort + ' ...');
 });
