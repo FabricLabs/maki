@@ -11,3 +11,6 @@ You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to ru
 3. Run `node app.js`.  
 
 You'll now, by default, have a web application running at http://localhost:9200 -- you can edit the port by changing config.js.
+
+## Spirit
+Please feel free to submit changes to this repo via pull requests!  We're trying to keep this as general and flexible as possible, so anyone can take the project and run with it.
