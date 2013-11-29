@@ -13,7 +13,8 @@ var express = require('express')
 User = People = require('./models/User').User;
 //Thing   = require('./models/Thing').Thing;
 
-people    = require('./controllers/people');
+pages    = require('./controllers/pages');
+people   = require('./controllers/people');
 
 // make the HTML output readible, for designers. :)
 app.locals.pretty = true;
@@ -54,13 +55,21 @@ app.use(function(req, res, next) {
   res.locals.user = req.user;
 
   // TODO: consider moving to a prototype on the response
-  res.provide = function(err, result) {
-    if (err) { result = err; }
+  res.provide = function(err, resource, options) {
+    if (err) { resource = err; }
+    if (!options) { options = {}; }
+
     res.format({
-        json: function() { res.send( result ); }
+        // TODO: strip non-public fields from pure JSON results
+        json: function() { res.send( resource ); }
       , html: function() {
-          console.log( require('util').inspect( result ) );
-          res.send( result );
+          console.log( require('util').inspect( resource ) );
+          if (options.template) {
+            res.render( options.template , { resource: resource } );
+          } else {
+            res.send( resource );
+          }
+          
         }
     });
   };
@@ -111,6 +120,7 @@ app.post('/login', passport.authenticate('local'), function(req, res) {
   res.redirect('/');
 });
 
+app.get('/examples', pages.examples );
 app.get('/people', people.list );
 
 app.listen( config.appPort , function() {
