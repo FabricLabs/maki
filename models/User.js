@@ -1,7 +1,8 @@
 var mongoose = require('mongoose')
   , Schema = mongoose.Schema
   , ObjectId = mongoose.SchemaTypes.ObjectId
-  , passportLocalMongoose = require('passport-local-mongoose');
+  , passportLocalMongoose = require('passport-local-mongoose')
+  , slug = require('mongoose-slug');
 
 // this defines the fields associated with the model,
 // and moreover, their type.
@@ -13,6 +14,11 @@ var UserSchema = new Schema({
 
 // attach the passport fields to the model
 UserSchema.plugin(passportLocalMongoose);
+
+// attach a URI-friendly slug
+UserSchema.plugin( slug( 'username' , {
+  required: true
+}) );
 
 var User = mongoose.model('User', UserSchema);
 

@@ -7,6 +7,10 @@ module.exports = {
     });
   },
   view: function(req, res, next) {
-    People.findOne({ slug: req.param('usernameSlug') }).exec( res.provide );
+    People.findOne({ slug: req.param('usernameSlug') }).exec(function(err, person) {
+      res.provide( err, person , {
+        template: 'person'
+      });
+    });
   }
 }

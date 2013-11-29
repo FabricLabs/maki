@@ -120,8 +120,9 @@ app.post('/login', passport.authenticate('local'), function(req, res) {
   res.redirect('/');
 });
 
-app.get('/examples', pages.examples );
-app.get('/people', people.list );
+app.get('/examples',             pages.examples );
+app.get('/people',               people.list );
+app.get('/people/:usernameSlug', people.view );
 
 app.listen( config.appPort , function() {
   console.log('Demo application is now listening on http://localhost:' + config.appPort + ' ...');
