@@ -3,6 +3,10 @@ Maki
 
 Maki is a framework for hand-rolling web applications in a way that makes sense.
 
+- **REST API built-in.**  All URIs are semantic and indempotent, automatically.
+- **Client-Responsiveness.**  Don't rely on user-agents or referers, but instead respond to what the client supports.  Make a request that only accepts JSON?  Get JSON back.  Accept HTML?  Get HTML back.
+- **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.
+
 ## Instructions
 You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to run this application.  Installing these is out-of-scope, and instructions are contained on the links to the left.
 
