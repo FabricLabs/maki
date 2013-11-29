@@ -6,9 +6,13 @@ block content
 
   hr
 
-  ul
+  ul.media-list
     for example in resource
-      li
-        h2
-          a(href="#{example.uri}") #{example.name}
-        p #{example.description}
+      li.media
+        //-if (example.image)
+          a.pull-left(href="#{example.uri}")
+            img.media-object(src="#{example.image}")
+        .media-body
+          h2.media-heading
+            a(href="#{example.uri}") #{example.name}
+          p #{example.description}
