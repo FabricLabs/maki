@@ -5,16 +5,21 @@ block content
   h1 Register
 
   form(action="/register", method="post")
+    .form-group
+      label(for="username") Username
+      input.form-control(type="text", name="username", placeholder="e.g., yourname")
 
-    label(for="username") Username
-    input(type="text", name="username", placeholder="e.g., yourname")
+    .form-group
+      label(for="email") Email
+      input.form-control(type="text", name="email", placeholder="e.g., you@yourcompany.com")
 
-    label(for="email") Email
-    input(type="text", name="email", placeholder="e.g., you@yourcompany.com")
+    .form-group
+      label(for="password") Password
+      input.form-control(type="password", name="password")
 
-    label(for="password") Password
-    input(type="password", name="password")
-    label(for="passwordAgain") Password (again)
-    input(type="password", name="passwordAgain")
+    .form-group
+
+      label(for="passwordAgain") Password (again)
+      input.form-control(type="password", name="passwordAgain")
 
     input.btn.btn-primary(type="submit")

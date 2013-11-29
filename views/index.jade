@@ -1,24 +1,21 @@
 extends layout
 
 block content
-  if (typeof(user) != 'undefined')
-    h2 Welcome, #{user.username}!
+  if (user)
+    h1 Welcome, #{user.username}!
 
   else
-    .hero-unit
-      h1 Hello, Startup Weekend.
-      p A simple framework for building your MVP.
+    .jumbotron
+      h1 Hello, Maki.
+      p A simple framework for hand-rolling your web application.
 
-    .row-fluid(style="margin-top: 3em; margin-bottom: 3em;")
-
-      .span4
-        h3 Tagline 1.
+    .row
+      .col-md-4
+        h2 Tagline 1.
         p Super awesome pitch belongs here.
-
-      .span4
-        h3 Tagline 2.
+      .col-md-4
+        h2 Tagline 2.
         p What else can sell your app?
-
-      .span4
-        h3 Already registered?
+      .col-md-4
+        h2 Already registered?
         include forms/login

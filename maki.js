@@ -16,10 +16,16 @@ User      = require('./models/User').User;
 // make the HTML output readible, for designers. :)
 app.locals.pretty = true;
 
+app.use(require('less-middleware')({ 
+    debug: true
+  , src: __dirname + '/private'
+  , dest: __dirname + '/public'
+}));
 // any files in the /public directory will be accessible over the web,
 // css, js, images... anything the browser will need.
 app.use(express.static(__dirname + '/public'));
 
+// jade is the default templating engine.
 app.engine('jade', require('jade').__express);
 
 // set up middlewares for session handling
@@ -34,21 +40,18 @@ app.use(express.session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(app.router);
-
 app.set('view engine', 'jade');
-
-/* configure some local variables for use later */
-app.use(function(req, res, next) {
-  app.locals.user = req.user;
-  next();
-});
 
 passport.use(new LocalStrategy( User.authenticate() ) );
 
 passport.serializeUser( User.serializeUser() );
 passport.deserializeUser( User.deserializeUser() );
 
+/* configure some local variables for use later */
+app.use(function(req, res, next) {
+  res.locals.user = req.user;
+  next();
+});
 
 /* Configure "routes".
     "routes" are the mappings your browser/client use to 
