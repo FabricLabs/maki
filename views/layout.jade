@@ -23,10 +23,20 @@ html
         .navbar-collapse.collapse
           ul.nav.navbar-nav
             li.active
-              a(href="/") Home
+              a(href="/", title="Maki Homepage")
+                i.glyphicon.glyphicon-home
+                |  Home
+            li
+              a(href="/examples", title="Projects using Maki")
+                i.glyphicon.glyphicon-leaf
+                |  Examples
+            li
+              a(href="/people", title="People on this Maki, an example resource.")
+                i.glyphicon.glyphicon-user
+                |  People
             if (!user)
               li
-                a(href="/register") Sign Up
+                a(href="/register") Sign Up &raquo;
 
           ul.nav.navbar-nav.navbar-right
             if (user)
