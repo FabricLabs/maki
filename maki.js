@@ -120,6 +120,11 @@ app.post('/login', passport.authenticate('local'), function(req, res) {
   res.redirect('/');
 });
 
+app.get('/logout', function(req, res, next) {
+  req.logout();
+  res.redirect('/');
+});
+
 app.get('/examples',             pages.examples );
 app.get('/people',               people.list );
 app.get('/people/:usernameSlug', people.view );

@@ -7,4 +7,5 @@ block content
   ul
     //- consider "resource" as what this _view_ is referencing; what resource?
     for person in resource
-      li #{person.username}
+      li
+        a(href="/people/#{person.slug}") #{person.username}
