@@ -19,3 +19,30 @@ block content
       .col-md-4
         h2 Already registered?
         include forms/login
+
+    .row
+      h3 Features
+      hr
+
+      h4 Full-Javascript Stack
+      p Build your app without wasting time on context switching.  Every layer of the Maki stack is Javascript, from the database (MongoDB) to the server (Node.js) and on to the clientside.
+
+      h4 Authentication
+      p We've built authentication into the stack (using PassportJS), including username and password auth, and OAuth using providers like Facebook and Twitter.  Spend your time on your app, not third-party auth.
+
+
+    .row
+      h3 Documentation
+      h4 UI
+      p We're using Bootstrap for our base CSS framework, giving us a generally semantic way of building interface elements.  In addition, we're using Jade to simplify the construction of HTML using simple style rules.
+
+      h5 Tooltips
+      p Add <code>.tooltipped</code> to an element to enable automatic generation of a tooltip for that element, defaulting to its <code>title</code> attribute.
+      p For example, 
+        code
+          | a.tooltipped(href="/about", title="Learn More about Maki") About
+        |  will produce: 
+        a.tooltipped(href="/about", title="Learn More about Maki") About
+
+    .row
+      hr

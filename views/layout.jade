@@ -3,13 +3,19 @@ html
   head
     title Maki
 
-    link(rel='stylesheet', href='/css/bootstrap.css')
-    link(rel='stylesheet', href='/css/maki.css')
+    link(rel="stylesheet", href="/css/bootstrap.css")
+    link(rel="stylesheet", href="/css/maki.css")
 
-    script(src='/js/jquery.js')
-    script(src='/js/bootstrap.js')
+    script(src="/js/jquery.js")
+    script(src="/js/bootstrap.js")
+    script(src="/js/angular.js")
+    script(src="/js/angular-route.js")
+    script(src="/js/angular-resource.js")
+    script(src="/js/maki.js")
 
-  body
+    //-base(href="/")
+
+  body(data-ng-app="maki")
 
     .navbar.navbar-default.navbar-fixed-top
       .container
@@ -49,7 +55,12 @@ html
                 a(href="/login") Log In
 
     .container
+
+      include partials/flash
+
       block content
+
+      .other-content(data-ng-view)
 
     footer
       .container

@@ -28,6 +28,7 @@
     "mongoose": "~3.8.1",
     "passport-local": "~0.1.6",
     "less-middleware": "~0.1.14",
-    "mongoose-slug": "~1.2.0"
+    "mongoose-slug": "~1.2.0",
+    "flashify": "~0.1.2"
   }
 }

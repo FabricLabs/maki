@@ -1,6 +1,7 @@
 var express = require('express')
   , app = express()
   , mongoose = require('mongoose')
+  , flashify = require('flashify')
   , passport = require('passport')
   , LocalStrategy = require('passport-local').Strategy
   , passportLocalMongoose = require('passport-local-mongoose')
@@ -128,6 +129,10 @@ app.get('/logout', function(req, res, next) {
 app.get('/examples',             pages.examples );
 app.get('/people',               people.list );
 app.get('/people/:usernameSlug', people.view );
+
+app.get('*', function(req, res) {
+  res.status(404).render('404');
+});
 
 app.listen( config.appPort , function() {
   console.log('Demo application is now listening on http://localhost:' + config.appPort + ' ...');
