@@ -64,13 +64,11 @@ app.use(function(req, res, next) {
         // TODO: strip non-public fields from pure JSON results
         json: function() { res.send( resource ); }
       , html: function() {
-          console.log( require('util').inspect( resource ) );
           if (options.template) {
             res.render( options.template , { resource: resource } );
           } else {
             res.send( resource );
           }
-          
         }
     });
   };

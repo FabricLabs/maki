@@ -1,5 +1,5 @@
 {
-  "name": "maki",
+  "name": "maki-roller",
   "version": "0.0.1",
   "description": "Framework for hand-rolling web applications.",
   "main": "maki.js",
