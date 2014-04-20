@@ -65,7 +65,8 @@ app.use(function(req, res, next) {
         json: function() { res.send( resource ); }
       , html: function() {
           if (options.template) {
-            res.render( options.template , { resource: resource } );
+            // TODO: determine appropriate resource format
+            res.render( options.template , _.extend({ resource: resource } , resource ) );
           } else {
             res.send( resource );
           }
