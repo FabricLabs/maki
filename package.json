@@ -34,6 +34,7 @@
     "async": "~0.7.0",
     "cookie-parser": "~1.1.0",
     "body-parser": "~1.2.2",
-    "express-session": "~1.2.1"
+    "express-session": "~1.2.1",
+    "asset-rack": "git://github.com/johngeorgewright/asset-rack.git#e00df32f65505d00708f67dafe616c536c47b6f7"
   }
 }

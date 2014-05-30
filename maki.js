@@ -1,6 +1,8 @@
 var express = require('express');
 var app = express();
 
+var rack = require('asset-rack');
+
 var mongoose = require('mongoose');
 var flashify = require('flashify');
 var passport = require('passport');
@@ -27,14 +29,36 @@ async = require('async');
 // make the HTML output readible, for designers. :)
 app.locals.pretty = true;
 
-app.use(require('less-middleware')({ 
-    debug: true
-  , src: __dirname + '/private'
-  , dest: __dirname + '/public'
-}));
-// any files in the /public directory will be accessible over the web,
-// css, js, images... anything the browser will need.
-app.use(express.static(__dirname + '/public'));
+var assets = new rack.Rack([
+  new rack.JadeAsset({
+      url: '/js/templates.js',
+      dirname: './views'
+  }),
+  new rack.StaticAssets({
+    urlPrefix: '/',
+    dirname: __dirname + '/public'
+  }),
+  new rack.LessAsset({
+    url: '/css/bootstrap.css',
+    filename: __dirname + '/private/css/bootstrap.less'
+  }),
+  new rack.LessAsset({
+    url: '/css/font-awesome.css',
+    filename: __dirname + '/private/css/fontawesome/font-awesome.less'
+  }),
+  new rack.LessAsset({
+    url: '/css/maki.css',
+    filename: __dirname + '/private/css/maki.less'
+  }),
+  /*/new rack.DynamicAssets({
+    type: rack.LessAsset,
+    urlPrefix: '/css',
+    dirname: __dirname + '/private/css'
+  })/**/
+]);
+
+//console.log( assets.handle );
+app.use( assets.handle );
 
 // jade is the default templating engine.
 app.engine('jade', require('jade').__express);
