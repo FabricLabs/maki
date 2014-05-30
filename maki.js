@@ -1,12 +1,14 @@
-var express = require('express')
-  , app = express()
-  , mongoose = require('mongoose')
-  , flashify = require('flashify')
-  , passport = require('passport')
-  , LocalStrategy = require('passport-local').Strategy
-  , passportLocalMongoose = require('passport-local-mongoose')
-  , config = require('./config')
-  , database = require('./db');
+var express = require('express');
+var app = express();
+
+var mongoose = require('mongoose');
+var flashify = require('flashify');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+var passportLocalMongoose = require('passport-local-mongoose');
+
+var config = require('./config');
+var database = require('./db');
 
 /* Models represent the data your application keeps. */
 /* You'll need at least the User model if you want to 
@@ -14,8 +16,13 @@ var express = require('express')
 User = People = require('./models/User').User;
 //Thing   = require('./models/Thing').Thing;
 
+// set up controlers for various resources
 pages    = require('./controllers/pages');
 people   = require('./controllers/people');
+
+// common utilities
+_     = require('underscore');
+async = require('async');
 
 // make the HTML output readible, for designers. :)
 app.locals.pretty = true;
@@ -33,10 +40,9 @@ app.use(express.static(__dirname + '/public'));
 app.engine('jade', require('jade').__express);
 
 // set up middlewares for session handling
-app.use(express.cookieParser( config.cookieSecret ));
-app.use(express.bodyParser());
-app.use(express.methodOverride());
-app.use(express.session({
+app.use( require('cookie-parser')( config.cookieSecret ) );
+app.use( require('body-parser')() );
+app.use( require('express-session')({
   secret: config.cookieSecret
 }));
 
@@ -136,4 +142,3 @@ app.get('*', function(req, res) {
 app.listen( config.appPort , function() {
   console.log('Demo application is now listening on http://localhost:' + config.appPort + ' ...');
 });
-
