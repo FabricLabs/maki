@@ -1,2 +1,2 @@
-/public/*     # static files
-/views/*
+#/public/*     # static files
+#/views/*

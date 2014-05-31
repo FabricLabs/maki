@@ -32,7 +32,11 @@ app.locals.pretty = true;
 var assets = new rack.Rack([
   new rack.JadeAsset({
       url: '/js/templates.js',
-      dirname: './views'
+      dirname: './views',
+      // strip out layouts (we don't want them)
+      beforeCompile: function( input ) {
+        return input.replace(/extends (.*)\n/, '');
+      }
   }),
   new rack.StaticAssets({
     urlPrefix: '/',
@@ -84,25 +88,13 @@ passport.deserializeUser( User.deserializeUser() );
 /* configure some local variables for use later */
 app.use(function(req, res, next) {
   res.locals.user = req.user;
-
-  // TODO: consider moving to a prototype on the response
-  res.provide = function(err, resource, options) {
-    if (err) { resource = err; }
-    if (!options) { options = {}; }
-
+  
+  res.provide = function( template , data ) {
     res.format({
-        // TODO: strip non-public fields from pure JSON results
-        json: function() { res.send( resource ); }
-      , html: function() {
-          if (options.template) {
-            // TODO: determine appropriate resource format
-            res.render( options.template , _.extend({ resource: resource } , resource ) );
-          } else {
-            res.send( resource );
-          }
-        }
+      json: function() { res.send( data[ template ] ); },
+      html: function() { res.render( template , data ); }
     });
-  };
+  }
 
   next();
 });
@@ -136,7 +128,10 @@ app.get('/login', function(req, res) {
 
 /* when a POST request is made to '/register'... */
 app.post('/register', function(req, res) {
-  User.register(new User({ email : req.body.email, username : req.body.username }), req.body.password, function(err, user) {
+  User.register(new User({
+    email : req.body.email,
+    username : req.body.username
+  }), req.body.password, function(err, user) {
     if (err) {
       console.log(err);
       return res.render('register', { user : user });

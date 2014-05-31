@@ -1,11 +1,10 @@
-extends layout
+extends layouts/default
 
 block content
   h1 People
   p This is an example resource that queries from the database.
 
   ul
-    //- consider "resource" as what this _view_ is referencing; what resource?
-    for person in resource
+    each person in people
       li
         a(href="/people/#{person.slug}") #{person.username}

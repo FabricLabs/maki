@@ -1,31 +1,75 @@
-/*/var maki = angular.module('maki', ['ngRoute', 'ngResource']);
-maki.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
-  $locationProvider.html5Mode(true);
-  $routeProvider.when('/examples', {
-    controller: 'Project',
-    // function that returns HTML. ;)
-    template: function(param, path) {
-      console.log(param);
-      console.log(path);
-      return '<h1>/test</h1>';
+var maki = angular.module('maki', ['ngRoute', 'ngResource']);
+maki.config(function($routeProvider, $locationProvider, $resourceProvider) {
+  
+  // TODO: populate from endpoints
+  var pages = [
+    {
+        name: 'index'
+      , path: '/'
+      , template: 'index'
+    },
+    {
+        name: 'examples'
+      , path: '/examples'
+      , template: 'examples'
+    },
+    {
+        name: 'people'
+      , path: '/people'
+      , template: 'people'
+    },
+    {
+        name: 'person'
+      , path: '/people/:usernameSlug'
+      , template: 'person'
+    },
+    {
+        name: 'login'
+      , path: '/login'
+      , template: 'login'
+    },
+    {
+        name: 'register'
+      , path: '/register'
+      , template: 'register'
+    },
+    {
+         name: '404'
+       , path: ':path'
+       , template: '404'
     }
-  }).otherwise({
-    // function that returns HTML. ;)
-    template: function(param, path) {
-      console.log(param);
-      console.log(path);
-      return '<h1>LEL!</h1>';
-    }
+  ];
+  
+  pages.forEach(function(page) {
+    $routeProvider.when.apply( this , [ page.path , {
+      template: function( params ) {
+        var self = this;
+        var obj = {};
+        $.ajax({
+            url: self.location
+          , success: function( results ) {
+              obj[ page.name ] = results;
+            }
+          , async: false
+        });
+        return Templates[ page.template ]( obj );
+      }
+    } ] );
   });
-}]);
 
-maki.factory('Project', ['$resource', function($resource) {
-  return $resource('/projects');
-}]);
+  // use the HTML5 History API
+  $locationProvider.html5Mode(true);
 
-maki.controller('Project', ['$scope', function($scope) {
+});
 
-}]);/*/
+maki.controller('mainController', function( $scope ) {
+  $scope.message = 'foo';
+});
+maki.controller('headerController', function( $scope , $location ) {
+  $scope.isActive = function (viewLocation) {
+    return viewLocation === $location.path();
+  };
+});
 
 $('.tooltipped').tooltip({
   container: 'body'
