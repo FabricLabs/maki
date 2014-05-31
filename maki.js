@@ -104,22 +104,36 @@ app.use(function(req, res, next) {
     access the logic behind a concept.  Google "REST" to
     learn more about the principle. */
 
-/* the first route we'll configure is our front page. :) */
-/* this means: when a GET request is issued to (yourapp)/,
-    ...execute a function with the [req]uest, [res]ponse, and
-    the [next] function. */
-app.get('/', function(req, res) {
+app.resources = {};
+var resource = {
+  define: function( spec ) {
+    var required = ['name', 'path'];
 
-  /* in this function, render the index template, 
-     using the [res]ponse. */
-  res.render('index', {
-    foo: 'bar' //this is an example variable to be sent to the rendering engine
-  });
+    required.forEach(function(prop) {
+      if (!spec[prop]) {
+        throw new Error('"' + prop + '" is required to create an endpoint.');
+      }
+    });
+    
+    var map = { get: 'get', set: 'put' };
+    ['get', 'set'].forEach(function(method) {
+      if (spec[ method ]) {
+        app[ map[ method ] ].apply( app , [ spec[ method ] ] );
+        
+        if (!app.resources[ spec.name ]) { app.resources[ spec.name ] = spec; }
+        app.resources[ spec.name ][ map[ method ] ] = spec[ method ];
+      }
+    });
+    
+  }
+}
 
-});
-
-app.get('/register', function(req, res) {
-  res.render('register');
+resource.define({
+  name: 'registrationForm',
+  path: '/register',
+  get: function(req, res, next) {
+    res.render('register');
+  }
 });
 
 app.get('/login', function(req, res) {
@@ -153,6 +167,23 @@ app.get('/logout', function(req, res, next) {
 app.get('/examples',             pages.examples );
 app.get('/people',               people.list );
 app.get('/people/:usernameSlug', people.view );
+
+/* the first route we'll configure is our front page. :) */
+/* this means: when a GET request is issued to (yourapp)/,
+    ...execute a function with the [req]uest, [res]ponse, and
+    the [next] function. */
+app.get('/', function(req, res) {
+
+  /* in this function, render the index template, 
+     using the [res]ponse. */
+  res.provide('index', {
+    index: app.resources
+    /*/index: app._router.stack.filter(function(x) {
+      return x.route && x.route.methods.get;
+    })/**/
+  });
+
+});
 
 app.get('*', function(req, res) {
   res.status(404).render('404');
