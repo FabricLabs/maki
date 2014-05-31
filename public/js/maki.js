@@ -63,14 +63,28 @@ maki.config(function($routeProvider, $locationProvider, $resourceProvider) {
 });
 
 maki.controller('mainController', function( $scope ) {
-  $scope.message = 'foo';
+
+}).directive('tooltipped', function() {
+  return {
+      restrict: 'C'
+    , link: function( scope , element ) {
+        $( element ).tooltip({
+          container: 'body'
+        });  
+      }
+  }
+}).directive('code', function() {
+  return {
+    restrict: 'E',
+    link: function( scope , element ) {
+      $( element ).each(function(i, block) {
+        hljs.highlightBlock(block);
+      });
+    }
+  }
 });
 maki.controller('headerController', function( $scope , $location ) {
   $scope.isActive = function (viewLocation) {
     return viewLocation === $location.path();
   };
-});
-
-$('.tooltipped').tooltip({
-  container: 'body'
 });
