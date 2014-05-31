@@ -1,5 +1,19 @@
-var express = require('express');
-var app = express();
+var http = require('http');
+var app = require('express')();
+var server = http.createServer(app);
+var WebSocketServer = require('ws').Server;
+
+var wss = new WebSocketServer({
+  server: server
+});
+wss.on('connection', function(ws) {
+  console.log('routable websocket!', ws.upgradeReq.url);
+  ws.on('message', function(message) {
+    console.log('received: %s', message);
+    ws.send({ foo: message });
+  });
+  ws.send( JSON.stringify({ hello: ws.upgradeReq.url }) );
+});
 
 var rack = require('asset-rack');
 
@@ -189,6 +203,6 @@ app.get('*', function(req, res) {
   res.status(404).render('404');
 });
 
-app.listen( config.appPort , function() {
+server.listen( config.appPort , function() {
   console.log('Demo application is now listening on http://localhost:' + config.appPort + ' ...');
 });
