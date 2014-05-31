@@ -10,5 +10,11 @@
     , "uri": "http://soundtrack.io/"
     , "description": "soundtrack.io is a collaborative online jukebox for listening to music with your friends."
     , "image": "/img/soundtrack.io.png"
+  },
+  {
+      "name": "shipright"
+    , "uri": "http://github.com/martindale/shipright"
+    , "description": "Shipright is a way to ship better code."
+    , "image": "/img/shipright.png"
   }
 ]
