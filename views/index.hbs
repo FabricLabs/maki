@@ -1,0 +1,64 @@
+{{!< default}}
+
+{{#contentFor "content"}}
+  <div class="from-handlebars"></div>
+  <div class="jumbotron">
+    <h1>Hello, Maki.</h1>
+    <p>A simple framework for hand-rolling your web application.</p>
+  </div>
+  <div class="row">
+    <div class="col-md-4">
+      <h2>Hand-rolled.</h2>
+      <p>No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.</p>
+    </div>
+    <div class="col-md-4">
+      <h2>Get Making.</h2>
+      <p>Get started on that project <em>now</em>.  Don't worry about project setup.</p>
+    </div>
+    <div class="col-md-4">
+      <h2>Already registered?</h2>
+      <form action="/login" method="post">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" name="username" placeholder="Username" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" name="password" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-default pull-right">Log In &raquo;</button>
+      </form>
+    </div>
+  </div>
+  <div class="row">
+    <h3>Features</h3>
+    <hr>
+    <h4>Full-Javascript Stack</h4>
+    <p>Build your app without wasting time on context switching.  Every layer of the Maki stack is Javascript, from the database (MongoDB) to the server (Node.js) and on to the clientside.</p>
+    <h4>Authentication</h4>
+    <p>We've built authentication into the stack (using PassportJS), including username and password auth, and OAuth using providers like Facebook and Twitter.  Spend your time on your app, not third-party auth.</p>
+  </div>
+  <div class="row">
+    <h3>Documentation</h3>
+    <h4>Resource-Driven Development</h4>
+    <p>You'll start your hand-rolled application by defining the resources your application exposes:</p>
+    <pre><code class="javascript">
+        resource.define({
+            name: 'person'
+          , path: '/people/:personID'
+          , template: 'person'
+          , get: function( id , cb ) {
+              Person.findOne({ _id: id }).exec( cb );
+            }
+        });</code></pre>
+    <p>Almost like magic, <strong>your resource now has an endpoint that renders HTML <em>and</em> serves JSON</strong>.  Even better, AngularJS will automatically wire itself up to this resource.</p>
+    <h4>UI</h4>
+    <p>We're using Bootstrap for our base CSS framework, giving us a generally semantic way of building interface elements.  In addition, we're using Jade to simplify the construction of HTML using simple style rules.</p>
+    <h5>Tooltips</h5>
+    <p>Add <code>.tooltipped</code> to an element to enable automatic generation of a tooltip for that element, defaulting to its <code>title</code> attribute.</p>
+    <p>For example, <code>a.tooltipped(href="/about", title="Learn More about Maki") About</code> will produce: <a href="/about" title="Learn More about Maki" class="tooltipped">About</a></p>
+  </div>
+  <div class="row">
+    <hr>
+  </div>
+{{/contentFor}}

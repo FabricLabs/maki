@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html ng-app="maki">
+  <head>
+    <title>Maki</title>
+    <link rel="stylesheet" href="/css/bootstrap-a1cca4ff39e262922791855fdd32f7ff.css">
+    <link rel="stylesheet" href="/css/font-awesome-144dc74124163c0145f700edf312c8c1.css">
+    <link rel="stylesheet" href="/css/highlight/maki-0e1097601b17f8845270ee2483c21e40.css">
+    <link rel="stylesheet" href="/css/maki-e384595096a0fe9befd9518e17c62e19.css">
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/angular.js"></script>
+    <script src="/js/angular-route.js"></script>
+    <script src="/js/angular-resource.js"></script>
+    <script src="/js/templates.js"></script>
+    <script src="/js/highlight.pack.js"></script>
+    <script src="/js/headroom.min.js"></script>
+    <script>
+      function connectEndpoint() {
+        var path = 'ws://' + window.location.host + window.location.pathname;
+        var socket = new WebSocket( path );
+        socket.onclose = function() {
+          console.log('close, reconnect... ');
+          setTimeout( connectEndpoint , 5000);
+        }
+        socket.onmessage = function(msg) {
+          try {
+            var data = JSON.parse( msg.data );
+          } catch (e) {
+            var data = {};
+          }
+          console.log(data);
+        };
+      }
+      connectEndpoint();
+      
+    </script>
+    <script src="/js/maki.js"></script>
+    <base href="/">
+  </head>
+  <body ng-controller="mainController">
+    {{> navbar}}
+    <div class="container">
+      {{{block "partials/flash"}}}
+      <div ng-view class="content">
+        {{{block "content"}}}
+      </div>
+    </div>
+    <footer>
+      <div class="container">
+        <p><small><a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.</small> <a href="bitcoin:1Ae7wguPTP8Zm3146opVhay4hUS7NiaxYw" alt="B" class="btn btn-default">Donate <i class="fa fa-bitcoin"></i>itcoin &raquo;</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

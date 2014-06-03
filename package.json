@@ -37,6 +37,7 @@
     "express-session": "~1.2.1",
     "asset-rack": "git://github.com/martindale/asset-rack.git#8d03859922d83f4839086b1208ff6aab28a0a272",
     "ws": "~0.4.31",
-    "hbs": "~2.7.0"
+    "hbs": "~2.7.0",
+    "express-hbs": "~0.7.10"
   }
 }

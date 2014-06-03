@@ -78,8 +78,14 @@ var assets = new rack.Rack([
 //console.log( assets.handle );
 app.use( assets.handle );
 
+var hbs = require('express-hbs');
 // jade is the default templating engine.
 app.engine('jade', require('jade').__express);
+app.engine('hbs', hbs.express3({
+  partialsDir: __dirname + '/views/partials',
+  layoutsDir: __dirname + '/views/layouts',
+}));
+app.set('view engine', 'hbs');
 
 // set up middlewares for session handling
 app.use( require('cookie-parser')( config.cookieSecret ) );
@@ -92,7 +98,6 @@ app.use( require('express-session')({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.set('view engine', 'jade');
 
 passport.use(new LocalStrategy( User.authenticate() ) );
 

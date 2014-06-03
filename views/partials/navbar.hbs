@@ -1,0 +1,18 @@
+<div ng-controller="headerController" headroom class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" data-toggle="collapse" data-target=".navbar-collapse" class="navbar-toggle"><span class="sr-only">Toggle Navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Maki</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li ng-class="{ active: isActive('/')}"><a href="/" title="Maki Homepage"><i class="glyphicon glyphicon-home"></i> Home</a></li>
+        <li ng-class="{ active: isActive('/examples')}"><a href="/examples" title="Projects using Maki"><i class="glyphicon glyphicon-leaf"></i> Examples</a></li>
+        <li ng-class="{ active: isActive('/people')}"><a href="/people" title="People on this Maki, an example resource."><i class="glyphicon glyphicon-user"></i> People</a></li>
+        <li ng-class="{ active: isActive('/register') }"><a href="/register">Sign Up &raquo;</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li ng-class="{ active: isActive('/login') }"><a href="/login">Log In</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
