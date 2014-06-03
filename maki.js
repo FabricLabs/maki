@@ -92,7 +92,7 @@ app.use( require('express-session')({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.set('view engine', 'jade');
+app.set('view engine', 'hbs');
 
 passport.use(new LocalStrategy( User.authenticate() ) );
 
