@@ -113,11 +113,6 @@ app.use(function(req, res, next) {
   next();
 });
 
-/* Configure "routes".
-    "routes" are the mappings your browser/client use to 
-    access the logic behind a concept.  Google "REST" to
-    learn more about the principle. */
-
 app.resources = {};
 var resource = {
   define: function( spec ) {
@@ -128,19 +123,17 @@ var resource = {
         throw new Error('"' + prop + '" is required to create an endpoint.');
       }
     });
-    
-    var map = { get: 'get', set: 'put', post: 'post' };
-    ['get', 'set'].forEach(function(method) {
+
+    ['get', 'put', 'post', 'delete'].forEach(function(method) {
       if (spec[ method ]) {
         // bind the function (if defined) in Express
-        app[ map[ method ] ]( spec.path , spec[method] );
+        app[ method ]( spec.path , spec[method] );
         
         // build a map of resource names to their available methods
         if (!app.resources[ spec.name ]) { app.resources[ spec.name ] = spec; }
-        app.resources[ spec.name ][ map[ method ] ] = spec[ method ];
+        app.resources[ spec.name ][ method ] = spec[ method ];
       }
     });
-    
   }
 }
 
