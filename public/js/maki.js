@@ -1,44 +1,16 @@
 var maki = angular.module('maki', ['ngRoute', 'ngResource']);
 maki.config(function($routeProvider, $locationProvider, $resourceProvider) {
   
-  // TODO: populate from endpoints
-  var pages = [
-    {
-        name: 'index'
-      , path: '/'
-      , template: 'index'
-    },
-    {
-        name: 'examples'
-      , path: '/examples'
-      , template: 'examples'
-    },
-    {
-        name: 'people'
-      , path: '/people'
-      , template: 'people'
-    },
-    {
-        name: 'person'
-      , path: '/people/:usernameSlug'
-      , template: 'person'
-    },
-    {
-        name: 'login'
-      , path: '/login'
-      , template: 'login'
-    },
-    {
-        name: 'register'
-      , path: '/register'
-      , template: 'register'
-    },
-    {
-         name: '404'
-       , path: ':path'
-       , template: '404'
+  var pages = [];
+  $.ajax({
+    async: false,
+    url: '/',
+    success: function(data) {
+      pages = data;
     }
-  ];
+  });
+  
+  console.log( pages );
   
   pages.forEach(function(page) {
     $routeProvider.when.apply( this , [ page.path , {

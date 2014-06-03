@@ -13,5 +13,31 @@ module.exports = {
         person: person
       });
     });
+  },
+  // TODO: define a forms class that describes fields
+  forms: {
+      login: function(req, res) {
+        res.render('login');
+      }
+    , register: function(req, res, next) {
+        res.render('register');
+      }
+  },
+  create: function(req, res) {
+    User.register(new User({
+      email : req.body.email,
+      username : req.body.username
+    }), req.body.password, function(err, user) {
+      if (err) {
+        console.log(err);
+        return res.render('register', { user : user });
+      }
+
+      res.redirect('/');
+    });
+  },
+  logout: function(req, res, next) {
+    req.logout();
+    res.redirect('/');
   }
 }

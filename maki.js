@@ -129,11 +129,13 @@ var resource = {
       }
     });
     
-    var map = { get: 'get', set: 'put' };
+    var map = { get: 'get', set: 'put', post: 'post' };
     ['get', 'set'].forEach(function(method) {
       if (spec[ method ]) {
-        app[ map[ method ] ].apply( app , [ spec[ method ] ] );
+        // bind the function (if defined) in Express
+        app[ map[ method ] ]( spec.path , spec[method] );
         
+        // build a map of resource names to their available methods
         if (!app.resources[ spec.name ]) { app.resources[ spec.name ] = spec; }
         app.resources[ spec.name ][ map[ method ] ] = spec[ method ];
       }
@@ -142,63 +144,32 @@ var resource = {
   }
 }
 
-resource.define({
-  name: 'registrationForm',
-  path: '/register',
-  get: function(req, res, next) {
-    res.render('register');
-  }
+var resources = [
+    { name: 'index',            path: '/',                 template: 'index',    get: function(req, res) {
+      res.provide('index', {
+        index: Object.keys( app.resources ).map(function(k) {
+          return app.resources[ k ];
+        })
+      });
+    }}
+  , { name: 'registrationForm', path: '/register',         template: 'register', get: people.forms.register }
+  , { name: 'loginForm',        path: '/login',            template: 'login',    get: people.forms.login }
+  , { name: 'destroySession' ,  path: '/logout' ,          template: 'index',    get: people.logout }
+  , { name: 'people',           path: '/people',           template: 'people',   get: people.list , post: people.create }
+  , { name: 'person',           path: '/people/:personID', template: 'person',   get: people.view }
+  , { name: 'examples',         path: '/examples' ,        template: 'examples', get: pages.examples }
+];
+
+resources.forEach(function(r) {
+  resource.define( r );
 });
 
-app.get('/login', function(req, res) {
-  res.render('login');
-});
-
-/* when a POST request is made to '/register'... */
-app.post('/register', function(req, res) {
-  User.register(new User({
-    email : req.body.email,
-    username : req.body.username
-  }), req.body.password, function(err, user) {
-    if (err) {
-      console.log(err);
-      return res.render('register', { user : user });
-    }
-
-    res.redirect('/');
-  });
-});
-
+// TODO: build a middleware chain for resources
 app.post('/login', passport.authenticate('local'), function(req, res) {
   res.redirect('/');
 });
 
-app.get('/logout', function(req, res, next) {
-  req.logout();
-  res.redirect('/');
-});
-
-app.get('/examples',             pages.examples );
-app.get('/people',               people.list );
-app.get('/people/:usernameSlug', people.view );
-
-/* the first route we'll configure is our front page. :) */
-/* this means: when a GET request is issued to (yourapp)/,
-    ...execute a function with the [req]uest, [res]ponse, and
-    the [next] function. */
-app.get('/', function(req, res) {
-
-  /* in this function, render the index template, 
-     using the [res]ponse. */
-  res.provide('index', {
-    index: app.resources
-    /*/index: app._router.stack.filter(function(x) {
-      return x.route && x.route.methods.get;
-    })/**/
-  });
-
-});
-
+// catch-all route (404)
 app.get('*', function(req, res) {
   res.status(404).render('404');
 });
