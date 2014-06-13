@@ -9,21 +9,22 @@
       a.navbar-brand(href="/") Maki
     .navbar-collapse.collapse
       ul.nav.navbar-nav
-        li(ng-class="{ active: isActive('/')}")
-          a(href="/", title="Maki Homepage")
-            i.glyphicon.glyphicon-home
-            |  Home
-        li(ng-class="{ active: isActive('/examples')}")
-          a(href="/examples", title="Projects using Maki")
-            i.glyphicon.glyphicon-leaf
-            |  Examples
-        li(ng-class="{ active: isActive('/people')}")
-          a(href="/people", title="People on this Maki, an example resource.")
-            i.glyphicon.glyphicon-user
-            |  People
-        if (!user)
-          li(ng-class="{ active: isActive('/register') }")
-            a(href="/register") Sign Up &raquo;
+        block mainMenu
+          li(ng-class="{ active: isActive('/')}")
+            a(href="/", title="Maki Homepage")
+              i.glyphicon.glyphicon-home
+              |  Home
+          li(ng-class="{ active: isActive('/examples')}")
+            a(href="/examples", title="Projects using Maki")
+              i.glyphicon.glyphicon-leaf
+              |  Examples
+          li(ng-class="{ active: isActive('/people')}")
+            a(href="/people", title="People on this Maki, an example resource.")
+              i.glyphicon.glyphicon-user
+              |  People
+          if (!user)
+            li(ng-class="{ active: isActive('/register') }")
+              a(href="/register") Sign Up &raquo;
 
       ul.nav.navbar-nav.navbar-right
         if (user)
