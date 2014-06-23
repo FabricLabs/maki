@@ -38,5 +38,10 @@ Maki is meant to be understood without context or documentation, and as such the
     └── partials   # composable elements to be included with a single view
 ```
 
+## Recommended Deployment
+I use [pm2](https://github.com/unitech/pm2) to manage node apps in production, and I strongly recommend you do, too.  It's got awesome features like log management, process clustering, and automatic startup scripts.
+
+Use environment variables for configuration.
+
 ## Spirit
 Please feel free to submit changes to this repo via pull requests!  We're trying to keep this as general and flexible as possible, so anyone can take the project and run with it.
