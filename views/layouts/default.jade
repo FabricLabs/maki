@@ -40,20 +40,21 @@ html(ng-app="maki")
     base(href="/")
 
   body(ng-controller="mainController")
-    block navbar
-      include ../partials/navbar
-    
-    .container
-      include ../partials/flash
+    .container-full
+      .col-lg-12
+        block navbar
+          include ../partials/navbar
+      
+      .col-lg-12
+        include ../partials/flash
+        .content(ng-view)
+          block content
 
-      .content(ng-view)
-        block content
-
-    footer
-      .container
-        p
-          small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
-          |  
-          a(class="btn btn-default", href="bitcoin:1Ae7wguPTP8Zm3146opVhay4hUS7NiaxYw", alt="B") Donate 
-            i.fa.fa-bitcoin
-            | itcoin &raquo;
+      .col-lg-12
+        footer
+          p
+            small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
+            |  
+            a(class="btn btn-default", href="bitcoin:1Ae7wguPTP8Zm3146opVhay4hUS7NiaxYw", alt="B") Donate 
+              i.fa.fa-bitcoin
+              | itcoin &raquo;
