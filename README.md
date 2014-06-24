@@ -7,6 +7,66 @@ Maki is a framework for hand-rolling web applications in a way that makes sense.
 - **Client-Responsiveness.**  Don't rely on user-agents or referers, but instead respond to what the client supports.  Make a request that only accepts JSON?  Get JSON back.  Accept HTML?  Get HTML back.
 - **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript _is_ available, a performant and well-designed client-side application takes over to eliminate full-page loads.
 
+### Definitions
+In general, we'll be using the proper noun form of these definitions when referring to them explicitly.
+
+- **Application:** the executable process that binds Resources and their associated Models, Controllers, and Views into a deliverable Service.
+- **Resource:** the abstract concept of an interactive object.  For example, a "user" of a website is a Resource, and can be interacted with; created (registered), listed (page displaying a list of users), and viewed (profile page).  Resources generally expose one or more identifiers, or Uniform Resource Identifiers (URI).
+- **Model:** the abstract class that exposes a Resource's Schema and associated validators, methods, and statics.
+- **Controller:** the code associated with specific interactions on a Resource and the behavior of the Application.
+- **View:** logic and template for displaying a specific Resource.  This generally contains logic and is dependent on context.  
+
+## Resource-Driven Development (RDD)
+Generally, programming web applications involves writing logic around a series of Resources to control their behavior and deliver an experience with the application's "Scope".  Maki aims to _start_ with that mental model of your application's "Scope", allow you to **hand-roll** (get it?) extensions (read: add business logic) to that mental model, and then deliver that model as a Service.
+
+**Example Maki Application**
+```javascript
+var app  = require('express')();
+var maki = require('maki')( app );
+
+resource.define({
+    name: 'Person'
+  , path: '/people'
+  , template: 'people'
+  , get: maki.controllers.people.list // defined in ./controllers/people and injected by Maki
+});
+
+maki.start();
+```
+That's it.  That's all you need.  A `GET` request to `/people` will now provide a list of people:
+
+```
+> curl http://localhost:9200/people
+[{"slug": "martindale", "username": "martindale"}]
+```
+Requesting an HTML version of that Resource will give you exactly that:
+```
+> curl -H "Accept: text/html" http://localhost:9200/people
+<!DOCTYPE html>
+<html ng-app="maki">
+...
+```
+
+### Dependency Injection
+Often, a single Resource we need other Resources to be contextualized into a View.  For example, viewing a "Person" (viewing a profile page) may require collecting a list of "Projects" (another resource, a subcollection of documents _owned_ by a Person), but the JSON representation of that View is not an accurate representation of the Resource.  For this case, _only_ the HTML context of the View will collect the necessary dependencies.
+
+**person.jade**
+```jade
+extends layouts/default
+
+block content
+
+  h1 #{person.name}
+  
+  h2 Projects
+  ul
+    each project in projects
+      include partials/project
+  
+```
+
+This will allow Maki to collect the "projects" Resource as a subcollection of the Person Resource, or more specifically, only within this View.  The JSON View will _not_ collect Projects, and subsequently spare [precious] server time.
+
 ## Instructions
 You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to run this application.  Installing these is out-of-scope, and instructions are contained on the links to the left.
 
