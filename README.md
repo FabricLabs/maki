@@ -101,9 +101,38 @@ Maki is meant to be understood without context or documentation, and as such the
 We use NPM for package management, exclusively.  You will see in the above folder that `node_modules` is not present; that's because you should consider it ephemeral and **never touch it**.  Let NPM do what it does best: manage packages.
 
 ## Recommended Deployment
-I use [pm2](https://github.com/unitech/pm2) to manage node apps in production, and I strongly recommend you do, too.  It's got awesome features like log management, process clustering, and automatic startup scripts.
+I use [pm2](https://github.com/unitech/pm2) (`npm install pm2 -g`) to manage node apps in production, and I strongly recommend you do, too.  It's got awesome features like log management, process clustering, and automatic startup scripts.
 
-Use environment variables for configuration.
+For Maki by itself, `pm2 start maki.js` will produce the following:
+```bash
+> pm2 start maki.js 
+PM2 Process launched
+┌──────────┬────┬─────────┬───────┬────────┬───────────┬────────┬─────────────┬─────────────┐
+│ App name │ id │ mode    │ PID   │ status │ restarted │ uptime │      memory │    watching │
+├──────────┼────┼─────────┼───────┼────────┼───────────┼────────┼─────────────┼─────────────┤
+│ maki     │ 0  │ cluster │ 93966 │ online │         0 │ 0s     │ 25.652 MB   │ unactivated │
+└──────────┴────┴─────────┴───────┴────────┴───────────┴────────┴─────────────┴─────────────┘
+ Use `pm2 desc[ribe] <id>` to get more details
+```
+
+You can check on running processes using `pm2 ls`.  For example, on a server with multiple running services:
+```bash
+> pm2 ls
+┌────────────┬────┬─────────┬───────┬────────┬───────────┬────────┬──────────────┬─────────────┐
+│ App name   │ id │ mode    │ PID   │ status │ restarted │ uptime │       memory │    watching │
+├────────────┼────┼─────────┼───────┼────────┼───────────┼────────┼──────────────┼─────────────┤
+│ para       │ 0  │ cluster │ 21140 │ online │         0 │ 14d    │  69.734 MB   │ unactivated │
+│ worker     │ 1  │ cluster │ 21142 │ online │         0 │ 14d    │  83.996 MB   │ unactivated │
+│ bot        │ 2  │ cluster │ 21223 │ online │         1 │ 14d    │ 115.543 MB   │ unactivated │
+│ maki       │ 3  │ cluster │ 21154 │ online │         0 │ 14d    │  92.676 MB   │ unactivated │
+│ soundtrack │ 4  │ cluster │ 32655 │ online │         3 │ 18h    │ 324.176 MB   │ unactivated │
+└────────────┴────┴─────────┴───────┴────────┴───────────┴────────┴──────────────┴─────────────┘
+ Use `pm2 desc[ribe] <id>` to get more details
+```
+
+For production monitoring, see also `pm2 monit`, `vtop` (available via `npm install vtop -g`), and [StrongLoop](http://strongloop.com/).
+
+Use environment variables for configuration.  See `config/index.js` for a list of configurable values.
 
 ## Spirit
 Please feel free to submit changes to this repo via pull requests!  We're trying to keep this as general and flexible as possible, so anyone can take the project and run with it.
