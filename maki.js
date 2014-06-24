@@ -29,12 +29,12 @@ wss.on('connection', function(ws) {
 /* Models represent the data your application keeps. */
 /* You'll need at least the User model if you want to 
 	allow users to login */
-User = People = require('./models/User').User;
-//Thing   = require('./models/Thing').Thing;
+User = People = require('./app/models/User').User;
+//Thing   = require('./app/models/Thing').Thing;
 
 // set up controlers for various resources
-pages    = require('./controllers/pages');
-people   = require('./controllers/people');
+pages    = require('./app/controllers/pages');
+people   = require('./app/controllers/people');
 
 // common utilities
 _     = require('underscore');
@@ -46,7 +46,7 @@ app.locals.pretty = true;
 var assets = new rack.Rack([
   new rack.JadeAsset({
       url: '/js/templates.js',
-      dirname: './views',
+      dirname: './app/views',
       // strip out layouts (we don't want them)
       beforeCompile: function( input ) {
         return input.replace(/extends (.*)\n/, '');
@@ -93,6 +93,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.set('view engine', 'jade');
+app.set('views', __dirname + '/app/views' );
 
 passport.use(new LocalStrategy( User.authenticate() ) );
 
