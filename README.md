@@ -97,6 +97,9 @@ Maki is meant to be understood without context or documentation, and as such the
 └── tests           # Tests.  Write them.
 ```
 
+### NPM
+We use NPM for package management, exclusively.  You will see in the above folder that `node_modules` is not present; that's because you should consider it ephemeral and **never touch it**.  Let NPM do what it does best: manage packages.
+
 ## Recommended Deployment
 I use [pm2](https://github.com/unitech/pm2) to manage node apps in production, and I strongly recommend you do, too.  It's got awesome features like log management, process clustering, and automatic startup scripts.
 
