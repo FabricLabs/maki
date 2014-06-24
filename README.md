@@ -76,7 +76,7 @@ You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to ru
 
 You'll now, by default, have a web application running at http://localhost:9200 -- you can edit the port by changing config.js.
 
-## Directory Structure
+## Default Directory Structure
 Maki is meant to be understood without context or documentation, and as such the directory structure [and the code itself, for that matter] _should_ be fairly self-explanatory.  Nevertheless, here's an explicit declaration for each of the default folders and their intended use.
 ```bash
 .

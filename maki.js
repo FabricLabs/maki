@@ -2,6 +2,16 @@ var http = require('http');
 var app = require('express')();
 var server = http.createServer(app);
 
+var rack     = require('asset-rack'); // minification / concatenation of assets
+var mongoose = require('mongoose');   // manage 
+var flashify = require('flashify');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+var passportLocalMongoose = require('passport-local-mongoose');
+
+var config = require('./config');
+var database = require('./db');
+
 // TODO: bind this to redis / other pubsub arch
 var WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({
@@ -15,17 +25,6 @@ wss.on('connection', function(ws) {
   });
   ws.send( JSON.stringify({ hello: ws.upgradeReq.url }) );
 });
-
-var rack = require('asset-rack');
-
-var mongoose = require('mongoose');
-var flashify = require('flashify');
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
-var passportLocalMongoose = require('passport-local-mongoose');
-
-var config = require('./config');
-var database = require('./db');
 
 /* Models represent the data your application keeps. */
 /* You'll need at least the User model if you want to 
