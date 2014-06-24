@@ -82,10 +82,10 @@ app.use( assets.handle );
 app.engine('jade', require('jade').__express);
 
 // set up middlewares for session handling
-app.use( require('cookie-parser')( config.cookieSecret ) );
+app.use( require('cookie-parser')( config.sessions.secret ) );
 app.use( require('body-parser')() );
 app.use( require('express-session')({
-  secret: config.cookieSecret
+  secret: config.sessions.secret
 }));
 
 /* Configure the registration and login system */
@@ -171,6 +171,6 @@ app.get('*', function(req, res) {
   res.status(404).render('404');
 });
 
-server.listen( config.appPort , function() {
-  console.log('Demo application is now listening on http://localhost:' + config.appPort + ' ...');
+server.listen( config.services.http.port , function() {
+  console.log('Demo application is now listening on http://localhost:' + config.services.http.port + ' ...');
 });
