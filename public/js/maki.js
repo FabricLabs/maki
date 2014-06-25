@@ -59,6 +59,11 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
         return Templates[ page.template ]( obj );
       }
     } ] );
+    $routeProvider.otherwise({
+      template: function() {
+        return Templates['404']();
+      }
+    });
   });
 
   // use the HTML5 History API
