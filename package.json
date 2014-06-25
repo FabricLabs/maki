@@ -39,7 +39,9 @@
     "ws": "~0.4.31",
     "hbs": "~2.7.0",
     "provide": "~0.1.1",
-    "path-to-regexp": "~0.2.1"
+    "path-to-regexp": "~0.2.1",
+    "redis": "~0.10.3",
+    "connect-redis": "~2.0.0"
   },
   "devDependencies": {
     "assert": "~1.1.1",

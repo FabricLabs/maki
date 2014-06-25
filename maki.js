@@ -77,11 +77,19 @@ app.engine('jade', require('jade').__express);
 app.set('view engine', 'jade');
 app.set('views', __dirname + '/app/views' );
 
+var redis = require('redis');
+var redisClient = redis.createClient( config.redis.port , config.redis.host );
+var session = require('express-session');
+var RedisStore = require('connect-redis')( session );
+
 // set up middlewares for session handling
 app.use( require('cookie-parser')( config.sessions.secret ) );
 app.use( require('body-parser')() );
-app.use( require('express-session')({
-  secret: config.sessions.secret
+app.use( session({
+    store: new RedisStore({
+      client: redisClient
+    })
+  , secret: config.sessions.secret
 }));
 
 /* Configure the registration and login system */

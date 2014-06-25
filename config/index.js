@@ -17,6 +17,10 @@ module.exports = {
       enabled: process.env.MAKI_SESSIONS_ENABLE || true
     , secret:  process.env.MAKI_SESSIONS_SECRET || 'this can be any random string, you can even use this one. :)'
   },
+  redis: {
+      host: process.env.MAKI_REDIS_HOST || 'localhost'
+    , port: process.env.MAKI_REDIS_PORT || 6379
+  },
   auth: {
     local: {
       enabled: true
