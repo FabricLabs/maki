@@ -11,6 +11,7 @@ module.exports = {
   },
   database: {
       name: process.env.MAKI_DATABASE_NAME || 'maki'
+    , uri:  process.env.MAKI_DATABASE_URI  || 'localhost' 
   },
   sessions: {
       enabled: process.env.MAKI_SESSIONS_ENABLE || true
