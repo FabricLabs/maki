@@ -156,6 +156,13 @@ var resources = [
   , { name: 'people',           path: '/people',             template: 'people',   get: people.list , post: people.create }
   , { name: 'person',           path: '/people/:personSlug', template: 'person',   get: people.view }
   , { name: 'examples',         path: '/examples' ,          template: 'examples', get: pages.examples }
+  , { name: 'slow',             path: '/slow' ,          template: 'index', get: function(req, res, next) {
+    setTimeout(function() {
+      res.provide('index', {
+        slow: 'foo'
+      });
+    }, 1500)
+  } }
 ];
 
 resources.forEach(function(r) {

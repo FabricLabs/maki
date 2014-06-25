@@ -22,6 +22,10 @@
             a(href="/people", title="People on this Maki, an example resource.")
               i.glyphicon.glyphicon-user
               |  People
+          li(ng-class="{ active: isActive('/slow')}")
+            a(href="/slow", title="A slow page...")
+              i.glyphicon.glyphicon-clock
+              |  Slow
           if (!user)
             li(ng-class="{ active: isActive('/register') }")
               a(href="/register") Sign Up &raquo;

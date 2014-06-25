@@ -1,6 +1,11 @@
 // stub for a proper class
 var maki = {
-    angular: angular.module('maki', ['ngRoute', 'ngResource'])
+    angular: angular.module('maki', [
+        'ngRoute'
+      , 'ngResource'
+      , 'angular-loading-bar'
+      , 'ngAnimate'
+    ])
   , socket: null
   , sockets: {
       connect: function() {
@@ -64,7 +69,9 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
   // use the HTML5 History API
   $locationProvider.html5Mode(true);
 
-});
+}).config(['cfpLoadingBarProvider', function(cfpLoadingBarProvider) {
+  cfpLoadingBarProvider.includeSpinner = false;
+}]);
 
 maki.angular.controller('mainController', function( $scope ) {
   $scope.$on('$locationChangeSuccess', function(event) {

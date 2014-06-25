@@ -1,10 +1,11 @@
 doctype html
-html(ng-app="maki")
+html
   head
     title Maki
 
     link(rel="stylesheet", href="#{assets.url('/css/bootstrap.css')}")
     link(rel="stylesheet", href="#{assets.url('/css/font-awesome.css')}")
+    link(rel="stylesheet", href="#{assets.url('/css/loading-bar.css')}")
     link(rel="stylesheet", href="#{assets.url('/css/highlight/maki.css')}")
     link(rel="stylesheet", href="#{assets.url('/css/maki.css')}")
 
@@ -13,6 +14,8 @@ html(ng-app="maki")
     script(src="/js/angular.js")
     script(src="/js/angular-route.js")
     script(src="/js/angular-resource.js")
+    script(src="/js/angular-animate.js")
+    script(src="/js/loading-bar.min.js")
     script(src="/js/templates.js")
     script(src="/js/highlight.pack.js")
     script(src="/js/headroom.min.js")
@@ -21,14 +24,14 @@ html(ng-app="maki")
 
     base(href="/")
 
-  body(ng-controller="mainController")
+  body(ng-app="maki", ng-controller="mainController")
     block navbar
       include ../partials/navbar
     
     .container
       include ../partials/flash
 
-      .content(ng-view)
+      .content.slide(ng-view)
         block content
 
     footer
