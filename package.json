@@ -4,7 +4,7 @@
   "description": "Framework for hand-rolling web applications.",
   "main": "maki.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -37,6 +37,12 @@
     "express-session": "~1.2.1",
     "asset-rack": "git://github.com/martindale/asset-rack.git#8d03859922d83f4839086b1208ff6aab28a0a272",
     "ws": "~0.4.31",
-    "hbs": "~2.7.0"
+    "hbs": "~2.7.0",
+    "provide": "~0.1.1"
+  },
+  "devDependencies": {
+    "assert": "~1.1.1",
+    "supertest": "~0.13.0",
+    "mocha": "~1.20.1"
   }
 }

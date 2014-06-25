@@ -102,17 +102,11 @@ passport.deserializeUser( User.deserializeUser() );
 
 /* configure some local variables for use later */
 app.use(function(req, res, next) {
+  // set a user context (from passport)
   res.locals.user = req.user;
-  
-  res.provide = function( template , data ) {
-    res.format({
-      json: function() { res.send( data[ template ] ); },
-      html: function() { res.render( template , data ); }
-    });
-  }
-
   next();
 });
+app.use( require('provide') );
 
 app.resources = {};
 var resource = {
