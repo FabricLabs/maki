@@ -14,7 +14,8 @@ In general, we'll be using the proper noun form of these definitions when referr
 - **Resource:** the abstract concept of an interactive object.  For example, a "user" of a website is a Resource, and can be interacted with; created (registered), listed (page displaying a list of users), and viewed (profile page).  Resources generally expose one or more identifiers, or Uniform Resource Identifiers (URI).
 - **Model:** the abstract class that exposes a Resource's Schema and associated validators, methods, and statics.
 - **Controller:** the code associated with specific interactions on a Resource and the behavior of the Application.
-- **View:** logic and template for displaying a specific Resource.  This generally contains logic and is dependent on context.  
+- **View:** logic and template for displaying a specific Resource.  This generally contains logic and is dependent on context.
+- **Service:** the offering of your app / website / api via various protocols (HTTP, WebSockets, gopher, etc.)
 
 ## Resource-Driven Development (RDD)
 Generally, programming web applications involves writing logic around a series of Resources to control their behavior and deliver an experience with the application's "Scope".  Maki aims to _start_ with that mental model of your application's "Scope", allow you to **hand-roll** (get it?) extensions (read: add business logic) to that mental model, and then deliver that model as a Service.

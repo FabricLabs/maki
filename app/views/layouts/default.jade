@@ -16,24 +16,6 @@ html(ng-app="maki")
     script(src="/js/templates.js")
     script(src="/js/highlight.pack.js")
     script(src="/js/headroom.min.js")
-    script.
-      function connectEndpoint() {
-        var path = 'ws://' + window.location.host + window.location.pathname;
-        var socket = new WebSocket( path );
-        socket.onclose = function() {
-          console.log('close, reconnect... ');
-          setTimeout( connectEndpoint , 5000);
-        }
-        socket.onmessage = function(msg) {
-          try {
-            var data = JSON.parse( msg.data );
-          } catch (e) {
-            var data = {};
-          }
-          console.log(data);
-        };
-      }
-      connectEndpoint();
     
     script(src="/js/maki.js")
 

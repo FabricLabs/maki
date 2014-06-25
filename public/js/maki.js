@@ -1,5 +1,36 @@
-var maki = angular.module('maki', ['ngRoute', 'ngResource']);
-maki.config(function($routeProvider, $locationProvider, $resourceProvider) {
+// stub for a proper class
+var maki = {
+    angular: angular.module('maki', ['ngRoute', 'ngResource'])
+  , socket: null
+  , sockets: {
+      connect: function() {
+        if (maki.socket) {
+          maki.socket.onclose = null;
+          maki.socket.onmessage = null;
+          maki.socket = null;
+        }
+        
+        var path = 'ws://' + window.location.host + window.location.pathname;
+        maki.socket = new WebSocket( path );
+        maki.socket.onclose = function onClose() {
+          console.log('close, reconnect... ');
+          // TODO: randomize reconnection timeout buffer
+          // TODO: back-off over multiple attempts (e.g., 1s, 5s, 30s...)
+          setTimeout( maki.sockets.connect , 5000);
+        };
+        maki.socket.onmessage = function onMessage(msg) {
+          try {
+            var data = JSON.parse( msg.data );
+          } catch (e) {
+            var data = {};
+          }
+          console.log(data);
+        };
+      }
+    }
+};
+
+maki.angular.config(function($routeProvider, $locationProvider, $resourceProvider) {
   
   var pages = [];
   $.ajax({
@@ -9,8 +40,6 @@ maki.config(function($routeProvider, $locationProvider, $resourceProvider) {
       pages = data;
     }
   });
-  
-  console.log( pages );
   
   pages.forEach(function(page) {
     $routeProvider.when.apply( this , [ page.path , {
@@ -24,6 +53,9 @@ maki.config(function($routeProvider, $locationProvider, $resourceProvider) {
             }
           , async: false
         });
+        
+        // TODO: subscribe
+        
         return Templates[ page.template ]( obj );
       }
     } ] );
@@ -34,8 +66,10 @@ maki.config(function($routeProvider, $locationProvider, $resourceProvider) {
 
 });
 
-maki.controller('mainController', function( $scope ) {
-
+maki.angular.controller('mainController', function( $scope ) {
+  $scope.$on('$locationChangeSuccess', function(event) {
+    maki.sockets.connect();
+  });
 }).directive('tooltipped', function() {
   return {
       restrict: 'C'
@@ -75,7 +109,7 @@ maki.controller('mainController', function( $scope ) {
     }
   };
 });
-maki.controller('headerController', function( $scope , $location ) {
+maki.angular.controller('headerController', function( $scope , $location ) {
   $scope.isActive = function (viewLocation) {
     return viewLocation === $location.path();
   };

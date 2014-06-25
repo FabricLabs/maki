@@ -2,6 +2,7 @@ var http = require('http');
 var app = require('express')();
 var server = http.createServer(app);
 
+// frameworks
 var rack     = require('asset-rack'); // minification / concatenation of assets
 var mongoose = require('mongoose');   // manage 
 var flashify = require('flashify');
@@ -9,22 +10,12 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var passportLocalMongoose = require('passport-local-mongoose');
 
+// utility
+var pathToRegex = require('path-to-regexp');
+
+// config
 var config = require('./config');
 var database = require('./db');
-
-// TODO: bind this to redis / other pubsub arch
-var WebSocketServer = require('ws').Server;
-var wss = new WebSocketServer({
-  server: server
-});
-wss.on('connection', function(ws) {
-  console.log('routable websocket!', ws.upgradeReq.url);
-  ws.on('message', function(message) {
-    console.log('received: %s', message);
-    ws.send({ foo: message });
-  });
-  ws.send( JSON.stringify({ hello: ws.upgradeReq.url }) );
-});
 
 /* Models represent the data your application keeps. */
 /* You'll need at least the User model if you want to 
@@ -40,9 +31,13 @@ people   = require('./app/controllers/people');
 _     = require('underscore');
 async = require('async');
 
+var Maki = require('./lib/Maki');
+var maki = new Maki( app );
+
 // make the HTML output readible, for designers. :)
 app.locals.pretty = true;
 
+/* use AssetRack to minify and cache static objects */
 var assets = new rack.Rack([
   new rack.JadeAsset({
       url: '/js/templates.js',
@@ -58,15 +53,15 @@ var assets = new rack.Rack([
   }),
   new rack.LessAsset({
     url: '/css/bootstrap.css',
-    filename: __dirname + '/private/css/bootstrap.less'
+    filename: __dirname + '/private/less/bootstrap.less'
   }),
   new rack.LessAsset({
     url: '/css/font-awesome.css',
-    filename: __dirname + '/private/css/fontawesome/font-awesome.less'
+    filename: __dirname + '/private/less/fontawesome/font-awesome.less'
   }),
   new rack.LessAsset({
     url: '/css/maki.css',
-    filename: __dirname + '/private/css/maki.less'
+    filename: __dirname + '/private/less/maki.less'
   }),
   /*/new rack.DynamicAssets({
     type: rack.LessAsset,
@@ -74,12 +69,13 @@ var assets = new rack.Rack([
     dirname: __dirname + '/private/css'
   })/**/
 ]);
-
-//console.log( assets.handle );
 app.use( assets.handle );
 
 // jade is the default templating engine.
 app.engine('jade', require('jade').__express);
+/* configure the application to use jade, with a specified path for views */
+app.set('view engine', 'jade');
+app.set('views', __dirname + '/app/views' );
 
 // set up middlewares for session handling
 app.use( require('cookie-parser')( config.sessions.secret ) );
@@ -92,9 +88,7 @@ app.use( require('express-session')({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.set('view engine', 'jade');
-app.set('views', __dirname + '/app/views' );
-
+/* enable "local" login (e.g., username and password) */
 passport.use(new LocalStrategy( User.authenticate() ) );
 
 passport.serializeUser( User.serializeUser() );
@@ -111,9 +105,8 @@ app.use( require('provide') );
 app.resources = {};
 var resource = {
   define: function( spec ) {
-    var required = ['name', 'path'];
-
-    required.forEach(function(prop) {
+    /* define required fields */
+    ['name', 'path'].forEach(function(prop) {
       if (!spec[prop]) {
         throw new Error('"' + prop + '" is required to create an endpoint.');
       }
@@ -121,12 +114,17 @@ var resource = {
 
     ['get', 'put', 'post', 'delete'].forEach(function(method) {
       if (spec[ method ]) {
+        
         // bind the function (if defined) in Express
         app[ method ]( spec.path , spec[method] );
+        
+        // build a regex for later pattern matching (mainly websockets)
+        spec.regex = pathToRegex( spec.path );
         
         // build a map of resource names to their available methods
         if (!app.resources[ spec.name ]) { app.resources[ spec.name ] = spec; }
         app.resources[ spec.name ][ method ] = spec[ method ];
+
       }
     });
   }
@@ -164,6 +162,27 @@ app.post('/login', passport.authenticate('local'), function(req, res) {
 // catch-all route (404)
 app.get('*', function(req, res) {
   res.status(404).render('404');
+});
+
+// prepare the websocket server
+var WebSocketServer = require('ws').Server;
+var wss = new WebSocketServer({
+  server: server
+});
+// TODO: bind this to redis / other pubsub arch
+wss.on('connection', function(ws) {
+  // determine appropriate resource / handler
+  for (var name in app.resources) {
+    var resource = app.resources[ name ];
+    // test if this resource should handle the request...
+    if ( resource.regex.test( ws.upgradeReq.url ) ) {
+      console.log('socket to be handled by resource: ' , resource.name );
+      // TODO: sub with redis
+      return; // exit the 'connection' handler
+      break;
+    }
+  }
+  console.log('none');
 });
 
 server.listen( config.services.http.port , function() {
