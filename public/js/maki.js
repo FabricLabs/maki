@@ -35,6 +35,7 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
   var pages = [];
   $.ajax({
     async: false,
+    type: 'OPTIONS',
     url: '/',
     success: function(data) {
       pages = data;
@@ -46,6 +47,7 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
       template: function( params ) {
         var self = this;
         var obj = {};
+
         $.ajax({
             url: self.location
           , success: function( results ) {

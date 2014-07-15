@@ -139,17 +139,7 @@ var resource = {
 }
 
 var resources = [
-    {
-      name: 'index',
-      path: '/',
-      template: 'index',
-      get: function(req, res) {
-        res.provide('index', {
-          index: Object.keys( app.resources ).map(function(k) {
-            return app.resources[ k ];
-          })
-        });
-      }}  
+    { name: 'index',            path: '/',                   template: 'index',    get: pages.index }
   , { name: 'registrationForm', path: '/register',           template: 'register', get: people.forms.register }
   , { name: 'loginForm',        path: '/login',              template: 'login',    get: people.forms.login }
   , { name: 'destroySession' ,  path: '/logout' ,            template: 'index',    get: people.logout }
@@ -157,6 +147,16 @@ var resources = [
   , { name: 'person',           path: '/people/:personSlug', template: 'person',   get: people.view }
   , { name: 'examples',         path: '/examples' ,          template: 'examples', get: pages.examples }
 ];
+
+app.all('/', function(req, res, next) {
+  if ('OPTIONS' === req.method) {
+    var resourceList = Object.keys( app.resources ).map(function(k) {
+      return app.resources[ k ];
+    });
+    return res.send( resourceList );
+  }
+  next();
+});
 
 resources.forEach(function(r) {
   resource.define( r );
@@ -194,5 +194,5 @@ wss.on('connection', function(ws) {
 });
 
 server.listen( config.services.http.port , function() {
-  console.log('Demo application is now listening on http://localhost:' + config.services.http.port + ' ...');
+  console.log('listening http://localhost:' + config.services.http.port + ' ...');
 });
