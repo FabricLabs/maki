@@ -4,14 +4,18 @@ var maki = {
   , socket: null
   , sockets: {
       disconnect: function() {
-        maki.socket.onclose = null;
-        maki.socket.onmessage = null;
-        maki.socket = null;
+        if (maki.socket) {
+          // unbind onclose, onmessage
+          maki.socket.onclose = null;
+          maki.socket.onmessage = null;
+
+          // must happen after onclose event is unbound
+          maki.socket.close();
+          maki.socket = null;
+        }
       },
       connect: function() {
-        if (maki.socket) {
-          maki.sockets.disconnect();
-        }
+        maki.sockets.disconnect();
 
         var retryTimes = [1000, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000]; //in ms
         var retryIndex = 0;
@@ -100,9 +104,9 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
 
 maki.angular.controller('mainController', function( $scope ) {
   // TODO: use pubsub
-  /*/$scope.$on('$locationChangeStart', function(event) {
-    maki.sockets.connect();
-  });/**/
+  $scope.$on('$locationChangeStart', function(event) {
+    maki.sockets.disconnect();
+  });
   $scope.$on('$locationChangeSuccess', function(event) {
     maki.sockets.connect();
   });
