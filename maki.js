@@ -110,7 +110,11 @@ app.use(function(req, res, next) {
 });
 app.use( require('provide') );
 
+// configure top-level maps
+app.clients = {};
 app.resources = {};
+
+// stub for resources
 var resource = {
   define: function( spec ) {
     /* define required fields */
@@ -185,14 +189,98 @@ wss.on('connection', function(ws) {
     // test if this resource should handle the request...
     if ( resource.regex.test( ws.upgradeReq.url ) ) {
       console.log('socket to be handled by resource: ' , resource.name );
-      // TODO: sub with redis
+
+      // make a mess
+      ws.pongTime = (new Date()).getTime();
+
+      // unique identifier for our mess
+      ws.id = ws.upgradeReq.headers['sec-websocket-key'];
+      app.clients[ ws.id ] = ws;
+
+      // cleanup our mess
+      ws.on('close', function() {
+        console.log('got a close event for ', ws.upgradeReq.headers['sec-websocket-key'] );
+        delete app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ];
+      });
+
+      // handle events, mainly pongs
+      ws.on('message', function(msg) {
+        try {
+          var data = JSON.parse( msg );
+        } catch (e) {
+          var data = {};
+        }
+
+        // experimental JSON-RPC implementation
+        console.log(data);
+        if (data.jsonrpc === '2.0') {
+          if (data.result === 'pong') {
+            ws.pongTime = (new Date()).getTime();
+          }
+
+          switch( data.method ) {
+            case 'subscribe':
+              console.log('subscribe event', data.params);
+            break;
+          }
+        }
+      });
+
       return; // exit the 'connection' handler
-      break;
+      break; // break the loop
     }
   }
-  console.log('none');
+  console.log('unhandled socket upgrade' , ws.upgradeReq.url );
 });
 
+var uuid = require('node-uuid');
+var jsonRPC = function( method , params ) {
+  this._method = method;
+  this._params = params;
+}
+jsonRPC.prototype.toJSON = function() {
+  var self = this;
+  return JSON.stringify({
+    'jsonrpc': '2.0',
+    'method': self._method,
+    'params': self._params,
+    'id': uuid.v1()
+  });
+}
+
+wss.forEachClient = function(fn) {
+  var self = this;
+  for (var i in this.clients) {
+    fn( this.clients[ i ] , i );
+  }
+}
+wss.markAndSweep = function() {
+  var message = new jsonRPC('ping');
+  wss.broadcast( message.toJSON() );
+
+  var now = (new Date()).getTime();
+  this.forEachClient(function( client , id ) {
+    // if the last pong from this client is less than the timeout,
+    // emit a close event and let the handler clean up after us.
+    if (client.pongTime < now - config.sockets.timeout) {
+      //console.log('would normally emit a close event here', client.id , client.pongTime , now - config.sockets.timeout );
+      client.emit('close');
+    }
+  });
+}
+wss.broadcast = function(data) {
+  for (var i in this.clients) {
+    this.clients[ i ].send( data );
+  }
+};
+
+// clean up clients
+setInterval(function() {
+  console.log( 'connected websockets: ' , Object.keys(app.clients) );
+  wss.markAndSweep();
+}, config.sockets.timeout );
+
+// make server available
 server.listen( config.services.http.port , function() {
   console.log('listening http://localhost:' + config.services.http.port + ' ...');
 });

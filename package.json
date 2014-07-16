@@ -38,10 +38,12 @@
     "asset-rack": "git://github.com/martindale/asset-rack.git#8d03859922d83f4839086b1208ff6aab28a0a272",
     "ws": "~0.4.31",
     "hbs": "~2.7.0",
-    "provide": "~0.1.1",
+    "provide": "^0.1.3",
     "path-to-regexp": "~0.2.1",
     "redis": "~0.10.3",
-    "connect-redis": "~2.0.0"
+    "connect-redis": "~2.0.0",
+    "node-uuid": "^1.4.1",
+    "json-patch": "^0.4.3"
   },
   "devDependencies": {
     "assert": "~1.1.1",
