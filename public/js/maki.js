@@ -103,6 +103,10 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
 });
 
 maki.angular.controller('mainController', function( $scope ) {
+  $scope.$on('$destroy', function() {
+     window.onbeforeunload = maki.sockets.disconnect;
+  });
+  
   // TODO: use pubsub
   $scope.$on('$locationChangeStart', function(event) {
     maki.sockets.disconnect();
