@@ -20,6 +20,34 @@ UserSchema.plugin( slug( 'username' , {
   required: true
 }) );
 
+UserSchema.pre('save', function (next) {
+  this.wasNew      = this.isNew;
+  this.wasModified = this.isModified();
+  next();
+})
+
+UserSchema.post('save', function(doc) {
+  console.log('post-save hook, User', doc );
+  console.log('wasNew, isModified', doc.wasNew , doc.isModified() );
+
+  if (doc.wasNew) {
+    console.log('WAS NEW');
+
+    var collection = [];
+    var observer = patch.observe( collection );
+    collection.push( doc );
+    // generate our patch set
+    var patches = patch.generate( observer );
+
+    // publish the patch set
+    app.redis.publish('/people', JSON.stringify(patches) );
+  }
+
+  if (doc.isModified()) {
+    console.log('MODIFIED:' , doc.modifiedPaths() );
+  }
+});
+
 var User = mongoose.model('User', UserSchema);
 
 // export the model to anything requiring it.

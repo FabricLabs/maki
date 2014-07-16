@@ -1,3 +1,5 @@
+var jsonRPC = require('../../lib/jsonrpc');
+
 module.exports = {
   list: function(req, res, next) {
     People.find().exec(function(err, people) {
@@ -33,7 +35,10 @@ module.exports = {
         return res.render('register', { user : user });
       }
 
-      res.redirect('/');
+      req.login( user , function(err) {
+        res.redirect('/');
+      });
+
     });
   },
   logout: function(req, res, next) {

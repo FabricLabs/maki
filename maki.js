@@ -1,5 +1,10 @@
+require('debug-trace')({ always: true });
+
 var http = require('http');
-var app = require('express')();
+// global, sadly, so middlewares can access it
+// TODO: not do this
+app = require('express')();
+
 var server = http.createServer(app);
 
 // frameworks
@@ -30,6 +35,7 @@ people   = require('./app/controllers/people');
 // common utilities
 _     = require('underscore');
 async = require('async');
+patch = require('fast-json-patch');
 
 var Maki = require('./lib/Maki');
 var maki = new Maki( app );
@@ -150,6 +156,7 @@ var resources = [
   , { name: 'people',           path: '/people',             template: 'people',   get: people.list , post: people.create }
   , { name: 'person',           path: '/people/:personSlug', template: 'person',   get: people.view }
   , { name: 'examples',         path: '/examples' ,          template: 'examples', get: pages.examples }
+  , { name: 'pages',            path: '/pages' ,             template: 'examples', get: pages.examples , post: pages.create }
 ];
 
 app.all('/', function(req, res, next) {
@@ -190,19 +197,26 @@ wss.on('connection', function(ws) {
     if ( resource.regex.test( ws.upgradeReq.url ) ) {
       console.log('socket to be handled by resource: ' , resource.name );
 
+      // unique identifier for our upcoming mess
+      ws.id = ws.upgradeReq.headers['sec-websocket-key'];
+
       // make a mess
       ws.pongTime = (new Date()).getTime();
       ws.redis = redis.createClient( config.redis.port , config.redis.host );
       ws.redis.on('message', function(channel, message) {
         console.log('redis pubsub message', channel , message );
-        ws.send( JSON.stringify(message) );
+        try {
+          var message = JSON.parse( message );
+        } catch (e) {
+          var message = message;
+        }
+
+        ws.send( (new jsonRPC('patch' , {
+            channel: channel
+          , ops: message
+        })).toJSON() );
       });
       ws.redis.subscribe( ws.upgradeReq.url );
-
-      app.redis.publish( ws.upgradeReq.url , (new jsonRPC('peer', ws.id )).toJSON( false ) );
-
-      // unique identifier for our mess
-      ws.id = ws.upgradeReq.headers['sec-websocket-key'];
 
       // handle events, mainly pongs
       ws.on('message', function handleClientMessage(msg) {
@@ -233,8 +247,10 @@ wss.on('connection', function(ws) {
       ws.on('close', function() {
         console.log('cleaning: ', ws.upgradeReq.headers['sec-websocket-key'] );
         ws.redis.end();
-        app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ].redis.end();
-        delete app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ];
+        if (app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ]) {
+          app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ].redis.end();
+          delete app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ];
+        }
       });
 
       return; // exit the 'connection' handler
@@ -244,21 +260,7 @@ wss.on('connection', function(ws) {
   console.log('unhandled socket upgrade' , ws.upgradeReq.url );
 });
 
-var uuid = require('node-uuid');
-var jsonRPC = function( method , params ) {
-  this._method = method;
-  this._params = params;
-}
-jsonRPC.prototype.toJSON = function(notify) {
-  var self = this;
-  return JSON.stringify({
-    'jsonrpc': '2.0',
-    'method': self._method,
-    'params': self._params,
-    'id': (notify === false) ? undefined : uuid.v1()
-  });
-}
-
+var jsonRPC = require('./lib/jsonrpc');
 wss.forEachClient = function(fn) {
   var self = this;
   for (var i in this.clients) {
