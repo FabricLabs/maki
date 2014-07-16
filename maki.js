@@ -78,7 +78,7 @@ app.set('view engine', 'jade');
 app.set('views', __dirname + '/app/views' );
 
 var redis = require('redis');
-var redisClient = redis.createClient( config.redis.port , config.redis.host );
+app.redis = redis.createClient( config.redis.port , config.redis.host );
 var session = require('express-session');
 var RedisStore = require('connect-redis')( session );
 
@@ -87,7 +87,7 @@ app.use( require('cookie-parser')( config.sessions.secret ) );
 app.use( require('body-parser')() );
 app.use( session({
     store: new RedisStore({
-      client: redisClient
+      client: app.redis
     })
   , secret: config.sessions.secret
 }));
@@ -192,6 +192,11 @@ wss.on('connection', function(ws) {
 
       // make a mess
       ws.pongTime = (new Date()).getTime();
+      ws.redis = redis.createClient( config.redis.port , config.redis.host );
+      ws.redis.on('message', function(channel, message) {
+        console.log('redis pubsub message', channel , message );
+      });
+      ws.redis.psubscribe('*');
 
       // unique identifier for our mess
       ws.id = ws.upgradeReq.headers['sec-websocket-key'];
@@ -199,7 +204,7 @@ wss.on('connection', function(ws) {
 
       // cleanup our mess
       ws.on('close', function() {
-        console.log('got a close event for ', ws.upgradeReq.headers['sec-websocket-key'] );
+        console.log('cleaning: ', ws.upgradeReq.headers['sec-websocket-key'] );
         delete app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ];
       });
 
