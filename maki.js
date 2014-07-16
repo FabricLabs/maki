@@ -181,7 +181,7 @@ var WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({
   server: server
 });
-// TODO: bind this to redis / other pubsub arch
+
 wss.on('connection', function(ws) {
   // determine appropriate resource / handler
   for (var name in app.resources) {
@@ -195,21 +195,17 @@ wss.on('connection', function(ws) {
       ws.redis = redis.createClient( config.redis.port , config.redis.host );
       ws.redis.on('message', function(channel, message) {
         console.log('redis pubsub message', channel , message );
+        ws.send( JSON.stringify(message) );
       });
-      ws.redis.psubscribe('*');
+      ws.redis.subscribe( ws.upgradeReq.url );
+
+      app.redis.publish( ws.upgradeReq.url , (new jsonRPC('peer', ws.id )).toJSON( false ) );
 
       // unique identifier for our mess
       ws.id = ws.upgradeReq.headers['sec-websocket-key'];
-      app.clients[ ws.id ] = ws;
-
-      // cleanup our mess
-      ws.on('close', function() {
-        console.log('cleaning: ', ws.upgradeReq.headers['sec-websocket-key'] );
-        delete app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ];
-      });
 
       // handle events, mainly pongs
-      ws.on('message', function(msg) {
+      ws.on('message', function handleClientMessage(msg) {
         try {
           var data = JSON.parse( msg );
         } catch (e) {
@@ -231,6 +227,16 @@ wss.on('connection', function(ws) {
         }
       });
 
+      app.clients[ ws.id ] = ws;
+
+      // cleanup our mess
+      ws.on('close', function() {
+        console.log('cleaning: ', ws.upgradeReq.headers['sec-websocket-key'] );
+        ws.redis.end();
+        app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ].redis.end();
+        delete app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ];
+      });
+
       return; // exit the 'connection' handler
       break; // break the loop
     }
@@ -243,13 +249,13 @@ var jsonRPC = function( method , params ) {
   this._method = method;
   this._params = params;
 }
-jsonRPC.prototype.toJSON = function() {
+jsonRPC.prototype.toJSON = function(notify) {
   var self = this;
   return JSON.stringify({
     'jsonrpc': '2.0',
     'method': self._method,
     'params': self._params,
-    'id': uuid.v1()
+    'id': (notify === false) ? undefined : uuid.v1()
   });
 }
 
@@ -279,7 +285,8 @@ wss.broadcast = function(data) {
   }
 };
 
-// clean up clients
+// clean up clients at an interval
+// TODO: consider setTimeout per-client
 setInterval(function() {
   console.log( 'connected websockets: ' , Object.keys(app.clients) );
   wss.markAndSweep();
