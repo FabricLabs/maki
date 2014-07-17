@@ -21,24 +21,24 @@ UserSchema.plugin( slug( 'username' , {
 }) );
 
 UserSchema.pre('save', function (next) {
-  this.wasNew      = this.isNew;
-  this.wasModified = this.isModified();
+  this.meta = {};
+
+  this.meta.wasNew      = this.isNew;
+  this.meta.wasModified = this.isModified();
 
   // test
-  if (this.wasModified) {
-    this.observer = patch.observe( this );
+  if (this.meta.wasModified) {
+    this.meta.modifiedPaths = this.modifiedPaths();
+    this.meta.old = this.toObject();
   }
 
   next();
 })
 
 UserSchema.post('save', function(doc) {
-  console.log('post-save hook, User', doc );
-  console.log('wasNew, isModified', doc.wasNew , doc.isModified() );
-
   var path = '/people';
 
-  if (doc.wasNew) {
+  if (doc.meta.wasNew) {
     console.log('WAS NEW');
 
     // stub the pre-condition as an empty set
@@ -51,13 +51,13 @@ UserSchema.post('save', function(doc) {
     var patches = patch.generate( observer );
     // publish the patch set
     app.redis.publish( path , JSON.stringify(patches) );
-  }
+  } else if (doc.meta.wasModified) {
+    console.log('MODIFIED:' , doc.meta.modifiedPaths );
 
-  if (doc.wasModified()) {
-    console.log('MODIFIED:' , doc.wasModified() );
+    var observer = patch.observe( doc.meta.old );
 
     // generate our patch set from the doc
-    var patches = patch.generate( doc.observer );
+    var patches = patch.generate( observer );
     // publish the patch set
     app.redis.publish( path , JSON.stringify(patches) );
 

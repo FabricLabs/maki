@@ -1,8 +1,34 @@
+// stub for jsonRPC class (shared)
+var jsonRPC = function( method , params ) {
+  this._method = method;
+  this._params = params;
+}
+jsonRPC.prototype.toJSON = function(notify) {
+  var self = this;
+  return JSON.stringify({
+    'jsonrpc': '2.0',
+    'method': self._method,
+    'params': self._params,
+    'id': (notify === false) ? undefined : uuid.v1()
+  });
+}
+
 // stub for a proper class
 var maki = {
     angular: angular.module('maki', ['ngRoute', 'ngResource'])
   , socket: null
   , sockets: {
+      subscribe: function( channel ) {
+        if (!maki.socket) { maki.socket.connect(); }
+
+        var message = new jsonRPC('subscribe', { channel: channel });
+        maki.socket.send( message.toJSON() );
+      },
+      publish: function( channel , message ) {
+        if (!maki.socket) { maki.socket.connect(); }
+
+
+      },
       disconnect: function() {
         if (maki.socket) {
           // unbind onclose, onmessage

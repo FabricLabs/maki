@@ -216,6 +216,9 @@ wss.on('connection', function(ws) {
           , ops: message
         })).toJSON() );
       });
+      ws.redis.on('subscribe', function( channel , count ) {
+        console.log('successful subscribe', channel , count );
+      });
       ws.redis.subscribe( ws.upgradeReq.url );
 
       // handle events, mainly pongs
@@ -236,6 +239,28 @@ wss.on('connection', function(ws) {
           switch( data.method ) {
             case 'subscribe':
               console.log('subscribe event', data.params);
+
+              // fail early
+              if (!data.params.channel) {
+                return ws.send({
+                  'jsonrpc': '2.0',
+                  'error': {
+                    'code': 32602,
+                    'message': 'Missing param: \'channel\''
+                  },
+                  'id': data.id
+                })
+              }
+
+              console.log('subscribing to ' , data.params.channel);
+
+              ws.redis.subscribe( data.params.channel );
+              ws.send({
+                'jsonrpc': '2.0',
+                'result': 'success',
+                'id': data.id
+              });
+
             break;
           }
         }
