@@ -260,6 +260,31 @@ wss.on('connection', function(ws) {
               });
 
             break;
+            case 'unsubscribe':
+              console.log('unsubscribe event', data.params);
+
+              // fail early
+              if (!data.params.channel) {
+                return ws.send({
+                  'jsonrpc': '2.0',
+                  'error': {
+                    'code': 32602,
+                    'message': 'Missing param: \'channel\''
+                  },
+                  'id': data.id
+                })
+              }
+
+              console.log('unsubscribing from ' , data.params.channel);
+
+              ws.redis.unsubscribe( data.params.channel );
+              ws.send({
+                'jsonrpc': '2.0',
+                'result': 'success',
+                'id': data.id
+              });
+
+            break;
           }
         }
       });

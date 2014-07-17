@@ -18,14 +18,28 @@ var maki = {
     angular: angular.module('maki', ['ngRoute', 'ngResource'])
   , socket: null
   , sockets: {
+      subscriptions: [],
       subscribe: function( channel ) {
-        if (!maki.socket) { maki.socket.connect(); }
+        if (!channel) { var channel = window.location.pathname; }
+        if (!maki.socket) { maki.sockets.connect(); }
+
+        maki.sockets.subscriptions = _.union( maki.sockets.subscriptions , [ channel ] );
 
         var message = new jsonRPC('subscribe', { channel: channel });
-        maki.socket.send( message.toJSON() );
+        return maki.socket.send( message.toJSON() );
+      },
+      unsubscribe: function( channel ) {
+        if (!channel) { var channel = window.location.pathname; }
+        if (!maki.socket) { maki.sockets.connect(); }
+
+        var i = maki.sockets.subscriptions.indexOf( channel );
+        maki.sockets.subscriptions.splice( i , 1 );
+
+        var message = new jsonRPC('unsubscribe', { channel: channel });
+        return maki.socket.send( message.toJSON() );
       },
       publish: function( channel , message ) {
-        if (!maki.socket) { maki.socket.connect(); }
+        if (!maki.socket) { maki.sockets.connect(); }
 
 
       },
@@ -81,6 +95,11 @@ var maki = {
             }
           }
         };
+        maki.socket.onopen = function onOpen() {
+          // this is redundant, as the connection will already be subscribed
+          // however, we need to modify internal stores, so call it anyways
+          maki.sockets.subscribe( window.location.pathname );
+        };
       }
     }
 };
@@ -110,8 +129,6 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
             }
           , async: false
         });
-        
-        // TODO: subscribe
         
         return Templates[ page.template ]( obj );
       }
