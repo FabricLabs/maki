@@ -36,17 +36,42 @@ maki.start();
 ```
 That's it.  That's all you need.  A `GET` request to `/people` will now provide a list of people:
 
-```
+```bash
 > curl http://localhost:9200/people
 [{"slug": "martindale", "username": "martindale"}]
 ```
 Requesting an HTML version of that Resource will give you exactly that:
-```
+```bash
 > curl -H "Accept: text/html" http://localhost:9200/people
 <!DOCTYPE html>
 <html ng-app="maki">
 ...
 ```
+Similarly, you can subscribe to updates to that same Resource by switching to the `ws://` protocol:
+```javascript
+var socket = new WebSocket( 'ws://localhost:9200/people' );
+socket.onmessage = function(msg) {
+  // receive an event here
+  console.log('received event, method: ' + JSON.parse(msg).method );
+}
+```
+This newly-opened websocket will, by default, be subscribed to all updates to the `people` Resource, including new additions to the underlying collection, or modifications to the elements contained therein.
+
+For convenience, Maki exposes some basic methods to the client. Here's the same request using the convenience methods:
+```javascript
+maki.sockets.subscribe('/people');
+```
+You can subscribe to multiple resources on a single socket, as follows:
+```javascript
+maki.sockets.subscribe('/people');
+maki.sockets.subscribe('/examples');
+```
+Maki's events utilize [JSON-RPC 2.0](http://www.jsonrpc.org/specification), allowing for a clearly defined interaction model with error handling and simple concurrency.
+
+Updates from the server are additionally encapsulated using [RFC 5789, PATCH Method for HTTP](http://tools.ietf.org/html/rfc5789).  This allows for complex, but _atomic_ updates of specific resources that might be cached locally (server -> client) or updated remotely (client -> server).  For further explanation HTTP PATCH, see [Mark Nottingham's explanation of the problem](https://www.mnot.net/blog/2012/09/05/patch).
+
+#### Reconnection
+Maki's sockets are resilient to latency, network connectivity issues, and multiple-tenant environments, for up to 24 hours (configurable).  The server will intelligently clean up idle sockets, and clients will intelligently reconnect using a pre-configured back-off strategy.
 
 ### Dependency Injection
 Often, a single Resource we need other Resources to be contextualized into a View.  For example, viewing a "Person" (viewing a profile page) may require collecting a list of "Projects" (another resource, a subcollection of documents _owned_ by a Person), but the JSON representation of that View is not an accurate representation of the Resource.  For this case, _only_ the HTML context of the View will collect the necessary dependencies.
@@ -67,6 +92,11 @@ block content
 ```
 
 This will allow Maki to collect the "projects" Resource as a subcollection of the Person Resource, or more specifically, only within this View.  The JSON View will _not_ collect Projects, and subsequently spare [precious] server time.
+
+### PubSub
+
+
+## Architecture
 
 ## Instructions
 You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to run this application.  Installing these is out-of-scope, and instructions are contained on the links to the left.

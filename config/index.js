@@ -21,6 +21,9 @@ module.exports = {
       host: process.env.MAKI_REDIS_HOST || 'localhost'
     , port: process.env.MAKI_REDIS_PORT || 6379
   },
+  sockets: {
+      timeout: process.env.MAKI_SOCKETS_TIMEOUT || 30000
+  },
   auth: {
     local: {
       enabled: true

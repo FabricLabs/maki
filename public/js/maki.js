@@ -1,22 +1,63 @@
+// stub for jsonRPC class (shared)
+var jsonRPC = function( method , params ) {
+  this._method = method;
+  this._params = params;
+}
+jsonRPC.prototype.toJSON = function(notify) {
+  var self = this;
+  return JSON.stringify({
+    'jsonrpc': '2.0',
+    'method': self._method,
+    'params': self._params,
+    'id': (notify === false) ? undefined : uuid.v1()
+  });
+}
+
 // stub for a proper class
 var maki = {
     angular: angular.module('maki', ['ngRoute', 'ngResource'])
   , socket: null
   , sockets: {
-      connect: function() {
+      subscribe: function( channel ) {
+        if (!maki.socket) { maki.socket.connect(); }
+
+        var message = new jsonRPC('subscribe', { channel: channel });
+        maki.socket.send( message.toJSON() );
+      },
+      publish: function( channel , message ) {
+        if (!maki.socket) { maki.socket.connect(); }
+
+
+      },
+      disconnect: function() {
         if (maki.socket) {
+          // unbind onclose, onmessage
           maki.socket.onclose = null;
           maki.socket.onmessage = null;
+
+          // must happen after onclose event is unbound
+          maki.socket.close();
           maki.socket = null;
         }
+      },
+      connect: function() {
+        maki.sockets.disconnect();
+
+        var retryTimes = [1000, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000]; //in ms
+        var retryIndex = 0;
         
         var path = 'ws://' + window.location.host + window.location.pathname;
         maki.socket = new WebSocket( path );
         maki.socket.onclose = function onClose() {
-          console.log('close, reconnect... ');
+          console.log('lost connection, reconnect... ');
           // TODO: randomize reconnection timeout buffer
-          // TODO: back-off over multiple attempts (e.g., 1s, 5s, 30s...)
-          setTimeout( maki.sockets.connect , 5000);
+          if (retryIndex < retryTimes.length) {
+            console.log('retrying in ' + retryTimes[ retryIndex ] + 'ms');
+            setTimeout( maki.sockets.connect , retryTimes[ retryIndex ] );
+          } else {
+            console.log('failed for the last time.  not attempting again.');
+            retryTimes[ retryIndex++ ];
+          }
         };
         maki.socket.onmessage = function onMessage(msg) {
           try {
@@ -24,7 +65,21 @@ var maki = {
           } catch (e) {
             var data = {};
           }
+
           console.log(data);
+          // experimental JSON-RPC implementation
+          if (data.jsonrpc === '2.0') {
+            switch (data.method) {
+              case 'ping':
+                console.log('was ping, sending response');
+                maki.socket.send(JSON.stringify({
+                  'jsonrpc': '2.0',
+                  'result': 'pong',
+                  'id': data.id
+                }));
+              break;
+            }
+          }
         };
       }
     }
@@ -74,6 +129,14 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
 });
 
 maki.angular.controller('mainController', function( $scope ) {
+  $scope.$on('$destroy', function() {
+     window.onbeforeunload = maki.sockets.disconnect;
+  });
+  
+  // TODO: use pubsub
+  $scope.$on('$locationChangeStart', function(event) {
+    maki.sockets.disconnect();
+  });
   $scope.$on('$locationChangeSuccess', function(event) {
     maki.sockets.connect();
   });

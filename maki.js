@@ -1,5 +1,10 @@
+require('debug-trace')({ always: true });
+
 var http = require('http');
-var app = require('express')();
+// global, sadly, so middlewares can access it
+// TODO: not do this
+app = require('express')();
+
 var server = http.createServer(app);
 
 // frameworks
@@ -30,6 +35,7 @@ people   = require('./app/controllers/people');
 // common utilities
 _     = require('underscore');
 async = require('async');
+patch = require('fast-json-patch');
 
 var Maki = require('./lib/Maki');
 var maki = new Maki( app );
@@ -78,7 +84,7 @@ app.set('view engine', 'jade');
 app.set('views', __dirname + '/app/views' );
 
 var redis = require('redis');
-var redisClient = redis.createClient( config.redis.port , config.redis.host );
+app.redis = redis.createClient( config.redis.port , config.redis.host );
 var session = require('express-session');
 var RedisStore = require('connect-redis')( session );
 
@@ -87,7 +93,7 @@ app.use( require('cookie-parser')( config.sessions.secret ) );
 app.use( require('body-parser')() );
 app.use( session({
     store: new RedisStore({
-      client: redisClient
+      client: app.redis
     })
   , secret: config.sessions.secret
 }));
@@ -110,7 +116,11 @@ app.use(function(req, res, next) {
 });
 app.use( require('provide') );
 
+// configure top-level maps
+app.clients = {};
 app.resources = {};
+
+// stub for resources
 var resource = {
   define: function( spec ) {
     /* define required fields */
@@ -120,7 +130,7 @@ var resource = {
       }
     });
 
-    ['get', 'put', 'post', 'delete'].forEach(function(method) {
+    ['get', 'put', 'post', 'delete', 'patch'].forEach(function(method) {
       if (spec[ method ]) {
         
         // bind the function (if defined) in Express
@@ -145,7 +155,8 @@ var resources = [
   , { name: 'destroySession' ,  path: '/logout' ,            template: 'index',    get: people.logout }
   , { name: 'people',           path: '/people',             template: 'people',   get: people.list , post: people.create }
   , { name: 'person',           path: '/people/:personSlug', template: 'person',   get: people.view }
-  , { name: 'examples',         path: '/examples' ,          template: 'examples', get: pages.examples }
+  , { name: 'examples',         path: '/examples' ,          template: 'examples', get: pages.examples , patch: pages.patch }
+  , { name: 'pages',            path: '/pages' ,             template: 'examples', get: pages.examples , post: pages.create }
 ];
 
 app.all('/', function(req, res, next) {
@@ -177,7 +188,7 @@ var WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({
   server: server
 });
-// TODO: bind this to redis / other pubsub arch
+
 wss.on('connection', function(ws) {
   // determine appropriate resource / handler
   for (var name in app.resources) {
@@ -185,14 +196,130 @@ wss.on('connection', function(ws) {
     // test if this resource should handle the request...
     if ( resource.regex.test( ws.upgradeReq.url ) ) {
       console.log('socket to be handled by resource: ' , resource.name );
-      // TODO: sub with redis
+
+      // unique identifier for our upcoming mess
+      ws.id = ws.upgradeReq.headers['sec-websocket-key'];
+
+      // make a mess
+      ws.pongTime = (new Date()).getTime();
+      ws.redis = redis.createClient( config.redis.port , config.redis.host );
+      ws.redis.on('message', function(channel, message) {
+        console.log('redis pubsub message', channel , message );
+        try {
+          var message = JSON.parse( message );
+        } catch (e) {
+          var message = message;
+        }
+
+        ws.send( (new jsonRPC('patch' , {
+            channel: channel
+          , ops: message
+        })).toJSON() );
+      });
+      ws.redis.on('subscribe', function( channel , count ) {
+        console.log('successful subscribe', channel , count );
+      });
+      ws.redis.subscribe( ws.upgradeReq.url );
+
+      // handle events, mainly pongs
+      ws.on('message', function handleClientMessage(msg) {
+        try {
+          var data = JSON.parse( msg );
+        } catch (e) {
+          var data = {};
+        }
+
+        // experimental JSON-RPC implementation
+        console.log(data);
+        if (data.jsonrpc === '2.0') {
+          if (data.result === 'pong') {
+            ws.pongTime = (new Date()).getTime();
+          }
+
+          switch( data.method ) {
+            case 'subscribe':
+              console.log('subscribe event', data.params);
+
+              // fail early
+              if (!data.params.channel) {
+                return ws.send({
+                  'jsonrpc': '2.0',
+                  'error': {
+                    'code': 32602,
+                    'message': 'Missing param: \'channel\''
+                  },
+                  'id': data.id
+                })
+              }
+
+              console.log('subscribing to ' , data.params.channel);
+
+              ws.redis.subscribe( data.params.channel );
+              ws.send({
+                'jsonrpc': '2.0',
+                'result': 'success',
+                'id': data.id
+              });
+
+            break;
+          }
+        }
+      });
+
+      app.clients[ ws.id ] = ws;
+
+      // cleanup our mess
+      ws.on('close', function() {
+        console.log('cleaning: ', ws.upgradeReq.headers['sec-websocket-key'] );
+        ws.redis.end();
+        if (app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ]) {
+          app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ].redis.end();
+          delete app.clients[ ws.upgradeReq.headers['sec-websocket-key'] ];
+        }
+      });
+
       return; // exit the 'connection' handler
-      break;
+      break; // break the loop
     }
   }
-  console.log('none');
+  console.log('unhandled socket upgrade' , ws.upgradeReq.url );
 });
 
+var jsonRPC = require('./lib/jsonrpc');
+wss.forEachClient = function(fn) {
+  var self = this;
+  for (var i in this.clients) {
+    fn( this.clients[ i ] , i );
+  }
+}
+wss.markAndSweep = function() {
+  var message = new jsonRPC('ping');
+  wss.broadcast( message.toJSON() );
+
+  var now = (new Date()).getTime();
+  this.forEachClient(function( client , id ) {
+    // if the last pong from this client is less than the timeout,
+    // emit a close event and let the handler clean up after us.
+    if (client.pongTime < now - config.sockets.timeout) {
+      //console.log('would normally emit a close event here', client.id , client.pongTime , now - config.sockets.timeout );
+      client.emit('close');
+    }
+  });
+}
+wss.broadcast = function(data) {
+  for (var i in this.clients) {
+    this.clients[ i ].send( data );
+  }
+};
+
+// clean up clients at an interval
+// TODO: consider setTimeout per-client
+setInterval(function() {
+  console.log( 'connected websockets: ' , Object.keys(app.clients) );
+  wss.markAndSweep();
+}, config.sockets.timeout );
+
+// make server available
 server.listen( config.services.http.port , function() {
   console.log('listening http://localhost:' + config.services.http.port + ' ...');
 });
