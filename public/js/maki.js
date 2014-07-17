@@ -152,7 +152,11 @@ maki.angular.controller('mainController', function( $scope ) {
   
   // TODO: use pubsub
   $scope.$on('$locationChangeStart', function(event) {
+    // hack to collapse navbar on navigation
+    $('.navbar-collapse').removeClass('in').addClass('collapse');
+
     maki.sockets.disconnect();
+
   });
   $scope.$on('$locationChangeSuccess', function(event) {
     maki.sockets.connect();

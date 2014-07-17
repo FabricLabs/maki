@@ -9,57 +9,61 @@ block content
       h1 Hello, Maki.
       p A simple framework for hand-rolling your web application.
 
-    .row
-      .col-md-4
-        h2 Hand-rolled.
-        p No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
-      .col-md-4
-        h2 Get Making.
-        p Get started on that project <em>now</em>.  Don't worry about project setup.
-      .col-md-4
-        h2 Already registered?
-        include forms/login
+    .container
+      .row
+        .col-md-4
+          h2 Hand-rolled.
+          p No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
+        .col-md-4
+          h2 Get Making.
+          p Get started on that project <em>now</em>.  Don't worry about project setup.
+        .col-md-4
+          h2 Already registered?
+          include forms/login
 
-    .row
-      h3 Features
-      hr
+      .row
+        .col
+          h3 Features
+          hr
 
-      h4 Full-Javascript Stack
-      p Build your app without wasting time on context switching.  Every layer of the Maki stack is Javascript, from the database (MongoDB) to the server (Node.js) and on to the clientside.
+          h4 Full-Javascript Stack
+          p Build your app without wasting time on context switching.  Every layer of the Maki stack is Javascript, from the database (MongoDB) to the server (Node.js) and on to the clientside.
 
-      h4 Authentication
-      p We've built authentication into the stack (using PassportJS), including username and password auth, and OAuth using providers like Facebook and Twitter.  Spend your time on your app, not third-party auth.
+          h4 Authentication
+          p We've built authentication into the stack (using PassportJS), including username and password auth, and OAuth using providers like Facebook and Twitter.  Spend your time on your app, not third-party auth.
 
 
-    .row
-      h3 Documentation
-      
-      h4 Resource-Driven Development
-      p You'll start your hand-rolled application by defining the resources your application exposes:
-      
-      pre
-        code.javascript
-          | resource.define({
-          |     name: 'person'
-          |   , path: '/people/:personID'
-          |   , template: 'person'
-          |   , get: function( id , cb ) {
-          |       Person.findOne({ _id: id }).exec( cb );
-          |     }
-          | });
+      .row
+        .col
+          h3 Documentation
           
-      p Almost like magic, <strong>your resource now has an endpoint that renders HTML <em>and</em> serves JSON</strong>.  Even better, AngularJS will automatically wire itself up to this resource.
-      
-      h4 UI
-      p We're using Bootstrap for our base CSS framework, giving us a generally semantic way of building interface elements.  In addition, we're using Jade to simplify the construction of HTML using simple style rules.
+          h4 Resource-Driven Development
+          p You'll start your hand-rolled application by defining the resources your application exposes:
+          
+          pre
+            code.javascript
+              | resource.define({
+              |     name: 'person'
+              |   , path: '/people/:personID'
+              |   , template: 'person'
+              |   , get: function( id , cb ) {
+              |       Person.findOne({ _id: id }).exec( cb );
+              |     }
+              | });
+              
+          p Almost like magic, <strong>your resource now has an endpoint that renders HTML <em>and</em> serves JSON</strong>.  Even better, AngularJS will automatically wire itself up to this resource.
+          
+          h4 UI
+          p We're using Bootstrap for our base CSS framework, giving us a generally semantic way of building interface elements.  In addition, we're using Jade to simplify the construction of HTML using simple style rules.
 
-      h5 Tooltips
-      p Add <code>.tooltipped</code> to an element to enable automatic generation of a tooltip for that element, defaulting to its <code>title</code> attribute.
-      p For example, 
-        code
-          | a.tooltipped(href="/about", title="Learn More about Maki") About
-        |  will produce: 
-        a.tooltipped(href="/about", title="Learn More about Maki") About
+          h5 Tooltips
+          p Add <code>.tooltipped</code> to an element to enable automatic generation of a tooltip for that element, defaulting to its <code>title</code> attribute.
+          p For example, 
+            code
+              | a.tooltipped(href="/about", title="Learn More about Maki") About
+            |  will produce: 
+            a.tooltipped(href="/about", title="Learn More about Maki") About
 
-    .row
-      hr
+      .row
+        .col
+          hr
