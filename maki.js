@@ -1,5 +1,3 @@
-require('debug-trace')({ always: true });
-
 var http = require('http');
 // global, sadly, so middlewares can access it
 // TODO: not do this
