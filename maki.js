@@ -130,7 +130,7 @@ var resource = {
       }
     });
 
-    ['get', 'put', 'post', 'delete'].forEach(function(method) {
+    ['get', 'put', 'post', 'delete', 'patch'].forEach(function(method) {
       if (spec[ method ]) {
         
         // bind the function (if defined) in Express
@@ -155,7 +155,7 @@ var resources = [
   , { name: 'destroySession' ,  path: '/logout' ,            template: 'index',    get: people.logout }
   , { name: 'people',           path: '/people',             template: 'people',   get: people.list , post: people.create }
   , { name: 'person',           path: '/people/:personSlug', template: 'person',   get: people.view }
-  , { name: 'examples',         path: '/examples' ,          template: 'examples', get: pages.examples }
+  , { name: 'examples',         path: '/examples' ,          template: 'examples', get: pages.examples , patch: pages.patch }
   , { name: 'pages',            path: '/pages' ,             template: 'examples', get: pages.examples , post: pages.create }
 ];
 

@@ -2,6 +2,9 @@ module.exports = {
   index: function(req, res, next) {
     res.provide('index');
   },
+  patch: function(req, res, next) {
+    res.send('Patch completed successfully.');
+  },
   create: function(req, res, next) {
 
     // dummy page model
