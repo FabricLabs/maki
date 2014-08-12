@@ -193,7 +193,6 @@ wss.on('connection', function(ws) {
     var resource = app.resources[ name ];
     // test if this resource should handle the request...
     if ( resource.regex.test( ws.upgradeReq.url ) ) {
-      console.log('socket to be handled by resource: ' , resource.name );
 
       // unique identifier for our upcoming mess
       ws.id = ws.upgradeReq.headers['sec-websocket-key'];
@@ -202,7 +201,7 @@ wss.on('connection', function(ws) {
       ws.pongTime = (new Date()).getTime();
       ws.redis = redis.createClient( config.redis.port , config.redis.host );
       ws.redis.on('message', function(channel, message) {
-        console.log('redis pubsub message', channel , message );
+
         try {
           var message = JSON.parse( message );
         } catch (e) {
@@ -213,9 +212,6 @@ wss.on('connection', function(ws) {
             channel: channel
           , ops: message
         })).toJSON() );
-      });
-      ws.redis.on('subscribe', function( channel , count ) {
-        console.log('successful subscribe', channel , count );
       });
       ws.redis.subscribe( ws.upgradeReq.url );
 
@@ -228,7 +224,6 @@ wss.on('connection', function(ws) {
         }
 
         // experimental JSON-RPC implementation
-        console.log(data);
         if (data.jsonrpc === '2.0') {
           if (data.result === 'pong') {
             ws.pongTime = (new Date()).getTime();
@@ -236,8 +231,6 @@ wss.on('connection', function(ws) {
 
           switch( data.method ) {
             case 'subscribe':
-              console.log('subscribe event', data.params);
-
               // fail early
               if (!data.params.channel) {
                 return ws.send({
@@ -249,8 +242,7 @@ wss.on('connection', function(ws) {
                   'id': data.id
                 })
               }
-
-              console.log('subscribing to ' , data.params.channel);
+              console.log( 'subscribe event, ' , data.params.channel );
 
               ws.redis.subscribe( data.params.channel );
               ws.send({
@@ -261,8 +253,6 @@ wss.on('connection', function(ws) {
 
             break;
             case 'unsubscribe':
-              console.log('unsubscribe event', data.params);
-
               // fail early
               if (!data.params.channel) {
                 return ws.send({
@@ -275,7 +265,7 @@ wss.on('connection', function(ws) {
                 })
               }
 
-              console.log('unsubscribing from ' , data.params.channel);
+              console.log( 'unsubscribe event, ' , data.params.channel );
 
               ws.redis.unsubscribe( data.params.channel );
               ws.send({
@@ -338,7 +328,7 @@ wss.broadcast = function(data) {
 // clean up clients at an interval
 // TODO: consider setTimeout per-client
 setInterval(function() {
-  console.log( 'connected websockets: ' , Object.keys(app.clients) );
+  console.log( '[HEARTBEAT] %d connected clients' , Object.keys(app.clients).length );
   wss.markAndSweep();
 }, config.sockets.timeout );
 

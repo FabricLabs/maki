@@ -22,15 +22,16 @@ var maki = {
       subscribe: function( channel ) {
         if (!channel) { var channel = window.location.pathname; }
         if (!maki.socket) { maki.sockets.connect(); }
+        if (maki.sockets.subscriptions.indexOf( channel ) >= 0) { return; }
 
-        maki.sockets.subscriptions = _.union( maki.sockets.subscriptions , [ channel ] );
-
+        maki.sockets.subscriptions.push( channel );
         var message = new jsonRPC('subscribe', { channel: channel });
         return maki.socket.send( message.toJSON() );
       },
       unsubscribe: function( channel ) {
         if (!channel) { var channel = window.location.pathname; }
         if (!maki.socket) { maki.sockets.connect(); }
+        if (maki.sockets.subscriptions.indexOf( channel ) == -1) { return; }
 
         var i = maki.sockets.subscriptions.indexOf( channel );
         maki.sockets.subscriptions.splice( i , 1 );
@@ -155,11 +156,15 @@ maki.angular.controller('mainController', function( $scope ) {
     // hack to collapse navbar on navigation
     $('.navbar-collapse').removeClass('in').addClass('collapse');
 
+    // TODO: unsubscribe, NOT disconnect
+    //maki.sockets.unsubscribe();
     maki.sockets.disconnect();
 
   });
   $scope.$on('$locationChangeSuccess', function(event) {
+    // TODO: use subscribe, and subscribe to all resources on page!
     maki.sockets.connect();
+    //maki.sockets.subscribe();
   });
 }).directive('tooltipped', function() {
   return {
