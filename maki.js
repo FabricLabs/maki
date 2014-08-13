@@ -38,6 +38,11 @@ patch = require('fast-json-patch');
 var Maki = require('./lib/Maki');
 var maki = new Maki( app );
 
+var Queue = require('./lib/Queue');
+var queue = new Queue( config );
+
+queue.bind( app );
+
 // make the HTML output readible, for designers. :)
 app.locals.pretty = true;
 
