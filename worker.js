@@ -15,4 +15,17 @@ var worker = new queue.Worker( config.database.name );
 
 worker.register( processors );
 
+worker.on('dequeued', function (data) {
+  console.log('worker dequeued job %s', data._id );
+});
+worker.on('failed', function (data) {
+  console.log('job %s failed', data._id , data.data );
+});
+worker.on('complete', function (data) {
+  console.log('job %s complete', data._id );
+});
+worker.on('error', function (err) {
+  console.log('worker error', err );
+});
+
 worker.start();
