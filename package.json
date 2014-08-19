@@ -4,7 +4,7 @@
   "description": "Framework for hand-rolling web applications.",
   "main": "maki.js",
   "scripts": {
-    "test": "mocha"
+    "test": "NODE_ENV=test mocha --recursive"
   },
   "repository": {
     "type": "git",
@@ -51,6 +51,7 @@
     "chai": "^1.9.1",
     "debug-trace": "^0.2.3",
     "mocha": "~1.20.1",
-    "supertest": "~0.13.0"
+    "supertest": "~0.13.0",
+    "zombie": "^1.4.1"
   }
 }

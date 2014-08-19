@@ -1,17 +1,22 @@
 var assert = require('assert');
 var request = require('supertest');
 
-var config = require('../config');
+var config = require('../../config');
+config.services.http.port = 0;
 
-var Maki = require('../lib/Maki');
+var Maki = require('../../lib/Maki');
 var maki = new Maki( config );
 
 before(function(done) {
   maki.start( done );
 });
 
+after(function(done) {
+  maki.destroy( done );
+});
+
 describe('http', function(){
-  
+
   function nonZeroArray(res) {
     if (!res.body) throw new Error('no body');
     if (res.body.length < 1) throw new Error('no resources exposed');

@@ -1,9 +1,9 @@
 var assert = require('assert');
 var expect = require('chai').expect;
 
-var config = require('../config');
+var config = require('../../config');
 
-var Maki = require('../lib/Maki');
+var Maki = require('../../lib/Maki');
 var maki = new Maki( config );
 
 describe('maki', function(){
