@@ -2,14 +2,14 @@ var jsonRPC = require('../../lib/jsonrpc');
 
 module.exports = {
   list: function(req, res, next) {
-    People.find().exec(function(err, people) {
+    Person.find().exec(function(err, people) {
       res.provide( 'people', {
         people: people
       });
     });
   },
   view: function(req, res, next) {
-    People.findOne({ slug: req.param('personSlug') }).exec(function(err, person) {
+    Person.findOne({ slug: req.param('personSlug') }).exec(function(err, person) {
       if (err || !person) { return next(); }
       res.provide( 'person', {
         person: person
@@ -26,7 +26,7 @@ module.exports = {
       }
   },
   create: function(req, res) {
-    User.register(new User({
+    Person.register(new Person({
       email : req.body.email,
       username : req.body.username
     }), req.body.password, function(err, user) {
