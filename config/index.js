@@ -28,5 +28,10 @@ module.exports = {
     local: {
       enabled: true
     }
+  },
+  views: {
+    plugins: {
+      'moment': require('moment')
+    }
   }
 };

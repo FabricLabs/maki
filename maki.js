@@ -1,7 +1,7 @@
 var http = require('http');
 // global, sadly, so middlewares can access it
 // TODO: not do this
-app = require('express')();
+var app = require('express')();
 
 var server = http.createServer(app);
 
@@ -34,9 +34,6 @@ people   = require('./app/controllers/people');
 _     = require('underscore');
 async = require('async');
 patch = require('fast-json-patch');
-
-var Maki = require('./lib/Maki');
-var maki = new Maki( app );
 
 // make the HTML output readible, for designers. :)
 app.locals.pretty = true;
