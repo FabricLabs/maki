@@ -10,20 +10,22 @@ var config = {
 describe('Queue', function() {
   describe('#Queue', function() {
     it('should expose a constructor', function(done) {
-      assert.equal( typeof( require('../') ) , 'function' );
+      var Queue = require('../lib/Queue');
+      assert(typeof Queue, 'function');
+      
       done();
     });
 
     it('should instantiate a queue', function(done) {
-      var Queue = require('../');
-      var queue = new Queue();
+      var Queue = require('../lib/Queue');
+      var queue = new Queue( config );
 
       done();
     });
 
     it('should allow jobs to be created', function(done) {
-      var Queue = require('../');
-      var queue = new Queue();
+      var Queue = require('../lib/Queue');
+      var queue = new Queue( config );
 
       queue.enqueue('test', {
         foo: 'bar'
@@ -36,16 +38,16 @@ describe('Queue', function() {
   });
   describe('#Worker', function() {
     it('should expose a constructor for the Worker', function(done) {
-      var Queue = require('../');
-      var queue = new Queue();
+      var Queue = require('../lib/Queue');
+      var queue = new Queue( config );
 
       assert.equal( typeof( queue.Worker ) , 'function' );
       done();
     });
 
     it('should instantiate a worker', function(done) {
-      var Queue = require('../');
-      var queue = new Queue();
+      var Queue = require('../lib/Queue');
+      var queue = new Queue( config );
 
       var worker = new queue.Worker( config.database.name );
 
@@ -53,8 +55,8 @@ describe('Queue', function() {
     });
 
     it('should process new jobs', function(done) {
-      var Queue = require('../');
-      var queue = new Queue();
+      var Queue = require('../lib/Queue');
+      var queue = new Queue( config );
 
       var worker = new queue.Worker( config.database.name );
       worker.jobRun = false;
@@ -76,7 +78,7 @@ describe('Queue', function() {
         if (worker.jobRun === true) {
           done();
         }
-      }, 50);
+      }, 10);
 
     });
   });
