@@ -1,5 +1,5 @@
-var should = require('chai').should();
 var assert = require('assert');
+var should = require('chai').should();
 
 var config = {
   database: {
