@@ -1,21 +1,36 @@
 var assert = require('assert');
+var expect = require('chai').expect;
+
+var Browser = require('zombie');
 var request = require('supertest');
 
-var config = require('../../config');
+var config = require('../config');
 config.services.http.port = 0;
 
-var Maki = require('../../lib/Maki');
+var Maki = require('../lib/Maki');
 var maki = new Maki( config );
 
-before(function(done) {
-  maki.start( done );
-});
-
-after(function(done) {
-  maki.destroy( done );
+describe('Maki', function() {
+  it('should expose a constructor', function(){
+    assert(typeof maki, 'function');
+  });
+  
+  it('should expose a map of resources', function() {
+    assert(typeof maki.resources, 'object');
+  });
+  
+  it('should expose a list of resources', function() {
+    expect( Object.keys(maki.resources).length ).to.be.at.least(1);
+  });
 });
 
 describe('http', function(){
+
+  before(function(done) {
+    maki.start(function() {
+      done();
+    });
+  });
 
   function nonZeroArray(res) {
     if (!res.body) throw new Error('no body');
@@ -32,7 +47,7 @@ describe('http', function(){
         if (err) throw err;
       });
   });
-  
+
   it('should expose a list of resources', function() {
     request( maki.app )
       .options('/')
