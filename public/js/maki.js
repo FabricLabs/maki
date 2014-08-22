@@ -107,33 +107,39 @@ var maki = {
 
 maki.angular.config(function($routeProvider, $locationProvider, $resourceProvider) {
   
-  var pages = [];
+  var resources = [];
   $.ajax({
     async: false,
     type: 'OPTIONS',
     url: '/',
     success: function(data) {
-      pages = data;
+      resources = data;
     }
   });
   
-  pages.forEach(function(page) {
-    $routeProvider.when.apply( this , [ page.path , {
-      template: function( params ) {
-        var self = this;
-        var obj = {};
+  resources.forEach(function(resource) {
+    Object.keys( resource.routes ).forEach(function( method ) {
+      var path = resource.routes[ method ];
+    
+      $routeProvider.when.apply( this , [ path , {
+        template: function( params ) {
+          var self = this;
+          var obj = {};
 
-        $.ajax({
-            url: self.location
-          , success: function( results ) {
-              obj[ page.name ] = results;
-            }
-          , async: false
-        });
-        
-        return Templates[ page.template ]( obj );
-      }
-    } ] );
+          // TODO: use local factory / caching mechanism
+          $.ajax({
+              url: self.location
+            , success: function( results ) {
+                obj[ resource.name ] = results;
+              }
+            , async: false
+          });
+          
+          return Templates[ resource.template ]( obj );
+        }
+      } ] );
+    });
+
     $routeProvider.otherwise({
       template: function() {
         return Templates['404']();

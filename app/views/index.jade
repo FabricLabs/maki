@@ -20,6 +20,14 @@ block content
         .col-md-4
           h2 Already registered?
           include forms/login
+          
+      .row
+        .col
+          h3 Resources
+          
+          ul.nav-list
+          each resource in maki.resources
+            li #{resource}
 
       .row
         .col
@@ -31,7 +39,6 @@ block content
 
           h4 Authentication
           p We've built authentication into the stack (using PassportJS), including username and password auth, and OAuth using providers like Facebook and Twitter.  Spend your time on your app, not third-party auth.
-
 
       .row
         .col

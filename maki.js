@@ -11,7 +11,15 @@ var resources = [
       slug: { type: String , max: 80 , id: true },
       content: { type: String }
     }
-  }
+  }/*/,
+  {
+    name: 'Example',
+    attributes: {
+      name: { type: String , max: 80 },
+      slug: { type: String , max: 80 , id: true },
+      content: { type: String }
+    }
+  }/*/
 ];
 
 resources.forEach(function(resource) {
@@ -19,3 +27,5 @@ resources.forEach(function(resource) {
 });
 
 maki.start();
+
+console.log( maki.routes );
