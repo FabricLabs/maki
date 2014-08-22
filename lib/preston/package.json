@@ -1,0 +1,53 @@
+{
+  "name": "preston",
+  "version": "0.2.1",
+  "description": "Serves Mongoose models on a flexible, RESTful API.",
+  "main": "index.js",
+  "scripts": {
+    "pretest": "node_modules/.bin/jshint lib/ test/",
+    "test": "node_modules/.bin/mocha -R spec",
+    "test-cover": "node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec --timeout 15000 && rm -rf ./coverage",
+    "test-travis": "node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/simplyianm/preston"
+  },
+  "keywords": [
+    "mongoose",
+    "rest",
+    "express",
+    "api",
+    "angularjs"
+  ],
+  "author": "Ian Macalinao <me@ian.pw>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/simplyianm/preston/issues"
+  },
+  "dependencies": {
+    "async": "^0.9.0",
+    "express": "^4.8.3",
+    "functionize": "^0.1.1",
+    "lodash": "^2.4.1",
+    "provide": "^0.1.3",
+    "res-error": "^0.3.1"
+  },
+  "devDependencies": {
+    "body-parser": "^1.5.0",
+    "chai": "^1.8.1",
+    "coveralls": "^2.11.1",
+    "doxdox": "0.0.6",
+    "gulp": "^3.8.7",
+    "gulp-gh-pages": "^0.3.3",
+    "gulp-jsdoc": "^0.1.4",
+    "gulp-shell": "^0.2.9",
+    "ink-docstrap": "^0.4.12",
+    "istanbul": "^0.3.0",
+    "jshint": "^2.5.2",
+    "mocha": "^1.17.1",
+    "mocha-lcov-reporter": "0.0.1",
+    "mongoose": "^3.9.0",
+    "supertest": "^0.13.0"
+  }
+}

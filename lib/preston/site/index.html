@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Preston -- Easily make your Mongoose apps RESTful!</title>
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="//cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div class="jumbotron">
+    <div class="container">
+      <h1>Preston</h1>
+      <p>A REST API framework for Node.js/Mongoose apps.</p>
+      <div class="alert alert-danger"><strong>Note: </strong>This website is a work in progress.</div>
+      <a class="btn btn-primary" href="http://ianmacalinao.com/preston/docs">JSDoc</a>
+      <a class="btn btn-success" href="https://github.com/simplyianm/preston">View on GitHub</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <h1>What is Preston?</h1>
+        <p>
+          <strong>Preston</strong> is a framework for building REST APIs from Mongoose models. It can be injected into an existing Mongoose application to provide a REST API, or it can create a brand new MEAN application with little effort.
+        </p>
+      </div>
+      <div class="col-md-4">
+        <h1>Why Preston?</h1>
+        <p><strong>It's simple, extensible, and RESTful.</strong> It provides all of the functionality of a basic REST API off the bat yet allows adding new features in a very simple and sensible way.</p>
+      </div>
+      <div class="col-md-4">
+        <h1>Extensibility</h1>
+        <p>
+          Easily add authentication middleware, route-specific middlewares, or even custom queries. Preston allows you to craft your REST-compliant API the way you want it.
+        </p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="page-header">The Basics</h1>
+        <p>The following is a very simple app which exposes a "Post" model that can be accessed via a RESTful API. Feel free to play with this app at <a href="http://preston-basics.herokuapp.com/api">http://preston-basics.herokuapp.com/api</a>.</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-8">
+        <h2 class="page-header">The App</h2>
+        <code data-gist-id="fd5e4663e6242b95ab90" data-gist-hide-footer="true" data-gist-file="app.js"></code>
+      </div>
+      <div class="col-md-4">
+        <h2 class="page-header">The API</h2>
+        <code data-gist-id="fd5e4663e6242b95ab90" data-gist-hide-footer="true" data-gist-file="session.txt"></code>
+      </div>
+    </div>
+  </div>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/gist-embed/1.9/gist-embed.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,5 @@
+*.swp
+.DS_Store
+.grunt/
+node_modules/
+npm-debug.log
