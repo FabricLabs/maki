@@ -86,7 +86,7 @@ var maki = {
           if (data.jsonrpc === '2.0') {
             switch (data.method) {
               case 'ping':
-                console.log('was ping, sending response');
+                console.log('was ping, playing pong');
                 maki.socket.send(JSON.stringify({
                   'jsonrpc': '2.0',
                   'result': 'pong',
