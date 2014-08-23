@@ -107,17 +107,17 @@ var maki = {
 
 maki.angular.config(function($routeProvider, $locationProvider, $resourceProvider) {
   
-  var resources = [];
+  maki.resources = [];
   $.ajax({
     async: false,
     type: 'OPTIONS',
     url: '/',
     success: function(data) {
-      resources = data;
+      maki.resources = data;
     }
   });
   
-  resources.forEach(function(resource) {
+  maki.resources.forEach(function(resource) {
     Object.keys( resource.routes ).forEach(function( method ) {
       var path = resource.routes[ method ];
     
@@ -134,6 +134,8 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
               }
             , async: false
           });
+          
+          console.log('rendering ' , resource.template );
           
           return Templates[ resource.template ]( obj );
         }
