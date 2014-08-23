@@ -29,7 +29,9 @@ maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 },
     slug: { type: String , max: 80 , id: true },
-    password: { type: String , restricted: true }
+    hash: { type: String , restricted: true },
+    salt: { type: String , restricted: true },
+    email: { type: String , max: 80 , restricted: true }
   },
   plugins: [
     require('passport-local-mongoose'),
@@ -38,7 +40,6 @@ maki.define('Person', {
 });
 
 var LocalStrategy = require('passport-local').Strategy;
-var passportLocalMongoose = require('passport-local-mongoose');
 
 /* enable "local" login (e.g., username and password) */
 maki.passport.use(new LocalStrategy( maki.resources['Person'].Model.authenticate() ) );
