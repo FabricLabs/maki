@@ -21,16 +21,15 @@ var resources = [
       slug: { type: String , max: 80 , id: true },
       content: { type: String }
     }
-  }/*/,
+  }/**/,
   {
     name: 'Person',
     attributes: {
       username: { type: String , max: 80 },
       slug: { type: String , max: 80 , id: true },
       password: { type: String , restricted: true }
-    },
-    plugins: [ [  ] ]
-  }/*/
+    }
+  }/**/
 ];
 
 // TODO: hooks for all the schemas
