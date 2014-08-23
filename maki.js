@@ -23,14 +23,20 @@ var resources = [
     }
   }/*/,
   {
-    name: 'Example',
+    name: 'Person',
     attributes: {
-      name: { type: String , max: 80 },
+      username: { type: String , max: 80 },
       slug: { type: String , max: 80 , id: true },
-      content: { type: String }
-    }
+      password: { type: String , restricted: true }
+    },
+    plugins: [ [  ] ]
   }/*/
 ];
+
+// TODO: hooks for all the schemas
+//var PersonSchema = require('../app/models/User');
+// TODO: is there a way, without globals (?), to not require passing maki?
+//maki.app.models.Person = Person = mongoose.model('Person', PersonSchema);
 
 resources.forEach(function(resource) {
   maki.define( resource.name , resource );
