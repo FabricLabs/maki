@@ -125,19 +125,35 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
         template: function( params ) {
           var self = this;
           var obj = {};
+          var template = resource.template;
+          var method = 'query';
+
+          // only support routing for lists and singles
+          [ 'query', 'get' ].forEach(function(p) {
+            var string = resource.paths[ p ];
+            // TODO: do without eval()?
+            var regex = new RegExp( eval(string) );
+            if (regex.test( self.location.pathname )) {
+              template = resource.templates[ p ];
+              method = p;
+              return;
+            }
+          });
+
 
           // TODO: use local factory / caching mechanism
           $.ajax({
               url: self.location
             , success: function( results ) {
-                obj[ resource.name ] = results;
+                obj[ resource.names[ method ] ] = results;
               }
             , async: false
           });
           
-          console.log('rendering ' , resource.template );
-          
-          return Templates[ resource.template ]( obj );
+
+          console.log('rendering ' + template + ' with data' , obj );
+
+          return Templates[ template ]( obj );
         }
       } ] );
     });
