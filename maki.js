@@ -21,21 +21,30 @@ var resources = [
       slug: { type: String , max: 80 , id: true },
       content: { type: String }
     }
-  }/**/,
-  {
-    name: 'Person',
-    attributes: {
-      username: { type: String , max: 80 },
-      slug: { type: String , max: 80 , id: true },
-      password: { type: String , restricted: true }
-    }
-  }/**/
+  }
 ];
 
-// TODO: hooks for all the schemas
-//var PersonSchema = require('../app/models/User');
-// TODO: is there a way, without globals (?), to not require passing maki?
-//maki.app.models.Person = Person = mongoose.model('Person', PersonSchema);
+maki.define('Person', {
+  name: 'Person',
+  attributes: {
+    username: { type: String , max: 80 },
+    slug: { type: String , max: 80 , id: true },
+    password: { type: String , restricted: true }
+  },
+  plugins: [
+    require('passport-local-mongoose'),
+    require('mongoose-slug')
+  ]
+});
+
+var LocalStrategy = require('passport-local').Strategy;
+var passportLocalMongoose = require('passport-local-mongoose');
+
+/* enable "local" login (e.g., username and password) */
+maki.passport.use(new LocalStrategy( maki.resources['Person'].Model.authenticate() ) );
+
+maki.passport.serializeUser( maki.resources['Person'].Model.serializeUser() );
+maki.passport.deserializeUser( maki.resources['Person'].Model.deserializeUser() );
 
 resources.forEach(function(resource) {
   maki.define( resource.name , resource );
