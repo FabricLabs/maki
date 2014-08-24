@@ -51,16 +51,17 @@ block content
           
           pre
             code.javascript
-              | resource.define({
-              |     name: 'person'
-              |   , path: '/people/:personID'
-              |   , template: 'person'
-              |   , get: function( id , cb ) {
-              |       Person.findOne({ _id: id }).exec( cb );
-              |     }
+              | maki.define({
+              |   name: 'Person',
+              |   attributes: {
+              |     name: { type: String , max: 80 },
+              |     slug: { type: String , max: 80 , id: true }
+              |   }
               | });
               
           p Almost like magic, <strong>your resource now has an endpoint that renders HTML <em>and</em> serves JSON</strong>.  Even better, AngularJS will automatically wire itself up to this resource.
+          
+          p More interestingly, <strong>all URIs are auto-constructed</strong>, and listen for HTTP verbs to perform actions on those resources.  In the above example, the resource's name, <code>"Person"</code>, gets converted into <code>/people</code> for a query-able collection, and <code>/people/:id</code> for a single instance.
           
           h4 UI
           p We're using Bootstrap for our base CSS framework, giving us a generally semantic way of building interface elements.  In addition, we're using Jade to simplify the construction of HTML using simple style rules.

@@ -1,10 +1,11 @@
 {
   "name": "maki-roller",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Framework for hand-rolling web applications.",
   "main": "maki.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha --recursive"
+    "test": "NODE_ENV=test mocha --recursive",
+    "coverage": "istanbul cover _mocha"
   },
   "repository": {
     "type": "git",

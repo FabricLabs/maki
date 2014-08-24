@@ -13,8 +13,19 @@ config.database.name = 'maki-test';
 var Maki = require('../lib/Maki');
 var maki = new Maki( config );
 
+maki.define('Person', {
+  name: 'Person',
+  attributes: {
+    name: { type: String , max: 80 },
+    slug: { type: String , max: 80 , id: true }
+  }
+});
+
 function resource( path ) {
   return 'http://' + config.services.http.host + ':' + config.services.http.port + path;
+}
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 describe('Maki', function() {
@@ -66,6 +77,29 @@ describe('http', function(){
       });
   });
   
+  it('should allow for resources to be queried', function( done ) {
+    request( maki.app )
+      .get('/people')
+      .expect(200)
+      .end(function(err, res) {
+        if (err) throw err;
+        done();
+      });
+  });
+  
+  it('should allow for a resource to be created', function( done ) {
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    
+    request( maki.app )
+      .post('/people')
+      .send({ name: 'test-user-'+randomNum })
+      .expect(200)
+      .end(function(err, res) {
+        if (err) throw err;
+        done();
+      });
+  });
+  
 });
 
 describe('ws', function() {
@@ -79,7 +113,8 @@ describe('ws', function() {
     var ws = new WebSocket( resource('/') );
 
     ws.on('message', function(data) {
-      done();
+      ws.close();
+      return done();
     });
     ws.on('open', function() {
       var message = new maki.JSONRPC('subscribe', { channel: '/' });
@@ -92,13 +127,57 @@ describe('ws', function() {
     var ws = new WebSocket( resource('/') );
 
     ws.on('message', function(data) {
-      done();
+      ws.close();
+      return done();
     });
     ws.on('open', function() {
       var message = new maki.JSONRPC('unsubscribe', { channel: '/' });
       ws.send( message.toJSON() );
     });
     
+  });
+  
+  it('should receive pings', function( done ) {
+    var ws = new WebSocket( resource('/') );
+
+    ws.on('message', function(data) {
+      var message = JSON.parse( data );
+      if (message.method === 'ping') {
+        ws.close();
+        return done();
+      }
+    });
+    ws.on('open', function() {
+      maki.socks.server.markAndSweep();
+    });
+  });
+  
+  it('should receive a patch event for changes', function( done ) {
+    //this.timeout(5000);
+    
+    var ws = new WebSocket( resource('/people') );
+    var randomNum = getRandomInt( 100000 , 1000000 );
+
+    ws.on('message', function(data) {
+      var message = null;
+      try {
+        message = JSON.parse( data );
+      } catch (e) {
+        return done(e);
+      }
+
+      if (message.method === 'patch') return done();
+        
+    });
+    ws.on('open', function() {
+      request( maki.app )
+        .post('/people')
+        .send({ name: 'test-user-'+randomNum })
+        .expect(200)
+        .end(function(err, res) {
+          if (err) throw err;
+        });
+    });
   });
   
   it('should reject incorrect JSON', function( done ) {
