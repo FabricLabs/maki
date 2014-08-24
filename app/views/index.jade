@@ -27,7 +27,8 @@ block content
           
           ul.nav-list
           each resource in maki.resources
-            li #{resource.name}
+            li
+              a(href="#{resource.routes.query}") #{resource.plural}
             
           
       .row

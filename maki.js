@@ -17,9 +17,19 @@ var resources = [
   {
     name: 'Example',
     attributes: {
-      name: { type: String , max: 80 },
-      slug: { type: String , max: 80 , id: true },
+      name:    { type: String , max: 80 },
+      slug:    { type: String , max: 80 , id: true },
       content: { type: String }
+    }
+  },
+  {
+    name: 'Dashboard',
+    attributes: {
+      name: { type: String , max: 80 }
+    },
+    requires: {
+      'examples': {},
+      'people': {}
     }
   }
 ];
