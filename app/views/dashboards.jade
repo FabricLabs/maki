@@ -1,0 +1,9 @@
+extends layouts/default
+
+block content
+  h1 Dashboards
+  
+  each dashboard in dashboards
+    li
+      a(href="/dashboards/#{dashboard._id}") #{dashboard.name}
+  
