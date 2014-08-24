@@ -108,6 +108,26 @@ describe('ws', function() {
     var ws = new WebSocket( resource('/') );
     ws.on('open', done );
   });
+  
+  it('should correctly clean up closed sockets', function( done ) {
+    var ws = new WebSocket( resource('/') );
+    
+    var orig = Object.keys(maki.clients).length;
+    var prev = null;
+    var curr = null;
+    
+    ws.on('close', function() {
+      now = Object.keys(maki.clients).length;
+      assert.ok( now < prev );
+      done();
+    });
+    
+    ws.on('open', function() {
+      prev = Object.keys(maki.clients).length;
+      ws.close();
+    });
+    
+  });
 
   it('should respond to subscription messages', function( done ) {
     var ws = new WebSocket( resource('/') );
@@ -159,15 +179,10 @@ describe('ws', function() {
     var randomNum = getRandomInt( 100000 , 1000000 );
 
     ws.on('message', function(data) {
-      var message = null;
-      try {
-        message = JSON.parse( data );
-      } catch (e) {
-        return done(e);
-      }
-
+      var message = JSON.parse( data );
       if (message.method === 'patch') return done();
         
+      console.log('unhandled message: ' , data , message );
     });
     ws.on('open', function() {
       request( maki.app )
@@ -183,15 +198,14 @@ describe('ws', function() {
   it('should reject incorrect JSON', function( done ) {
     var ws = new WebSocket( resource('/') );
     
+    ws.on('message', function(data) {
+      // see http://www.jsonrpc.org/specification#error_object
+      var message = JSON.parse( data );
+      assert.equal( message.code , 32700 );
+      done();
+    });
+    
     ws.on('open', function() {
-      
-      ws.on('message', function(data) {
-        // see http://www.jsonrpc.org/specification#error_object
-        console.log(data);
-        assert.equal( data.code , 32700 );
-        done();
-      });
-      
       ws.send( 'fail me, I dare you' );
     });
     
@@ -200,15 +214,14 @@ describe('ws', function() {
   it('should reject non-JSONRPC messages', function( done ) {
     var ws = new WebSocket( resource('/') );
     
+    ws.on('message', function(data) {
+      // see http://www.jsonrpc.org/specification#error_object
+      var message = JSON.parse( data );
+      assert.equal( message.code , 32600 );
+      done();
+    });
+
     ws.on('open', function() {
-      
-      ws.on('message', function(data) {
-        // see http://www.jsonrpc.org/specification#error_object
-        console.log(data);
-        assert.equal( data.code , 32600 );
-        done();
-      });
-      
       ws.send('{}');
     });
     
