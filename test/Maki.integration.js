@@ -273,13 +273,13 @@ describe('ws', function() {
     });
   });
   
-  xit('should reject incorrect JSON', function( done ) {
+  it('should reject incorrect JSON', function( done ) {
     var ws = new WebSocket( resource('/') );
     
     ws.on('message', function(data) {
       // see http://www.jsonrpc.org/specification#error_object
       var message = JSON.parse( data );
-      assert.equal( message.code , 32700 );
+      assert.equal( message.error.code , 32700 );
       done();
     });
     
@@ -289,13 +289,13 @@ describe('ws', function() {
     
   });
   
-  xit('should reject non-JSONRPC messages', function( done ) {
+  it('should reject non-JSONRPC messages', function( done ) {
     var ws = new WebSocket( resource('/') );
     
     ws.on('message', function(data) {
       // see http://www.jsonrpc.org/specification#error_object
       var message = JSON.parse( data );
-      assert.equal( message.code , 32600 );
+      assert.equal( message.error.code , 32600 );
       done();
     });
 
