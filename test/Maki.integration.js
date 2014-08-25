@@ -44,6 +44,35 @@ describe('Maki', function() {
   it('should expose a list of resources', function() {
     expect( Object.keys(maki.resources).length ).to.be.at.least(1);
   });
+  
+  it('should expose a job queue', function() {
+    assert( typeof maki.Queue , 'object' );
+  });
+  
+  it('should be able to queue a job', function( done ) {
+    maki.queue.enqueue( 'test' , {
+      foo: 'bar'
+    }, done );
+  });
+  
+  it('should be able to process a queued job', function( done ) {
+    // TODO: eliminate need for timeout by solving cttnlsn/monq#38
+    this.timeout( 6000 );
+    
+    var jobData = { id: getRandomInt( 1000 , 10000 ) };
+    
+    var worker = new maki.queue.Worker( config.database.name );
+    worker.register({
+      'test': function( data , jobIsDone ) {
+        jobIsDone();
+        if (data.id == jobData.id ) return done();
+      }
+    });
+    worker.start();
+
+    maki.queue.enqueue( 'test' , jobData , new Function() );
+  });
+
 });
 
 
