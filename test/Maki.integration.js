@@ -1,7 +1,7 @@
 var assert = require('assert');
 var expect = require('chai').expect;
 
-var Browser = require('zombie');
+var cheerio = require('cheerio');
 var request = require('supertest');
 var rest = require('restler');
 var WebSocket = require('ws');
@@ -301,35 +301,38 @@ describe('ws', function() {
 describe('browser', function() {
   var self = this;
 
-  before(function(done) {
-    self.browser = new Browser();
-    self.browser.runScripts = false;
-    done();
-  });
-  
   it('should correctly connect', function(done) {
-    self.browser.visit( resource('/') , function() {
-      assert.equal( self.browser.location.pathname, '/' );
+    rest.get( resource('/people') , {
+      headers: {
+        accept: 'text/html'
+      }
+    }).on('complete', function(data) {
+      var $ = cheerio.load(data);
+      assert.ok( $.html() );
       done();
     });
   });
-  xit('should have a page title', function(done) {
-
-    self.browser.visit( resource('/') , function( e , browser ) {
-      assert.ok( self.browser.document.title );
+  it('should have a page title', function(done) {
+    rest.get( resource('/people') , {
+      headers: {
+        accept: 'text/html'
+      }
+    }).on('complete', function(data) {
+      var $ = cheerio.load(data);
+      assert.ok( $('title').html() );
       done();
     });
   });
-  xit('should have a page body', function( done ) {
-
-    self.browser.visit( resource('/') )
-      .then(function() {
-        assert.ok( self.browser.query('div#ng-content') );
-        done();
-      })
-      .fail(function(err) {
-        done(err);
-      });
+  it('should have a content in the content div', function( done ) {
+    rest.get( resource('/people') , {
+      headers: {
+        accept: 'text/html'
+      }
+    }).on('complete', function(data) {
+      var $ = cheerio.load(data);
+      assert.ok( $('div.content > *').html() );
+      done();
+    });
   });
 });
 
