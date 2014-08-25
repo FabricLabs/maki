@@ -177,7 +177,6 @@ describe('ws', function() {
   });
   
   it('should receive a patch event for new documents', function( done ) {
-
     var ws = new WebSocket( resource('/people') );
     var randomNum = getRandomInt( 100000 , 1000000 );
 
@@ -187,14 +186,10 @@ describe('ws', function() {
         ws.close();
         return done();
       };
-        
-      console.log('unhandled message: ' , data , message );
     });
     ws.on('open', function() {
       rest.post( resource('/people') , {
         data: { username: 'test-user-'+randomNum }
-      }).on('complete', function(data) {
-        console.log('creation complete, ', data)
       });
     });
   });
@@ -208,32 +203,20 @@ describe('ws', function() {
     rest.post( resource('/people') , {
       data: { username: personName }
     }).on('complete', function(created) {
-      
-      console.log('created: ' , created);
-
       var ws = new WebSocket( personURL );
       
       ws.on('message', function(data) {
-        console.log(data); // process.exit();
-        
         var message = JSON.parse( data );
         if (message.method === 'patch') {
           ws.close();
           return done();
         };
-          
-        console.log('unhandled message: ' , data , message );
       });
       
       ws.on('open', function() {
-        console.log('socket open');
-        console.log('PATCHing' , personURL );
-        
         rest.patch( personURL , {
           data: { description: Math.random() }
-        } ).on('complete', function(data) {
-          console.log('doc modified: ' , data);
-        });
+        } );
       });
     });
   });
