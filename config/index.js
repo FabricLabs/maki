@@ -4,14 +4,20 @@
    which sets them when require('./thisfile') is run. */
 
 module.exports = {
+  dns: {
+    name: process.env.MAKI_DNS_NAME || 'localhost'
+  },
   services: {
     http: {
-      port: process.env.MAKI_HTTP_PORT || 9200
+        port: process.env.MAKI_HTTP_PORT || 9200
+      , host: process.env.MAKI_HTTP_HOST || 'localhost'
     }
   },
   database: {
-      name: process.env.MAKI_DATABASE_NAME || 'maki'
-    , uri:  process.env.MAKI_DATABASE_URI  || 'localhost' 
+    name: process.env.MAKI_DATABASE_NAME   || 'maki',
+    masters: (process.env.MAKI_DATABASE_MASTERS)
+      ? JSON.parse(process.env.MAKI_DATABASE_MASTERS)
+      : [ 'localhost' ]
   },
   sessions: {
       enabled: process.env.MAKI_SESSIONS_ENABLE || true
@@ -27,6 +33,11 @@ module.exports = {
   auth: {
     local: {
       enabled: true
+    }
+  },
+  views: {
+    plugins: {
+      'moment': require('moment')
     }
   }
 };

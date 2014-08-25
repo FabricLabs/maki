@@ -21,15 +21,19 @@ In general, we'll be using the proper noun form of these definitions when referr
 Generally, programming web applications involves writing logic around a series of Resources to control their behavior and deliver an experience with the application's "Scope".  Maki aims to _start_ with that mental model of your application's "Scope", allow you to **hand-roll** (get it?) extensions (read: add business logic) to that mental model, and then deliver that model as a Service.
 
 **Example Maki Application**
+All URIs are automatically derived from the the Resource definition.
 ```javascript
-var app  = require('express')();
-var maki = require('maki')( app );
+var config = require('./config');
 
-resource.define({
-    name: 'Person'
-  , path: '/people'
-  , template: 'people'
-  , get: maki.controllers.people.list // defined in ./controllers/people and injected by Maki
+var Maki = require('./lib/Maki');
+var maki = new Maki( config );
+
+maki.define({
+  name: 'Person',
+  attributes: {
+    name: { type: String , max: 80 },
+    slug: { type: String , max: 80 , id: true }
+  }
 });
 
 maki.start();

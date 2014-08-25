@@ -86,7 +86,7 @@ var maki = {
           if (data.jsonrpc === '2.0') {
             switch (data.method) {
               case 'ping':
-                console.log('was ping, sending response');
+                console.log('was ping, playing pong');
                 maki.socket.send(JSON.stringify({
                   'jsonrpc': '2.0',
                   'result': 'pong',
@@ -107,33 +107,57 @@ var maki = {
 
 maki.angular.config(function($routeProvider, $locationProvider, $resourceProvider) {
   
-  var pages = [];
+  maki.resources = [];
   $.ajax({
     async: false,
     type: 'OPTIONS',
     url: '/',
     success: function(data) {
-      pages = data;
+      maki.resources = data;
     }
   });
   
-  pages.forEach(function(page) {
-    $routeProvider.when.apply( this , [ page.path , {
-      template: function( params ) {
-        var self = this;
-        var obj = {};
+  maki.resources.forEach(function(resource) {
+    Object.keys( resource.routes ).forEach(function( method ) {
+      var path = resource.routes[ method ];
+    
+      $routeProvider.when.apply( this , [ path , {
+        template: function( params ) {
+          var self = this;
+          var obj = {};
+          var template = resource.template;
+          var method = 'query';
 
-        $.ajax({
-            url: self.location
-          , success: function( results ) {
-              obj[ page.name ] = results;
+          // only support routing for lists and singles
+          [ 'query', 'get' ].forEach(function(p) {
+            var string = resource.paths[ p ];
+            // TODO: do without eval()?
+            var regex = new RegExp( eval(string) );
+            if (regex.test( self.location.pathname )) {
+              template = resource.templates[ p ];
+              method = p;
+              return;
             }
-          , async: false
-        });
-        
-        return Templates[ page.template ]( obj );
-      }
-    } ] );
+          });
+
+
+          // TODO: use local factory / caching mechanism
+          $.ajax({
+              url: self.location
+            , success: function( results ) {
+                obj[ resource.names[ method ] ] = results;
+              }
+            , async: false
+          });
+          
+
+          console.log('rendering ' + template + ' with data' , obj );
+
+          return Templates[ template ]( obj );
+        }
+      } ] );
+    });
+
     $routeProvider.otherwise({
       template: function() {
         return Templates['404']();
