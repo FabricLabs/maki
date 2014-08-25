@@ -1,5 +1,6 @@
 Maki
 ==============
+[![Coverage Status](https://coveralls.io/repos/martindale/maki/badge.png)](https://coveralls.io/r/martindale/maki)
 
 Maki is a framework for hand-rolling web applications in a way that makes sense.
 
