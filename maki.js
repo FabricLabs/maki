@@ -35,7 +35,6 @@ var resources = [
 ];
 
 maki.define('Person', {
-  name: 'Person',
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
     hash:     { type: String , restricted: true },

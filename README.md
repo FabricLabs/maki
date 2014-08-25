@@ -28,8 +28,7 @@ var config = require('./config');
 var Maki = require('./lib/Maki');
 var maki = new Maki( config );
 
-maki.define({
-  name: 'Person',
+maki.define('Person', {
   attributes: {
     name: { type: String , max: 80 },
     slug: { type: String , max: 80 , id: true }
@@ -42,13 +41,14 @@ That's it.  That's all you need.  A `GET` request to `/people` will now provide 
 
 ```bash
 > curl http://localhost:9200/people
-[{"slug": "martindale", "username": "martindale"}]
+[{"slug": "martindale", "name": "martindale"}]
 ```
 Requesting an HTML version of that Resource will give you exactly that:
 ```bash
 > curl -H "Accept: text/html" http://localhost:9200/people
 <!DOCTYPE html>
-<html ng-app="maki">
+<html>
+<!-- rendered version of the resource snipped -->
 ...
 ```
 Similarly, you can subscribe to updates to that same Resource by switching to the `ws://` protocol:
