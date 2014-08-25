@@ -112,6 +112,15 @@ describe('http', function(){
       });
   });
   
+  it('should return 404 for non-existent resources', function( done ) {
+    request( maki.app )
+      .get('/this-should-never-exist')
+      .end(function(err, res) {
+        assert.equal( res.status , 404 );
+        done();
+      });
+  });
+  
   it('should allow for resources to be queried', function( done ) {
     request( maki.app )
       .get('/people')
