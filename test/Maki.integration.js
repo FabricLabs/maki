@@ -18,7 +18,8 @@ maki.define('Person', {
   name: 'Person',
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
-    description: { type: String , max: 500 }
+    description: { type: String , max: 500 },
+    hash: { type: String , default: 'asdf', required: true , restricted: true }
   },
   plugins: [
     require('passport-local-mongoose')
@@ -71,6 +72,7 @@ describe('Maki', function() {
     worker.start();
 
     maki.queue.enqueue( 'test' , jobData , new Function() );
+
   });
 
 });
@@ -122,7 +124,6 @@ describe('http', function(){
   
   it('should allow for a resource to be created', function( done ) {
     var randomNum = getRandomInt( 100000 , 1000000 );
-    
     request( maki.app )
       .post('/people')
       .send({ username: 'test-user-'+randomNum })
@@ -131,6 +132,19 @@ describe('http', function(){
         if (err) throw err;
         done();
       });
+  });
+  
+  it('should not expose restricted fields', function(done) {
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    rest.post( resource('/people') , {
+      data: {
+        username: 'test-user-'+randomNum,
+        hash: 'fooooooooo'
+      }
+    }).on('complete', function(createdDoc) {
+      expect(createdDoc.hash).to.equal( undefined );
+      done();
+    });
   });
   
 });
