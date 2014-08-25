@@ -3,6 +3,7 @@ var expect = require('chai').expect;
 
 var Browser = require('zombie');
 var request = require('supertest');
+var rest = require('restler');
 var WebSocket = require('ws');
 
 var config = require('../config');
@@ -16,9 +17,12 @@ var maki = new Maki( config );
 maki.define('Person', {
   name: 'Person',
   attributes: {
-    name: { type: String , max: 80 },
-    slug: { type: String , max: 80 , id: true }
-  }
+    username: { type: String , max: 80 , required: true , slug: true },
+    description: { type: String , max: 500 }
+  },
+  plugins: [
+    require('passport-local-mongoose')
+  ]
 });
 
 function resource( path ) {
@@ -92,7 +96,7 @@ describe('http', function(){
     
     request( maki.app )
       .post('/people')
-      .send({ name: 'test-user-'+randomNum })
+      .send({ username: 'test-user-'+randomNum })
       .expect(200)
       .end(function(err, res) {
         if (err) throw err;
@@ -172,30 +176,69 @@ describe('ws', function() {
     });
   });
   
-  it('should receive a patch event for changes', function( done ) {
-    //this.timeout(5000);
-    
+  it('should receive a patch event for new documents', function( done ) {
+
     var ws = new WebSocket( resource('/people') );
     var randomNum = getRandomInt( 100000 , 1000000 );
 
     ws.on('message', function(data) {
       var message = JSON.parse( data );
-      if (message.method === 'patch') return done();
+      if (message.method === 'patch') {
+        ws.close();
+        return done();
+      };
         
       console.log('unhandled message: ' , data , message );
     });
     ws.on('open', function() {
-      request( maki.app )
-        .post('/people')
-        .send({ name: 'test-user-'+randomNum })
-        .expect(200)
-        .end(function(err, res) {
-          if (err) throw err;
-        });
+      rest.post( resource('/people') , {
+        data: { username: 'test-user-'+randomNum }
+      }).on('complete', function(data) {
+        console.log('creation complete, ', data)
+      });
     });
   });
   
-  it('should reject incorrect JSON', function( done ) {
+  it('should receive a patch event for changed documents', function( done ) {
+    //this.timeout(5000);
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    var personName = 'test-user-'+randomNum;
+    var personURL = resource('/people/' + personName );
+    
+    rest.post( resource('/people') , {
+      data: { username: personName }
+    }).on('complete', function(created) {
+      
+      console.log('created: ' , created);
+
+      var ws = new WebSocket( personURL );
+      
+      ws.on('message', function(data) {
+        console.log(data); // process.exit();
+        
+        var message = JSON.parse( data );
+        if (message.method === 'patch') {
+          ws.close();
+          return done();
+        };
+          
+        console.log('unhandled message: ' , data , message );
+      });
+      
+      ws.on('open', function() {
+        console.log('socket open');
+        console.log('PATCHing' , personURL );
+        
+        rest.patch( personURL , {
+          data: { description: Math.random() }
+        } ).on('complete', function(data) {
+          console.log('doc modified: ' , data);
+        });
+      });
+    });
+  });
+  
+  xit('should reject incorrect JSON', function( done ) {
     var ws = new WebSocket( resource('/') );
     
     ws.on('message', function(data) {
@@ -211,7 +254,7 @@ describe('ws', function() {
     
   });
   
-  it('should reject non-JSONRPC messages', function( done ) {
+  xit('should reject non-JSONRPC messages', function( done ) {
     var ws = new WebSocket( resource('/') );
     
     ws.on('message', function(data) {
@@ -244,25 +287,21 @@ describe('browser', function() {
       done();
     });
   });
-  it('should have a page title', function(done) {
+  xit('should have a page title', function(done) {
 
     self.browser.visit( resource('/') , function( e , browser ) {
       assert.ok( self.browser.document.title );
       done();
     });
   });
-  it('should have a page body', function() {
+  xit('should have a page body', function( done ) {
 
     self.browser.visit( resource('/') )
       .then(function() {
-        assert.ok( browser.query('div') );
-        
-        console.log('asdfasdfasdfasdfsadfa')
-        
+        assert.ok( self.browser.query('div#ng-content') );
         done();
       })
       .fail(function(err) {
-        console.log(err);
         done(err);
       });
   });
@@ -270,4 +309,10 @@ describe('browser', function() {
 
 describe('browser with javascript', function() {
   
+});
+
+describe('cleanup', function() {
+  xit('should clean up after itself', function( done ) {
+    maki.destroy( done );
+  });
 });

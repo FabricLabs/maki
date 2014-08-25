@@ -37,16 +37,14 @@ var resources = [
 maki.define('Person', {
   name: 'Person',
   attributes: {
-    username: { type: String , max: 80 },
-    slug:     { type: String , max: 80 , id: true },
+    username: { type: String , max: 80 , required: true , slug: true },
     hash:     { type: String , restricted: true },
     salt:     { type: String , restricted: true },
     email:    { type: String , max: 80 , restricted: true },
     created:  { type: Date , default: Date.now }
   },
   plugins: [
-    require('passport-local-mongoose'),
-    require('mongoose-slug')
+    require('passport-local-mongoose')
   ]
 });
 
