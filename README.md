@@ -3,20 +3,21 @@ Maki
 [![Build Status](https://travis-ci.org/martindale/maki.svg)](https://travis-ci.org/martindale/maki)
 [![Coverage Status](https://coveralls.io/repos/martindale/maki/badge.png?branch=master)](https://coveralls.io/r/martindale/maki?branch=master)
 
-Maki is a framework for hand-rolling web applications in a way that makes sense.
+Maki is a framework for hand-rolling web applications in a way that makes sense to a human.
 
 - **REST API built-in.**  All URIs are semantic and indempotent, automatically.
 - **Client-Responsiveness.**  Don't rely on user-agents or referers, but instead respond to what the client supports.  Make a request that only accepts JSON?  Get JSON back.  Accept HTML?  Get HTML back.
-- **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript _is_ available, a performant and well-designed client-side application takes over to eliminate full-page loads.
+- **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript _is_ available, a performant and well-designed client-side application takes over to eliminate full-page loads.  See also [Modules](#modules).
 
 ### Definitions
 In general, we'll be using the proper noun form of these definitions when referring to them explicitly.
 
 - **Application:** the executable process that binds Resources and their associated Models, Controllers, and Views into a deliverable Service.
 - **Resource:** the abstract concept of an interactive object.  For example, a "user" of a website is a Resource, and can be interacted with; created (registered), listed (page displaying a list of users), and viewed (profile page).  Resources generally expose one or more identifiers, or Uniform Resource Identifiers (URI).
+- **Module:** a collection of **renderables** (html, lexers, etc.) and **their associated styling**.  For example, in an HTML context, a **Module** consists of HTML, Javascript, and associated CSS for styling.
 - **Model:** the abstract class that exposes a Resource's Schema and associated validators, methods, and statics.
 - **Controller:** the code associated with specific interactions on a Resource and the behavior of the Application.
-- **View:** logic and template for displaying a specific Resource.  This generally contains logic and is dependent on context.
+- **View:** logic and template for displaying a specific Resource.  This generally contains logic and is dependent on context.  A View MAY compose several Modules.
 - **Service:** the offering of your app / website / api via various protocols (HTTP, WebSockets, gopher, etc.)
 
 ## Resource-Driven Development (RDD)
@@ -27,7 +28,7 @@ All URIs are automatically derived from the the Resource definition.
 ```javascript
 var config = require('./config');
 
-var Maki = require('./lib/Maki');
+var Maki = require('maki');
 var maki = new Maki( config );
 
 maki.define('Person', {
@@ -100,9 +101,38 @@ block content
 This will allow Maki to collect the "projects" Resource as a subcollection of the Person Resource, or more specifically, only within this View.  The JSON View will _not_ collect Projects, and subsequently spare [precious] server time.
 
 ### PubSub
+WebSockets exposed by Maki are, by default, subscribed to the Resource exposed by the path you're connecting to.  For example, `ws://localhost:9200/people` will subscribe to the People resource, as defined by Maki.  This may not be ideal for subscribing to multiple (or _many_ resources), so Maki allows for multi-plexing on single websocket connections:
 
+```javascript
+maki.sockets.subscribe('/examples');
+```
+
+In pure Javascript (without Maki):
+```javascript
+var ws = new WebSocket('ws://localhost:9200/people');
+ws.on('open', function() {
+  
+  var JSONRPCEvent = {
+    jsonrpc: '2.0',
+    method: 'subscribe',
+    data: {
+      channel: '/examples'
+    }
+  };
+  
+  ws.send( JSON.stringify( JSONRPCEvent ) );
+});
+```
+
+In both of the above examples, the currently open WebSocket will now receive events for both the `/people` and the `/examples` paths (or rather, the Resources _exposed_ by those paths).
 
 ## Architecture
+Maki's architecture is Resource-centric.  All aspects of the datastore, its query pipeline, the business logic, and view layer are derived from the definition of the Resources your application exposes.
+
+TODO: IMAGE HERE
+
+TODO: explanation here.
+
 
 ## Instructions
 You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to run this application.  Installing these is out-of-scope, and instructions are contained on the links to the left.
