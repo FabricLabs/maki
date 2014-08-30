@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Framework for hand-rolling web applications.",
   "main": "index.js",
+  "bin": {
+    "maki": "bin/maki"
+  },
   "scripts": {
     "test": "NODE_ENV=test mocha --recursive",
     "coverage": "istanbul cover _mocha"
