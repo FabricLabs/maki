@@ -1,0 +1,11 @@
+- var fields = Object.keys(collection)
+
+table.table.table-striped
+  thead
+    tr
+      each field in fields
+        td #{field}
+
+  tbody
+    each item in collection
+      include item

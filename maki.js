@@ -31,6 +31,16 @@ var resources = [
       'examples': {},
       'people': {}
     }
+  },
+  {
+    name: 'NewThing',
+    attributes: {
+      name: { type: String , max: 80 }
+    },
+    requires: {
+      'examples': {},
+      'people': {}
+    }
   }
 ];
 
