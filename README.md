@@ -133,6 +133,12 @@ TODO: IMAGE HERE
 
 TODO: explanation here.
 
+### RPC Methods
+- `ping` should be responded to with a "pong" result.
+- `patch` will provide an array of operations to execute on a resource.
+- `subscribe`
+- `unsubscribe`
+
 
 ## Instructions
 You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to run this application.  Installing these is out-of-scope, and instructions are contained on the links to the left.

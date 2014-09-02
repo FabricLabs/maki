@@ -1,0 +1,8 @@
+extends layouts/default
+
+block content
+
+  h1 #{resource.plural}
+
+  //- TODO: use different modules for different collection types?
+  include modules/collection
