@@ -4,7 +4,7 @@
   "description": "Framework for hand-rolling web applications.",
   "main": "index.js",
   "bin": {
-    "maki": "bin/maki"
+    "maki": "bin/maki.js"
   },
   "scripts": {
     "test": "NODE_ENV=test mocha --recursive",
