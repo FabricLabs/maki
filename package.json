@@ -42,6 +42,7 @@
     "json-patch": "^0.4.3",
     "maki-mongoose-hooks": "^0.1.0",
     "maki-queue": "0.0.1",
+    "maki-service-websockets": "^0.1.1",
     "moment": "^2.8.1",
     "mongoose": "~3.8.1",
     "mongoose-slug": "^1.3.1",
