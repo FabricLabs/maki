@@ -11,6 +11,10 @@ module.exports = {
     http: {
         port: process.env.MAKI_HTTP_PORT || 9200
       , host: process.env.MAKI_HTTP_HOST || 'localhost'
+    },
+    spdy: {
+        host: process.env.MAKI_HTTP_HOST || 'localhost'
+      , port: process.env.MAKI_SPDY_PORT || 9643
     }
   },
   database: {
