@@ -30,8 +30,7 @@ block content
           
           div.ui.list
             each resource in maki.resources
-              a.item(href="#{resource.routes.query}") #{resource.plural}
-            
+              a.item(href="#{resource.routes.query}") #{resource.plural}  
           
       .ui.column.grid
         .column
@@ -52,7 +51,7 @@ block content
           p You'll start your hand-rolled application by defining the resources your application exposes:
           
           
-          .ui.inverted.segment
+          .ui.segment
             code.javascript
               | maki.define({
               |   name: 'Person',
