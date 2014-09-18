@@ -5,17 +5,18 @@ html(ng-app="maki")
 
     meta(name="viewport", content="width=device-width, initial-scale=1")
 
-    link(rel="stylesheet", href="#{assets.url('/css/bootstrap.css')}")
+    link(rel="stylesheet", href="#{assets.url('/css/semantic.css')}")
     link(rel="stylesheet", href="#{assets.url('/css/font-awesome.css')}")
     link(rel="stylesheet", href="#{assets.url('/css/highlight/maki.css')}")
     link(rel="stylesheet", href="#{assets.url('/css/maki.css')}")
+    link(rel="stylesheet", href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Open+Sans:300italic,400,300,700')
 
     script(src="/js/jquery.js")
-    script(src="/js/bootstrap.js")
+    script(src="/js/semantic.js")
     script(src="/js/underscore-min.js")
-    script(src="/js/angular.js")
-    script(src="/js/angular-route.js")
-    script(src="/js/angular-resource.js")
+    //- script(src="/js/angular.js")
+    //-script(src="/js/angular-route.js")
+    //-script(src="/js/angular-resource.js")
     script(src="/js/templates.js")
     script(src="/js/highlight.pack.js")
     script(src="/js/headroom.min.js")
@@ -29,21 +30,21 @@ html(ng-app="maki")
     block navbar
       include ../partials/navbar
     
-    .container
-      .row
+    .contained
+      .ui.grid
         include ../partials/flash
 
-      .row
-        .col-lg-12.content(ng-view)
+      .ui.grid
+        .column.content(ng-view)
           block content
 
     footer
-      .container
-        .row
-          .col-lg-12
-            p
+      .contained
+        .ui.grid
+          .column
+            .ui.one.column.stackable.center.aligned
               small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
-              |  
-              a(class="btn btn-default", href="bitcoin:1Ae7wguPTP8Zm3146opVhay4hUS7NiaxYw", alt="B") Donate 
+              | 
+              a.ui.tiny.button(class="btn btn-default", href="bitcoin:1Ae7wguPTP8Zm3146opVhay4hUS7NiaxYw", alt="B") Donate 
                 i.fa.fa-bitcoin
                 | itcoin &raquo;

@@ -5,34 +5,36 @@ block content
     h1 Welcome, #{user.username}!
 
   else
-    .jumbotron
+    .ui.huge.header
       h1 Hello, Maki.
       p A simple framework for hand-rolling your web application.
 
-    .container
-      .row
-        .col-md-4
-          h2 Hand-rolled.
-          p No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
-        .col-md-4
-          h2 Get Making.
-          p Get started on that project <em>now</em>.  Don't worry about project setup.
-        .col-md-4
-          h2 Already registered?
-          include forms/login
+    .ui
+      .ui.three.column.grid
+        .column
+          .ui.blue.segment.card
+            h2.center-text Hand-rolled.
+            p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
+        .column
+          .ui.red.segment.card
+            h2.center-text Get Making.
+            p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
+        .column
+          .ui.green.segment.card
+              h2.center-text Already registered?
+              a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
           
-      .row
-        .col
+      .ui.column.grid
+        .column
           h3 Resources
           
-          ul.nav-list
-          each resource in maki.resources
-            li
-              a(href="#{resource.routes.query}") #{resource.plural}
+          div.ui.list
+            each resource in maki.resources
+              a.item(href="#{resource.routes.query}") #{resource.plural}
             
           
-      .row
-        .col
+      .ui.column.grid
+        .column
           h3 Features
           hr
 
@@ -42,14 +44,15 @@ block content
           h4 Authentication
           p We've built authentication into the stack (using PassportJS), including username and password auth, and OAuth using providers like Facebook and Twitter.  Spend your time on your app, not third-party auth.
 
-      .row
-        .col
+      .ui.column.grid
+        .column
           h3 Documentation
           
           h4 Resource-Driven Development
           p You'll start your hand-rolled application by defining the resources your application exposes:
           
-          pre
+          
+          .ui.inverted.segment
             code.javascript
               | maki.define({
               |   name: 'Person',
@@ -58,6 +61,7 @@ block content
               |     slug: { type: String , max: 80 , id: true }
               |   }
               | });
+              | 
               
           p Almost like magic, <strong>your resource now has an endpoint that renders HTML <em>and</em> serves JSON</strong>.  Even better, AngularJS will automatically wire itself up to this resource.
           
@@ -74,6 +78,6 @@ block content
             |  will produce: 
             a.tooltipped(href="/about", title="Learn More about Maki") About
 
-      .row
-        .col
+      .ui.column.grid
+        .column
           hr
