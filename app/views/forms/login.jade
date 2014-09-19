@@ -1,10 +1,10 @@
-form(action="/login", method="post")
-  .form-group
+form.ui.form.segment(action="/login", method="post")
+  .field
     label(for="username") Username
-    input.form-control(type="text", name="username", placeholder="Username")
+    input.ui.left.labeled.inputl(type="text", name="username", placeholder="Username")
 
-  .form-group
+  .field
     label(for="password") Password
-    input.form-control(type="password", name="password")
+    input.ui.left.labeled.input(type="password", name="password")
 
   button.btn.btn-default.pull-right(type="submit") Log In &raquo;
