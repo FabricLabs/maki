@@ -1,25 +1,27 @@
-.ui.secondary.pointing.menu(ng-controller="headerController", headroom)
-  div.contained
-    .header.item
-      a.header.item(href="/") Maki
-    block mainMenu
-      a.item(href="/", title="Maki Homepage", ng-class="{ active: isActive('/')}")
-        i.home.icon
-        |  Home
-      a.item(href="/examples", title="Projects using Maki", ng-class="{ active: isActive('/examples')}")
-        i.rocket.icon
-        |  Examples
-      a.item(href="/people", title="People on this Maki, an example resource.", ng-class="{ active: isActive('/people')}")
-        i.user.icon
-        |  People
-      .right.menu
-        if (user)
-          div.item.ui.button
-            a.ui.button(href="/people/#{user.slug}", ng-class="{ active: isActive('/people/#{user.slug}')}") #{user.username}
-            div.or
-            a.ui.button(href="/logout") Log Out
-        else
-          div.item.ui.buttons
-            a.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
-            div.or
-            a.ui.teal.button(href="/register", ng-class="{ active: isActive('/register') }") Sign Up &raquo;
+.ui.grid
+  .row
+    .ui.pointing.menu.navbar.page.grid(ng-controller="headerController", headroom)
+      a.brand.item(href="/") Maki
+
+      //- block for prepend/append/replace-able menu items
+      block mainMenu
+        a.item(href="/", title="Maki Homepage", ng-class="{ active: isActive('/')}")
+          i.home.icon
+          |  Home
+        a.item(href="/examples", title="Projects using Maki", ng-class="{ active: isActive('/examples')}")
+          i.rocket.icon
+          |  Examples
+        a.item(href="/people", title="People on this Maki, an example resource.", ng-class="{ active: isActive('/people')}")
+          i.user.icon
+          |  People
+        .right.menu
+          if (user)
+            div.item.ui.button
+              a.ui.button(href="/people/#{user.slug}", ng-class="{ active: isActive('/people/#{user.slug}')}") #{user.username}
+              div.or
+              a.ui.button(href="/logout") Log Out
+          else
+            div.item.ui.buttons
+              a.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
+              div.or
+              a.ui.teal.button(href="/register", ng-class="{ active: isActive('/register') }") Sign Up &raquo;
