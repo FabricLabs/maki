@@ -16,12 +16,11 @@
           |  People
         .right.menu
           if (user)
-            div.item.ui.button
+            .item.ui.buttons
               a.ui.button(href="/people/#{user.slug}", ng-class="{ active: isActive('/people/#{user.slug}')}") #{user.username}
-              div.or
               a.ui.button(href="/logout") Log Out
           else
-            div.item.ui.buttons
+            .item.ui.buttons
               a.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
-              div.or
+              .or
               a.ui.teal.button(href="/register", ng-class="{ active: isActive('/register') }") Sign Up &raquo;

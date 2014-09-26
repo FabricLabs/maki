@@ -44,7 +44,7 @@ var resources = [
   }
 ];
 
-maki.define('Person', {
+var Person = maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
     hash:     { type: String , restricted: true },
@@ -55,6 +55,15 @@ maki.define('Person', {
   plugins: [
     require('passport-local-mongoose')
   ]
+});
+
+Person.pre('save', function( done ) {
+  console.log('hi');
+  done();
+});
+
+Person.on('create', function( person ) {
+  console.log('ho');
 });
 
 var LocalStrategy = require('passport-local').Strategy;
