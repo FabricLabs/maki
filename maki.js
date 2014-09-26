@@ -66,6 +66,10 @@ Person.on('create', function( person ) {
   console.log('ho');
 });
 
+Person.path('username').validate(function(value) {
+  return false;
+}, 'not a valid username');
+
 var LocalStrategy = require('passport-local').Strategy;
 
 /* enable "local" login (e.g., username and password) */

@@ -80,6 +80,22 @@ Updates from the server are additionally encapsulated using [RFC 5789, PATCH Met
 #### Reconnection
 Maki's sockets are resilient to latency, network connectivity issues, and multiple-tenant environments, for up to 24 hours (configurable).  The server will intelligently clean up idle sockets, and clients will intelligently reconnect using a pre-configured back-off strategy.
 
+#### Validators
+Every attribute on a Resource can have custom validators:
+```javascript
+var Person = maki.define('Person', {
+  attributes: {
+    username: { type: String , max: 80 , required: true , slug: true }
+  }
+});
+
+Person.path('username', function(value) {
+  if (value.length < 5) return false;
+  
+  return true;
+}, 'Invalid username.  Must be > 5 characters.');
+```
+
 ### Methods
 All Maki resources expose exactly five (5) methods:
 
