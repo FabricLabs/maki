@@ -96,6 +96,20 @@ Person.path('username', function(value) {
 }, 'Invalid username.  Must be > 5 characters.');
 ```
 
+Validators can also be defined as functions on attributes themselves by supplying a `validator`:
+```javascript
+maki.define('Person', {
+  attributes: {
+    username: { type: String , max: 80 , required: true , slug: true , validator: function(value) {
+      if (value.length < 5) return false;
+      
+      return true;
+    } }
+  }
+});
+```
+
+
 ### Methods
 All Maki resources expose exactly five (5) methods:
 
