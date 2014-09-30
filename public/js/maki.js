@@ -82,6 +82,8 @@ var maki = {
                 console.log('unhandled jsonrpc method ' , data.method);
               break;
             }
+          } else {
+            
           }
         };
         maki.socket.onopen = function onOpen() {
@@ -121,6 +123,7 @@ $(window).on('ready', function() {
     type: 'OPTIONS',
     url: '/'
   }).done(function(data) {
+    if (!data) return console.log('failed to acquire resource list; disabling fancy stuff.');
     // server is online!
     maki.$viewport = $('[data-for=viewport]');
     maki.sockets.connect();
@@ -130,7 +133,6 @@ $(window).on('ready', function() {
 
     maki.resources = data;
     maki.resources.forEach(function(resource) {
-      console.log( resource );
       // only support routing for lists and singles
       [ 'query', 'get' ].forEach(function(m) {
         var path = resource.paths[ m ];
@@ -184,7 +186,7 @@ $(window).on('ready', function() {
 
 maki.angular = {
   controller: function() { return this; },
-  directive: function() { return this; }
+  directive:  function() { return this; }
 }
 
 maki.angular.controller('mainController', function( $scope ) {
