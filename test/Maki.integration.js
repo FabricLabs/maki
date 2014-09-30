@@ -9,6 +9,7 @@ var WebSocket = require('ws');
 var config = require('../config');
 
 config.services.http.port = 9201;
+config.services.spdy.port = config.services.http.port + 443;
 config.database.name = 'maki-test';
 
 var Maki = require('../lib/Maki');
@@ -26,8 +27,13 @@ maki.define('Person', {
   ]
 });
 
-function resource( path ) {
-  return 'http://' + config.services.http.host + ':' + config.services.http.port + path;
+function resource( path , options ) {
+  var options  = options || {};
+  var protocol = (options.ssl) ? 'https' : 'http';
+  var host     = (options.ssl) ? config.services.spdy.host : config.services.http.host;
+  var port     = (options.ssl) ? config.services.spdy.port : config.services.http.port;
+
+  return protocol + '://' + host + ':' + port + path;
 }
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
@@ -79,6 +85,7 @@ describe('Maki', function() {
 
 
 before(function(done) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   maki.start(function() {
     done();
   });
@@ -156,6 +163,42 @@ describe('http', function(){
     });
   });
   
+});
+
+describe('https', function(){
+  var https = require('https');
+  var uri = resource('/', { ssl: true });
+  it('should be listening for https', function() {
+    https.get( uri , function(res) {
+      assert.equal( res.statusCode , 200 );
+    });
+  });
+});
+
+describe('spdy', function(){
+  var spdy = require('spdy');
+  var https = require('https');
+  var http = require('http');
+  
+  var agent = spdy.createAgent({
+    host: '127.0.0.1',
+    port: config.services.spdy.port
+  });
+
+  xit('should be listening for spdy', function( next ) {
+    http.get({
+      host: config.services.spdy.host,
+      path: '/',
+      agent: agent
+    }, function(res) {
+      
+      assert.equal( res.statusCode , 201 );
+      agent.close();
+      
+      next()
+      
+    }).end();
+  });
 });
 
 describe('ws', function() {
