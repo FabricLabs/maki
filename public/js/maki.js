@@ -67,7 +67,6 @@ var maki = {
             var data = {};
           }
 
-          console.log(data);
           // experimental JSON-RPC implementation
           if (data.jsonrpc === '2.0') {
             switch (data.method) {
@@ -78,6 +77,9 @@ var maki = {
                   'result': 'pong',
                   'id': data.id
                 }));
+              break;
+              default:
+                console.log('unhandled jsonrpc method ' , data.method);
               break;
             }
           }
@@ -117,60 +119,66 @@ function DataBinder( objectID ) {
 $(window).on('ready', function() {
   $.ajax({
     type: 'OPTIONS',
-    url: '/',
-    success: function(data) {
-      // server is online!
-      maki.$viewport = $('[data-for=viewport]');
+    url: '/'
+  }).done(function(data) {
+    // server is online!
+    maki.$viewport = $('[data-for=viewport]');
+    maki.sockets.connect();
+    
+    $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
+    //$('a[href="'+window.location.pathname+'"]').addClass('active');
 
-      maki.resources = data;
-      maki.resources.forEach(function(resource) {
-        console.log( resource );
-        // only support routing for lists and singles
-        [ 'query', 'get' ].forEach(function(m) {
-          var path = resource.paths[ m ];
-          if (path) maki.templates[ path ] = resource.templates[ m ];
-        });
+    maki.resources = data;
+    maki.resources.forEach(function(resource) {
+      console.log( resource );
+      // only support routing for lists and singles
+      [ 'query', 'get' ].forEach(function(m) {
+        var path = resource.paths[ m ];
+        if (path) maki.templates[ path ] = resource.templates[ m ];
+      });
+    });
+    
+    // bind pushState stuff
+    $( document ).on('click', 'a', function(e) {
+      e.preventDefault();
+      var $a = $(this);
+      var href = $a.attr('href');
+      
+      var template;
+      Object.keys(maki.templates).forEach(function(route) {
+        // HACK: don't bother matching routes of almost-zero length
+        // TODO: fix this
+        if (href.length <= 1) return template = 'index';
+        
+        var string = route;
+        var regex = new RegExp( eval( string ) );
+        // TODO: do not match '/' –- see bugfix at top of this loop
+        if (regex.test( href )) template = maki.templates[ route ];
       });
       
-      // bind pushState stuff
-      $( document ).on('click', 'a', function(e) {
-        e.preventDefault();
-        var $a = $(this);
-        var href = $a.attr('href');
-        
-        var template;
-        Object.keys(maki.templates).forEach(function(route) {
-          if (href.length <= 1) return template = 'index';
-          
-          var string = route;
-          var regex = new RegExp( eval( string ) );
-          // TODO: do not match '/' –- see bugfix at top of this loop
-          if (regex.test( href )) template = maki.templates[ route ];
-        });
-        
-        // TODO: use local factory / caching mechanism
-        $.ajax({
-            url: href
-          , success: function( results ) {
-              
-              console.log('template to render: ' , template);
-              
-              var obj = {};
-              obj[ template ] = results;
-              
-              maki.$viewport.html( Templates[ template ]( obj ) );
-              
-              $('a.active').removeClass('active');
-              $a.addClass('active');
-              
-              history.pushState({}, '', href );
-            }
-          , async: false
-        });
+      // TODO: use local factory / caching mechanism
+      $.ajax({
+          url: href
+        , async: false
+      }).always(function( results ) {
+        if (!results) template = '500';
 
-        return false;
+        maki.sockets.unsubscribe( window.location.pathname );
+        maki.sockets.subscribe( href );
+
+        var obj = {};
+        obj[ template ] = results;
+        
+        maki.$viewport.html( Templates[ template ]( obj ) );
+        
+        $('a.active').removeClass('active');
+        $a.addClass('active');
+        
+        history.pushState({}, '', href );
       });
-    }
+
+      return false;
+    });
   });
 });
 
