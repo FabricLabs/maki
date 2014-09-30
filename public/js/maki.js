@@ -1,18 +1,3 @@
-// stub for jsonRPC class (shared)
-var jsonRPC = function( method , params ) {
-  this._method = method;
-  this._params = params;
-}
-jsonRPC.prototype.toJSON = function(notify) {
-  var self = this;
-  return JSON.stringify({
-    'jsonrpc': '2.0',
-    'method': self._method,
-    'params': self._params,
-    'id': (notify === false) ? undefined : uuid.v1()
-  });
-}
-
 // stub for a proper class
 var maki = {
     angular: angular.module('maki', ['ngRoute', 'ngResource'])
@@ -105,18 +90,24 @@ var maki = {
     }
 };
 
-maki.angular.config(function($routeProvider, $locationProvider, $resourceProvider) {
-  
-  maki.resources = [];
-  $.ajax({
-    async: false,
-    type: 'OPTIONS',
-    url: '/',
-    success: function(data) {
-      maki.resources = data;
-    }
+maki.resources = [];
+$.ajax({
+  async: false,
+  type: 'OPTIONS',
+  url: '/',
+  success: function(data) {
+    maki.resources = data;
+  }
+});
+maki.resources.forEach(function(resource) {
+  maki.angular.factory( resource.name , function($resource) {
+    return $resource( resource.routes.get , { id: '@' + resource.fields.id } , {
+      update: { method: 'PATCH'}
+    });
   });
-  
+});
+
+maki.angular.config(function($routeProvider, $locationProvider, $resourceProvider) {
   maki.resources.forEach(function(resource) {
     Object.keys( resource.routes ).forEach(function( method ) {
       var path = resource.routes[ method ];
@@ -139,18 +130,7 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
               return;
             }
           });
-
-
-          // TODO: use local factory / caching mechanism
-          $.ajax({
-              url: self.location
-            , success: function( results ) {
-                obj[ resource.names[ method ] ] = results;
-              }
-            , async: false
-          });
           
-
           console.log('rendering ' + template + ' with data' , obj );
 
           return Templates[ template ]( obj );
@@ -170,7 +150,14 @@ maki.angular.config(function($routeProvider, $locationProvider, $resourceProvide
 
 });
 
-maki.angular.controller('mainController', function( $scope ) {
+maki.angular.controller('mainController', function( $scope , Person ) {
+  
+  Person.query(function(data) {
+    $scope.people = data;
+    console.log('query results', data);
+  });
+  
+  
   $scope.$on('$destroy', function() {
      window.onbeforeunload = maki.sockets.disconnect;
   });
