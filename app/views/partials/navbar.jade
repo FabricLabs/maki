@@ -1,26 +1,23 @@
 .ui.grid
   .row
-    .ui.pointing.menu.navbar.page.grid(ng-controller="headerController", headroom)
+    .ui.pointing.menu.navbar.page.grid
       a.brand.item(href="/") Maki
 
       //- block for prepend/append/replace-able menu items
       block mainMenu
-        a.item(href="/", title="Maki Homepage", ng-class="{ active: isActive('/')}")
-          i.home.icon
-          |  Home
-        a.item(href="/examples", title="Projects using Maki", ng-class="{ active: isActive('/examples')}")
+        a.item(href="/examples", title="Projects using Maki")
           i.rocket.icon
           |  Examples
-        a.item(href="/people", title="People on this Maki, an example resource.", ng-class="{ active: isActive('/people')}")
+        a.item(href="/people", title="People on this Maki, an example resource.")
           i.user.icon
           |  People
         .right.menu
           if (user)
             .item.ui.buttons
-              a.ui.button(href="/people/#{user.slug}", ng-class="{ active: isActive('/people/#{user.slug}')}") #{user.username}
+              a.ui.button(href="/people/#{user.slug}") #{user.username}
               a.ui.button(href="/logout") Log Out
           else
             .item.ui.buttons
-              a.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
+              a.ui.button(href="/login") Log In
               .or
-              a.ui.teal.button(href="/register", ng-class="{ active: isActive('/register') }") Sign Up &raquo;
+              a.ui.teal.button(href="/register") Sign Up &raquo;
