@@ -1,7 +1,8 @@
 // stub for a proper class
 var maki = {
-    angular: angular.module('maki', ['ngRoute', 'ngResource'])
-  , socket: null
+    templates: {}
+  , routes: []
+  , socket: null // only one connected socket at a time (for now)
   , sockets: {
       subscriptions: [],
       subscribe: function( channel ) {
@@ -90,73 +91,95 @@ var maki = {
     }
 };
 
-maki.resources = [];
-$.ajax({
-  async: false,
-  type: 'OPTIONS',
-  url: '/',
-  success: function(data) {
-    maki.resources = data;
-  }
-});
-maki.resources.forEach(function(resource) {
-  maki.angular.factory( resource.name , function($resource) {
-    return $resource( resource.routes.get , { id: '@' + resource.fields.id } , {
-      update: { method: 'PATCH'}
-    });
+function DataBinder( objectID ) {
+  var pubSub = $({});
+  
+  var attribute = 'bind-' + objectID;
+  var message = objectID + ':change';
+  
+  $(document).on('change', '[data-' + attribute + ']', function(e) {
+    var $input = $(this);
+    pubSub.trigger( message , [ $input.data( attribute ) ] , $input.val() );
   });
-});
-
-maki.angular.config(function($routeProvider, $locationProvider, $resourceProvider) {
-  maki.resources.forEach(function(resource) {
-    Object.keys( resource.routes ).forEach(function( method ) {
-      var path = resource.routes[ method ];
-    
-      $routeProvider.when.apply( this , [ path , {
-        template: function( params ) {
-          var self = this;
-          var obj = {};
-          var template = resource.template;
-          var method = 'query';
-
-          // only support routing for lists and singles
-          [ 'query', 'get' ].forEach(function(p) {
-            var string = resource.paths[ p ];
-            // TODO: do without eval()?
-            var regex = new RegExp( eval(string) );
-            if (regex.test( self.location.pathname )) {
-              template = resource.templates[ p ];
-              method = p;
-              return;
-            }
-          });
-          
-          console.log('rendering ' + template + ' with data' , obj );
-
-          return Templates[ template ]( obj );
-        }
-      } ] );
-    });
-
-    $routeProvider.otherwise({
-      template: function() {
-        return Templates['404']();
+  
+  pubSub.on( message , function(e, property, value) {
+    $('[data-' + attribute + '=' + property + ']').each(function() {
+      var $bound = $(this);
+      if ( $bound.is('input, textarea, select') ) {
+        $bound.val( value );
+      } else {
+        $bound.html( value );
       }
     });
   });
+}
 
-  // use the HTML5 History API
-  $locationProvider.html5Mode(true);
+$(window).on('ready', function() {
+  $.ajax({
+    type: 'OPTIONS',
+    url: '/',
+    success: function(data) {
+      // server is online!
+      maki.$viewport = $('[data-for=viewport]');
 
+      maki.resources = data;
+      maki.resources.forEach(function(resource) {
+        console.log( resource );
+        // only support routing for lists and singles
+        [ 'query', 'get' ].forEach(function(m) {
+          var path = resource.paths[ m ];
+          if (path) maki.templates[ path ] = resource.templates[ m ];
+        });
+      });
+      
+      // bind pushState stuff
+      $( document ).on('click', 'a', function(e) {
+        e.preventDefault();
+        var $a = $(this);
+        var href = $a.attr('href');
+        
+        var template;
+        Object.keys(maki.templates).forEach(function(route) {
+          if (href.length <= 1) return template = 'index';
+          
+          var string = route;
+          var regex = new RegExp( eval( string ) );
+          // TODO: do not match '/' –- see bugfix at top of this loop
+          if (regex.test( href )) template = maki.templates[ route ];
+        });
+        
+        // TODO: use local factory / caching mechanism
+        $.ajax({
+            url: href
+          , success: function( results ) {
+              
+              console.log('template to render: ' , template);
+              
+              var obj = {};
+              obj[ template ] = results;
+              
+              maki.$viewport.html( Templates[ template ]( obj ) );
+              
+              $('a.active').removeClass('active');
+              $a.addClass('active');
+              
+              history.pushState({}, '', href );
+            }
+          , async: false
+        });
+
+        return false;
+      });
+    }
+  });
 });
 
-maki.angular.controller('mainController', function( $scope , Person ) {
-  
-  Person.query(function(data) {
-    $scope.people = data;
-    console.log('query results', data);
-  });
-  
+maki.angular = {
+  controller: function() { return this; },
+  directive: function() { return this; }
+}
+
+maki.angular.controller('mainController', function( $scope ) {
   
   $scope.$on('$destroy', function() {
      window.onbeforeunload = maki.sockets.disconnect;
@@ -177,7 +200,15 @@ maki.angular.controller('mainController', function( $scope , Person ) {
     maki.sockets.connect();
     //maki.sockets.subscribe();
   });
-}).directive('tooltipped', function() {
+});
+
+maki.angular.controller('headerController', function( $scope , $location ) {
+  $scope.isActive = function (viewLocation) {
+    return viewLocation === $location.path();
+  };
+});
+
+maki.angular.directive('tooltipped', function() {
   return {
       restrict: 'C'
     , link: function( scope , element ) {
@@ -214,10 +245,5 @@ maki.angular.controller('mainController', function( $scope , Person ) {
         headroom.destroy();
       });
     }
-  };
-});
-maki.angular.controller('headerController', function( $scope , $location ) {
-  $scope.isActive = function (viewLocation) {
-    return viewLocation === $location.path();
   };
 });

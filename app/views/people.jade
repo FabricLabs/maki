@@ -4,7 +4,7 @@ block content
   h1 People
   p This is an example resource that queries from the database.
 
-  ul
+  ul(ng-controller="Person")
     each person in people
       li
         a(href="/people/#{person.slug}") #{person.username}
