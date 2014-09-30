@@ -125,23 +125,22 @@ $(document).on('ready', function() {
         });
         maki.resources[ resource.name ] = Backbone.Collection.extend({
           model: maki.models[ resource.name ],
-          url: function() {
-            return resource.routes.query;
-          }
         });
         
-        Backbone.Marionette.Renderer.render = function(template, data) {
-          return template(data);
+        Backbone.Marionette.Renderer.render = function(template, data){
+          console.log('!!!', typeof(template) , Object.keys(data) );
+          return Templates[ 'person' ]({ person: data });
         };
         
         maki.views[ resource.name + '-get' ] = Backbone.Marionette.ItemView.extend({
-          template: Templates[ resource.templates.get ]
+          template: Templates[ resource.templates.get ],
+          render: function( t , d ) {
+            console.log('inside')
+            return Templates[ resource.templates.get ]( d );
+          }
         });
         maki.views[ resource.name + '-query' ] = Backbone.Marionette.CompositeView.extend({
           itemView: maki.views[ resource.name + '-get' ],
-          appendHtml: function(collectionView, itemView) {
-            collectionView.$.append(itemView.el);
-          },
           template: Templates[ resource.templates.query ]
         });
         
@@ -163,12 +162,15 @@ $(document).on('ready', function() {
         App.addInitializer(function( options ) {
           console.log('options', options)
           var PeopleView = new maki.views['Person-query']({
-            collection: options.cats
+            collection: options.people
           });
           App.mainRegion.show( PeopleView );
         });
         
         $.getJSON('/people', function(people) {
+          
+          var people = new maki.resources.Person( people );
+          
           App.start({ people: people });
         });
         // update
