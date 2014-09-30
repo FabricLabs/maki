@@ -15,7 +15,7 @@ jsonRPC.prototype.toJSON = function(notify) {
 
 // stub for a proper class
 var maki = {
-    angular: angular.module('maki', ['ngRoute', 'ngResource'])
+    angular: /**/ { controller: function() { return this; }, directive: function() { return this; } } /*/ angular.module('maki', ['ngRoute', 'ngResource']) /**/
   , socket: null
   , sockets: {
       subscriptions: [],
@@ -105,68 +105,82 @@ var maki = {
     }
 };
 
-maki.angular.config(function($routeProvider, $locationProvider, $resourceProvider) {
+$(document).on('ready', function() {
   
-  maki.resources = [];
+  maki.resources = {};
+  maki.models = {};
+  maki.views = {};
+  
   $.ajax({
-    async: false,
+    //async: false,
     type: 'OPTIONS',
     url: '/',
-    success: function(data) {
-      maki.resources = data;
+    success: function( resources ) {
+      resources.forEach(function( resource ) {
+        
+        console.log(resource);
+        
+        maki.models[ resource.name ]    = Backbone.Model.extend({
+          urlRoot: resource.routes.query
+        });
+        maki.resources[ resource.name ] = Backbone.Collection.extend({
+          model: maki.models[ resource.name ],
+          url: function() {
+            return resource.routes.query;
+          }
+        });
+        
+        Backbone.Marionette.Renderer.render = function(template, data) {
+          return template(data);
+        };
+        
+        maki.views[ resource.name + '-get' ] = Backbone.Marionette.ItemView.extend({
+          template: Templates[ resource.templates.get ]
+        });
+        maki.views[ resource.name + '-query' ] = Backbone.Marionette.CompositeView.extend({
+          itemView: maki.views[ resource.name + '-get' ],
+          appendHtml: function(collectionView, itemView) {
+            collectionView.$.append(itemView.el);
+          },
+          template: Templates[ resource.templates.query ]
+        });
+        
+        Object.keys( resource.templates ).forEach(function( method ) {
+          //
+        });
+        
+        Object.keys( resource.routes ).forEach(function( method ) {
+          var path = resource.routes[ method ];
+          
+          //maki.router.route( path , resource.name + '-' + method );
+          
+        });
+        
+        var App = new Backbone.Marionette.Application();
+        App.addRegions({
+          mainRegion: 'div[ng-view]'
+        });
+        App.addInitializer(function( options ) {
+          console.log('options', options)
+          var PeopleView = new maki.views['Person-query']({
+            collection: options.cats
+          });
+          App.mainRegion.show( PeopleView );
+        });
+        
+        $.getJSON('/people', function(people) {
+          App.start({ people: people });
+        });
+        // update
+        //maki.resources[ resource.name ].fetch();
+
+      });
+      
+      var person = new maki.models.Person({ username: 'backbone' });
+      person.save();
+      
     }
   });
-  
-  maki.resources.forEach(function(resource) {
-    Object.keys( resource.routes ).forEach(function( method ) {
-      var path = resource.routes[ method ];
-    
-      $routeProvider.when.apply( this , [ path , {
-        template: function( params ) {
-          var self = this;
-          var obj = {};
-          var template = resource.template;
-          var method = 'query';
-
-          // only support routing for lists and singles
-          [ 'query', 'get' ].forEach(function(p) {
-            var string = resource.paths[ p ];
-            // TODO: do without eval()?
-            var regex = new RegExp( eval(string) );
-            if (regex.test( self.location.pathname )) {
-              template = resource.templates[ p ];
-              method = p;
-              return;
-            }
-          });
-
-
-          // TODO: use local factory / caching mechanism
-          $.ajax({
-              url: self.location
-            , success: function( results ) {
-                obj[ resource.names[ method ] ] = results;
-              }
-            , async: false
-          });
-          
-
-          console.log('rendering ' + template + ' with data' , obj );
-
-          return Templates[ template ]( obj );
-        }
-      } ] );
-    });
-
-    $routeProvider.otherwise({
-      template: function() {
-        return Templates['404']();
-      }
-    });
-  });
-
-  // use the HTML5 History API
-  $locationProvider.html5Mode(true);
 
 });
 
