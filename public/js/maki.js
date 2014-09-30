@@ -1,6 +1,7 @@
 // stub for a proper class
 var maki = {
     templates: {}
+  , components: {}
   , routes: []
   , socket: null // only one connected socket at a time (for now)
   , sockets: {
