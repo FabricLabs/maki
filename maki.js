@@ -78,4 +78,4 @@ resources.forEach(function(resource) {
   maki.define( resource.name , resource );
 });
 
-maki.start();
+maki.bootstrap().start();
