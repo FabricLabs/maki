@@ -80,6 +80,66 @@ Updates from the server are additionally encapsulated using [RFC 5789, PATCH Met
 #### Reconnection
 Maki's sockets are resilient to latency, network connectivity issues, and multiple-tenant environments, for up to 24 hours (configurable).  The server will intelligently clean up idle sockets, and clients will intelligently reconnect using a pre-configured back-off strategy.
 
+#### Validators
+Every attribute on a Resource can have custom validators:
+```javascript
+var Person = maki.define('Person', {
+  attributes: {
+    username: { type: String , max: 80 , required: true , slug: true }
+  }
+});
+
+Person.path('username', function(value) {
+  if (value.length < 5) return false;
+  
+  return true;
+}, 'Invalid username.  Must be > 5 characters.');
+```
+
+Validators can also be defined as functions on attributes themselves by supplying a `validator`:
+```javascript
+maki.define('Person', {
+  attributes: {
+    username: { type: String , max: 80 , required: true , slug: true , validator: function(value) {
+      if (value.length < 5) return false;
+      
+      return true;
+    } }
+  }
+});
+```
+
+
+### Methods
+All Maki resources expose exactly five (5) methods:
+
+- **query** to select a list of documents,
+- **get** to get a single instance of a document by its identifier (ID),
+- **create** to create a new instance of a document,
+- **update** to change properties of a document, and
+- **destroy** to remove a document.
+
+### Events
+Maki exposes events at the Resource level (as emitted by the above Methods):
+
+```javascript
+maki.resources.Person.on('create', function( person ) {
+  console.log('new Person', person);
+});
+```
+
+...as well as on the Storage level (as `pre` or `post` middleware):
+
+```javascript
+maki.resources.Person.post('save', function(done) {
+  var person = this;
+  
+  console.log('just saved a Person:' , person);
+  
+  done();
+});
+```
+
 ### Dependency Injection
 Often, a single Resource we need other Resources to be contextualized into a View.  For example, viewing a "Person" (viewing a profile page) may require collecting a list of "Projects" (another resource, a subcollection of documents _owned_ by a Person), but the JSON representation of that View is not an accurate representation of the Resource.  For this case, _only_ the HTML context of the View will collect the necessary dependencies.
 

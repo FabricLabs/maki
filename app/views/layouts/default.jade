@@ -14,13 +14,12 @@ html(ng-app="maki")
     script(src="/js/jquery.js")
     script(src="/js/semantic.js")
     script(src="/js/underscore-min.js")
-    script(src="/js/angular.js")
-    script(src="/js/angular-route.js")
-    script(src="/js/angular-resource.js")
+
     script(src="/js/templates.js")
     script(src="/js/highlight.pack.js")
     script(src="/js/headroom.min.js")
     script(src="/js/uuid.js")
+    script(src="/js/jsonrpc.js")
     
     script(src="/js/maki.js")
 
@@ -35,7 +34,7 @@ html(ng-app="maki")
         include ../partials/flash
 
       .ui.grid
-        .column.content(ng-view)
+        .column.content(data-for="viewport")
           block content
 
     footer
