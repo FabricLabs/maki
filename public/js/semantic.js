@@ -1,20 +1,24 @@
 /*
- * # Semantic - Accordion
- * http://github.com/jlukic/semantic-ui/
+ * # Semantic - API
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
 
-;(function ($, window, document, undefined) {
+;(function ( $, window, document, undefined ) {
 
-$.fn.accordion = function(parameters) {
+$.api = $.fn.api = function(parameters) {
+
   var
-    $allModules     = $(this),
-
+    // use window context if none specified
+    $allModules     = $.isFunction(this)
+        ? $(window)
+        : $(this),
+    moduleSelector  = $allModules.selector || '',
     time            = new Date().getTime(),
     performance     = [],
 
@@ -23,196 +27,530 @@ $.fn.accordion = function(parameters) {
     queryArguments  = [].slice.call(arguments, 1),
     returnedValue
   ;
+
   $allModules
     .each(function() {
       var
-        settings        = ( $.isPlainObject(parameters) )
-          ? $.extend(true, {}, $.fn.accordion.settings, parameters)
-          : $.extend({}, $.fn.accordion.settings),
+        settings        = $.extend(true, {}, $.fn.api.settings, parameters),
 
-        className       = settings.className,
+        // internal aliases
         namespace       = settings.namespace,
+        metadata        = settings.metadata,
         selector        = settings.selector,
         error           = settings.error,
+        className       = settings.className,
 
+        // define namespaces for modules
         eventNamespace  = '.' + namespace,
         moduleNamespace = 'module-' + namespace,
-        moduleSelector  = $allModules.selector || '',
 
-        $module  = $(this),
-        $title   = $module.find(selector.title),
-        $content = $module.find(selector.content),
+        // element that creates request
+        $module         = $(this),
+        $form           = $module.closest(selector.form),
 
-        element  = this,
-        instance = $module.data(moduleNamespace),
+        // context used for state
+        $context        = (settings.stateContext)
+          ? $(settings.stateContext)
+          : $module,
+
+        // request details
+        ajaxSettings,
+        requestSettings,
+        url,
+        data,
+
+        // standard module
+        element         = this,
+        instance        = $module.data(moduleNamespace),
         module
       ;
 
       module = {
 
         initialize: function() {
-          module.debug('Initializing accordion with bound events', $module);
-          // initializing
-          $title
-            .on('click' + eventNamespace, module.event.click)
+          var
+            triggerEvent = module.get.event()
           ;
+          // bind events
+          if(!methodInvoked) {
+            if( triggerEvent ) {
+              module.debug('Attaching API events to element', triggerEvent);
+              $module
+                .on(triggerEvent + eventNamespace, module.event.trigger)
+              ;
+            }
+            else {
+              module.query();
+            }
+          }
           module.instantiate();
         },
 
         instantiate: function() {
+          module.verbose('Storing instance of module', module);
           instance = module;
           $module
-            .data(moduleNamespace, module)
+            .data(moduleNamespace, instance)
           ;
         },
 
         destroy: function() {
-          module.debug('Destroying previous accordion for', $module);
+          module.verbose('Destroying previous module for', element);
           $module
             .removeData(moduleNamespace)
-          ;
-          $title
             .off(eventNamespace)
           ;
         },
 
-        event: {
-          click: function() {
-            module.verbose('Title clicked', this);
-            var
-              $activeTitle = $(this),
-              index        = $title.index($activeTitle)
-            ;
-            module.toggle(index);
-          },
-          resetDisplay: function() {
-            $(this).css('display', '');
-            if( $(this).attr('style') == '') {
-              $(this)
-                .attr('style', '')
-                .removeAttr('style')
-              ;
-            }
-          },
-          resetOpacity: function() {
-            $(this).css('opacity', '');
-            if( $(this).attr('style') == '') {
-              $(this)
-                .attr('style', '')
-                .removeAttr('style')
-              ;
-            }
-          }
-        },
+        query: function() {
 
-        toggle: function(index) {
-          module.debug('Toggling content content at index', index);
-          var
-            $activeTitle   = $title.eq(index),
-            $activeContent = $activeTitle.next($content),
-            contentIsOpen  = $activeContent.is(':visible')
-          ;
-          if(contentIsOpen) {
-            if(settings.collapsible) {
-              module.close(index);
+          if(module.is.disabled()) {
+            module.debug('Element is disabled API request aborted');
+            return;
+          }
+          // determine if an api event already occurred
+          if(module.is.loading() && !settings.allowMultiple) {
+            module.debug('Request cancelled previous request is still pending');
+            return;
+          }
+          // pass element metadata to url (value, text)
+          if(settings.defaultData) {
+            $.extend(true, settings.urlData, module.get.defaultData());
+          }
+
+          // Add form content
+          if(settings.serializeForm !== false || $module.is('form')) {
+            if(settings.serializeForm == 'json') {
+              $.extend(true, settings.data, module.get.formData());
             }
             else {
-              module.debug('Cannot close accordion content collapsing is disabled');
+              settings.data = module.get.formData();
             }
+          }
+
+          // call beforesend and get any settings changes
+          requestSettings = module.get.settings();
+
+          // check if beforesend cancelled request
+          if(requestSettings === false) {
+            module.error(error.beforeSend);
+            return;
+          }
+
+          if(settings.url) {
+            // override with url if specified
+            module.debug('Using specified url', url);
+            url = module.add.urlData( settings.url );
           }
           else {
-            module.open(index);
+            // otherwise find url from api endpoints
+            url = module.add.urlData( module.get.templateURL() );
+            module.debug('API url resolved to', url);
           }
-        },
 
-        open: function(index) {
-          var
-            $activeTitle     = $title.eq(index),
-            $activeContent   = $activeTitle.next($content),
-            $otherSections   = module.is.menu()
-              ? $activeTitle.parent().siblings(selector.item).find(selector.title)
-              : $activeTitle.siblings(selector.title),
-            $previousTitle   = $otherSections.filter('.' + className.active),
-            $previousContent = $previousTitle.next($title),
-            contentIsOpen    =  ($previousTitle.size() > 0)
-          ;
-          if( !$activeContent.is(':animated') ) {
-            module.debug('Opening accordion content', $activeTitle);
-            if(settings.exclusive && contentIsOpen) {
-              $previousTitle
-                .removeClass(className.active)
-              ;
-              $previousContent
-                .stop()
-                .children()
-                  .stop()
-                  .animate({
-                    opacity: 0
-                  }, settings.duration, module.event.resetOpacity)
-                  .end()
-                .slideUp(settings.duration , settings.easing, function() {
-                  $previousContent
-                    .removeClass(className.active)
-                    .children()
-                  ;
-                  $.proxy(module.event.resetDisplay, this)();
-                })
-              ;
+          // exit conditions reached, missing url parameters
+          if( !url ) {
+            if($module.is('form')) {
+              module.debug('No url or action specified, defaulting to form action');
+              url = $module.attr('action');
             }
-            $activeTitle
-              .addClass(className.active)
+            else {
+              module.error(error.missingURL);
+              return;
+            }
+          }
+
+          // add loading state
+          module.set.loading();
+
+          // look for jQuery ajax parameters in settings
+          ajaxSettings = $.extend(true, {}, settings, {
+            type       : settings.method || settings.type,
+            data       : data,
+            url        : url,
+            beforeSend : settings.beforeXHR,
+            success    : function() {},
+            failure    : function() {},
+            complete   : function() {}
+          });
+
+          module.verbose('Creating AJAX request with settings', ajaxSettings);
+
+          // request provides a wrapper around xhr
+          module.request = module.create.request();
+          module.xhr = module.create.xhr();
+
+        },
+
+
+        is: {
+          disabled: function() {
+            return ($module.filter(settings.filter).size() > 0);
+          },
+          loading: function() {
+            return (module.request && module.request.state() == 'pending');
+          }
+        },
+
+        was: {
+          succesful: function() {
+            return (module.request && module.request.state() == 'resolved');
+          },
+          failure: function() {
+            return (module.request && module.request.state() == 'rejected');
+          },
+          complete: function() {
+            return (module.request && (module.request.state() == 'resolved' || module.request.state() == 'rejected') );
+          }
+        },
+
+        add: {
+          urlData: function(url, urlData) {
+            var
+              requiredVariables,
+              optionalVariables
             ;
-            $activeContent
-              .stop()
-              .children()
-                .stop()
-                .animate({
-                  opacity: 1
-                }, settings.duration)
-                .end()
-              .slideDown(settings.duration, settings.easing, function() {
-                $activeContent
-                  .addClass(className.active)
-                ;
-                $.proxy(module.event.resetDisplay, this)();
-                $.proxy(settings.onOpen, $activeContent)();
-                $.proxy(settings.onChange, $activeContent)();
-              })
+            if(url) {
+              requiredVariables = url.match(settings.regExp.required);
+              optionalVariables = url.match(settings.regExp.optional);
+              urlData           = urlData || settings.urlData;
+              if(requiredVariables) {
+                module.debug('Looking for required URL variables', requiredVariables);
+                $.each(requiredVariables, function(index, templatedString) {
+                  var
+                    // allow legacy {$var} style
+                    variable = (templatedString.indexOf('$') !== -1)
+                      ? templatedString.substr(2, templatedString.length - 3)
+                      : templatedString.substr(1, templatedString.length - 2),
+                    value   = ($.isPlainObject(urlData) && urlData[variable] !== undefined)
+                      ? urlData[variable]
+                      : ($module.data(variable) !== undefined)
+                        ? $module.data(variable)
+                        : ($context.data(variable) !== undefined)
+                          ? $context.data(variable)
+                          : urlData[variable]
+                  ;
+                  // remove value
+                  if(value === undefined) {
+                    module.error(error.requiredParameter, variable, url);
+                    url = false;
+                    return false;
+                  }
+                  else {
+                    module.verbose('Found required variable', variable, value);
+                    url = url.replace(templatedString, value);
+                  }
+                });
+              }
+              if(optionalVariables) {
+                module.debug('Looking for optional URL variables', requiredVariables);
+                $.each(optionalVariables, function(index, templatedString) {
+                  var
+                    // allow legacy {/$var} style
+                    variable = (templatedString.indexOf('$') !== -1)
+                      ? templatedString.substr(3, templatedString.length - 4)
+                      : templatedString.substr(2, templatedString.length - 3),
+                    value   = ($.isPlainObject(urlData) && urlData[variable] !== undefined)
+                      ? urlData[variable]
+                      : ($module.data(variable) !== undefined)
+                        ? $module.data(variable)
+                        : ($context.data(variable) !== undefined)
+                          ? $context.data(variable)
+                          : urlData[variable]
+                  ;
+                  // optional replacement
+                  if(value !== undefined) {
+                    module.verbose('Optional variable Found', variable, value);
+                    url = url.replace(templatedString, value);
+                  }
+                  else {
+                    module.verbose('Optional variable not found', variable);
+                    // remove preceding slash if set
+                    if(url.indexOf('/' + templatedString) !== -1) {
+                      url = url.replace('/' + templatedString, '');
+                    }
+                    else {
+                      url = url.replace(templatedString, '');
+                    }
+                  }
+                });
+              }
+            }
+            return url;
+          }
+        },
+
+        event: {
+          trigger: function(event) {
+            module.query();
+            if(event.type == 'submit' || event.type == 'click') {
+              event.preventDefault();
+            }
+          },
+          xhr: {
+            always: function() {
+              // calculate if loading time was below minimum threshold
+            },
+            done: function(response) {
+              var
+                context      = this,
+                elapsedTime  = (new Date().getTime() - time),
+                timeLeft     = (settings.loadingDuration - elapsedTime)
+              ;
+              timeLeft = (timeLeft > 0)
+                ? timeLeft
+                : 0
+              ;
+              setTimeout(function() {
+                module.request.resolveWith(context, [response]);
+              }, timeLeft);
+            },
+            fail: function(xhr, status, httpMessage) {
+              var
+                context     = this,
+                elapsedTime = (new Date().getTime() - time),
+                timeLeft    = (settings.loadingDuration - elapsedTime)
+              ;
+              timeLeft = (timeLeft > 0)
+                ? timeLeft
+                : 0
+              ;
+              // page triggers abort on navigation, dont show error
+              setTimeout(function() {
+                if(status !== 'abort') {
+                  module.request.rejectWith(context, [xhr, status, httpMessage]);
+                }
+                else {
+                  module.reset();
+                }
+              }, timeLeft);
+            }
+          },
+          request: {
+            complete: function(response) {
+              module.remove.loading();
+              $.proxy(settings.onComplete, $context)(response, $module);
+            },
+            done: function(response) {
+              module.debug('API request received', response);
+              if(settings.dataType == 'json') {
+                if( $.isFunction(settings.successTest) ) {
+                  module.debug('Checking JSON', settings.successTest, response);
+                  if( settings.onSuccess(response) ) {
+                    $.proxy(settings.onSuccess, $context)(response, $module);
+                  }
+                  else {
+                    module.debug('JSON test specified by user and response failed', response);
+                    $.proxy(settings.onFailure, $context)(response, $module);
+                  }
+                }
+                else {
+                  $.proxy(settings.onSuccess, $context)(response, $module);
+                }
+              }
+              else {
+                $.proxy(settings.onSuccess, $context)(response, $module);
+              }
+            },
+            error: function(xhr, status, httpMessage) {
+              var
+                errorMessage = (settings.error[status] !== undefined)
+                  ? settings.error[status]
+                  : httpMessage,
+                response
+              ;
+              // let em know unless request aborted
+              if(xhr !== undefined) {
+                // readyState 4 = done, anything less is not really sent
+                if(xhr.readyState !== undefined && xhr.readyState == 4) {
+
+                  // if http status code returned and json returned error, look for it
+                  if( xhr.status != 200 && httpMessage !== undefined && httpMessage !== '') {
+                    module.error(error.statusMessage + httpMessage);
+                  }
+                  else {
+                    if(status == 'error' && settings.dataType == 'json') {
+                      try {
+                        response = $.parseJSON(xhr.responseText);
+                        if(response && response.error !== undefined) {
+                          errorMessage = response.error;
+                        }
+                      }
+                      catch(er) {
+                        module.error(error.JSONParse);
+                      }
+                    }
+                  }
+                  module.remove.loading();
+                  module.set.error();
+                  // show error state only for duration specified in settings
+                  if(settings.errorDuration) {
+                    setTimeout(module.remove.error, settings.errorDuration);
+                  }
+                  module.debug('API Request error:', errorMessage);
+                  $.proxy(settings.onFailure, $context)(errorMessage, $module);
+                }
+                else {
+                  $.proxy(settings.onAbort, $context)(errorMessage, $module);
+                  module.debug('Request Aborted (Most likely caused by page change or CORS Policy)', status, httpMessage);
+                }
+              }
+            }
+          }
+        },
+
+        create: {
+          request: function() {
+            return $.Deferred()
+              .always(module.event.request.complete)
+              .done(module.event.request.done)
+              .fail(module.event.request.error)
+            ;
+          },
+          xhr: function() {
+            $.ajax(ajaxSettings)
+              .always(module.event.xhr.always)
+              .done(module.event.xhr.done)
+              .fail(module.event.xhr.fail)
             ;
           }
         },
 
-        close: function(index) {
-          var
-            $activeTitle   = $title.eq(index),
-            $activeContent = $activeTitle.next($content)
-          ;
-          module.debug('Closing accordion content', $activeContent);
-          $activeTitle
-            .removeClass(className.active)
-          ;
-          $activeContent
-            .removeClass(className.active)
-            .show()
-            .stop()
-            .children()
-              .stop()
-              .animate({
-                opacity: 0
-              }, settings.duration, module.event.resetOpacity)
-              .end()
-            .slideUp(settings.duration, settings.easing, function(){
-              $.proxy(module.event.resetDisplay, this)();
-              $.proxy(settings.onClose, $activeContent)();
-              $.proxy(settings.onChange, $activeContent)();
-            })
-          ;
-        },
-        is: {
-          menu: function () {
-            return $module.hasClass(className.menu);
+        set: {
+          error: function() {
+            module.verbose('Adding error state to element', $context);
+            $context.addClass(className.error);
+          },
+          loading: function() {
+            module.verbose('Adding loading state to element', $context);
+            $context.addClass(className.loading);
           }
         },
+
+        remove: {
+          error: function() {
+            module.verbose('Removing error state from element', $context);
+            $context.removeClass(className.error);
+          },
+          loading: function() {
+            module.verbose('Removing loading state from element', $context);
+            $context.removeClass(className.loading);
+          }
+        },
+
+        get: {
+          request: function() {
+            return module.request || false;
+          },
+          xhr: function() {
+            return module.xhr || false;
+          },
+          settings: function() {
+            var
+              runSettings
+            ;
+            runSettings = $.proxy(settings.beforeSend, $module)(settings);
+            if(runSettings.success !== undefined) {
+              module.debug('Legacy success callback detected', runSettings);
+              module.error(error.legacyParameters);
+              runSettings.onSuccess = runSettings.success;
+            }
+            if(runSettings.failure !== undefined) {
+              module.debug('Legacy failure callback detected', runSettings);
+              module.error(error.legacyParameters);
+              runSettings.onFailure = runSettings.failure;
+            }
+            if(runSettings.complete !== undefined) {
+              module.debug('Legacy complete callback detected', runSettings);
+              module.error(error.legacyParameters);
+              runSettings.onComplete = runSettings.complete;
+            }
+            return runSettings;
+          },
+          defaultData: function() {
+            var
+              data = {}
+            ;
+            if( !$.isWindow(element) ) {
+              if( $module.is('input') ) {
+                data.value = $module.val();
+              }
+              else if( $module.is('form') ) {
+
+              }
+              else {
+                data.text = $module.text();
+              }
+            }
+            return data;
+          },
+          event: function() {
+            if( $.isWindow(element) || settings.on == 'now' ) {
+              module.debug('API called without element, no events attached');
+              return false;
+            }
+            else if(settings.on == 'auto') {
+              if( $module.is('input') ) {
+                return (element.oninput !== undefined)
+                  ? 'input'
+                  : (element.onpropertychange !== undefined)
+                    ? 'propertychange'
+                    : 'keyup'
+                ;
+              }
+              else if( $module.is('form') ) {
+                return 'submit';
+              }
+              else {
+                return 'click';
+              }
+            }
+            else {
+              return settings.on;
+            }
+          },
+          formData: function() {
+            var
+              formData
+            ;
+            if(settings.serializeForm == 'json') {
+              if($(this).toJSON === undefined ) {
+                module.error(error.missingSerialize);
+                return;
+              }
+              formData = $form.toJSON();
+            }
+            else {
+              formData = $form.serialize();
+            }
+            module.debug('Retrieving form data', formData);
+            return formData;
+          },
+          templateURL: function(action) {
+            var
+              url
+            ;
+            action = action || $module.data(settings.metadata.action) || settings.action || false;
+            if(action) {
+              module.debug('Looking up url for action', action);
+              if(settings.api[action] !== undefined) {
+                url = settings.api[action];
+                module.debug('Found template url', url);
+              }
+              else {
+                module.error(error.missingAction, settings.action);
+              }
+            }
+            return url;
+          }
+        },
+
+        // reset state
+        reset: function() {
+          module.remove.error();
+          module.remove.loading();
+        },
+
         setting: function(name, value) {
           if( $.isPlainObject(name) ) {
             $.extend(true, settings, name);
@@ -225,14 +563,11 @@ $.fn.accordion = function(parameters) {
           }
         },
         internal: function(name, value) {
-          module.debug('Changing internal', name, value);
-          if(value !== undefined) {
-            if( $.isPlainObject(name) ) {
-              $.extend(true, module, name);
-            }
-            else {
-              module[name] = value;
-            }
+          if( $.isPlainObject(name) ) {
+            $.extend(true, module, name);
+          }
+          else if(value !== undefined) {
+            module[name] = value;
           }
           else {
             return module[name];
@@ -277,9 +612,9 @@ $.fn.accordion = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -291,7 +626,7 @@ $.fn.accordion = function(parameters) {
               title = settings.name + ':',
               totalTime = 0
             ;
-            time = false;
+            time = new Date().getTime();
             clearTimeout(module.performance.timer);
             $.each(performance, function(index, data) {
               totalTime += data['Execution Time'];
@@ -317,14 +652,13 @@ $.fn.accordion = function(parameters) {
         },
         invoke: function(query, passedArguments, context) {
           var
-            object = instance,
             maxDepth,
             found,
             response
           ;
           passedArguments = passedArguments || queryArguments;
           context         = element         || context;
-          if(typeof query == 'string' && object !== undefined) {
+          if(typeof query == 'string' && instance !== undefined) {
             query    = query.split(/[\. ]/);
             maxDepth = query.length - 1;
             $.each(query, function(depth, value) {
@@ -332,21 +666,22 @@ $.fn.accordion = function(parameters) {
                 ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
                 : query
               ;
-              if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
-                object = object[camelCaseValue];
+              if( $.isPlainObject( instance[value] ) && (depth != maxDepth) ) {
+                instance = instance[value];
               }
-              else if( object[camelCaseValue] !== undefined ) {
-                found = object[camelCaseValue];
+              else if( $.isPlainObject( instance[camelCaseValue] ) && (depth != maxDepth) ) {
+                instance = instance[camelCaseValue];
+              }
+              else if( instance[value] !== undefined ) {
+                found = instance[value];
                 return false;
               }
-              else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
-                object = object[value];
-              }
-              else if( object[value] !== undefined ) {
-                found = object[value];
+              else if( instance[camelCaseValue] !== undefined ) {
+                found = instance[camelCaseValue];
                 return false;
               }
               else {
+                module.error(error.method, query);
                 return false;
               }
             });
@@ -369,6 +704,7 @@ $.fn.accordion = function(parameters) {
           return found;
         }
       };
+
       if(methodInvoked) {
         if(instance === undefined) {
           module.initialize();
@@ -383,700 +719,110 @@ $.fn.accordion = function(parameters) {
       }
     })
   ;
+
   return (returnedValue !== undefined)
     ? returnedValue
     : this
   ;
 };
 
-$.fn.accordion.settings = {
-  name        : 'Accordion',
-  namespace   : 'accordion',
+$.api.settings = {
 
-  debug       : false,
-  verbose     : true,
-  performance : true,
+  name            : 'API',
+  namespace       : 'api',
 
-  exclusive   : true,
-  collapsible : true,
+  debug           : false,
+  verbose         : true,
+  performance     : true,
 
-  duration    : 500,
-  easing      : 'easeInOutQuint',
+  // event binding
+  on              : 'auto',
+  filter          : '.disabled, .loading',
+  context         : false,
+  stateContext    : false,
 
-  onOpen      : function(){},
-  onClose     : function(){},
-  onChange    : function(){},
+  // templating
+  action          : false,
 
-  error: {
-    method    : 'The method you called is not defined'
+  regExp  : {
+    required: /\{\$*[A-z0-9]+\}/g,
+    optional: /\{\/\$*[A-z0-9]+\}/g,
   },
 
-  className   : {
-    active : 'active',
-    menu   : 'menu',
+  // data
+  url             : false,
+  urlData         : false,
+  serializeForm   : false,
+
+  // ui
+  defaultData     : true,
+  throttle        : 100,
+  allowMultiple   : false,
+
+  // state
+  loadingDuration : 0,
+  errorDuration   : 2000,
+
+  // jQ ajax
+  method          : 'get',
+  data            : {},
+  dataType        : 'json',
+  cache           : true,
+
+  // callbacks
+  beforeSend  : function(settings) { return settings; },
+  beforeXHR   : function(xhr) {},
+
+  onSuccess   : function(response, $module) {},
+  onComplete  : function(response, $module) {},
+  onFailure   : function(errorMessage, $module) {},
+  onAbort     : function(errorMessage, $module) {},
+
+  successText : function(response) { return true; },
+
+  // errors
+  error : {
+    beforeSend        : 'The before send function has aborted the request',
+    error             : 'There was an error with your request',
+    exitConditions    : 'API Request Aborted. Exit conditions met',
+    JSONParse         : 'JSON could not be parsed during error handling',
+    legacyParameters  : 'You are using legacy API success callback names',
+    missingAction     : 'API action used but no url was defined',
+    missingSerialize  : 'Serializing a Form requires toJSON to be included',
+    missingURL        : 'No URL specified for api event',
+    parseError        : 'There was an error parsing your request',
+    requiredParameter : 'Missing a required URL parameter: ',
+    statusMessage     : 'Server gave an error: ',
+    timeout           : 'Your request timed out'
   },
 
-  selector    : {
-    title   : '.title',
-    content : '.content',
-    menu    : '.menu',
-    item    : '.item',
+  className: {
+    loading : 'loading',
+    error   : 'error'
+  },
+
+  selector: {
+    form: 'form'
+  },
+
+  metadata: {
+    action  : 'action',
+    request : 'request',
+    xhr     : 'xhr'
   }
-
-
 };
 
-// Adds easing
-$.extend( $.easing, {
-  easeInOutQuint: function (x, t, b, c, d) {
-    if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
-    return c/2*((t-=2)*t*t*t*t + 2) + b;
-  }
-});
 
-})( jQuery, window , document );
+$.api.settings.api = {};
 
-
-/*
- * # Semantic - API
- * http://github.com/jlukic/semantic-ui/
- *
- *
- * Copyright 2014 Contributors
- * Released under the MIT license
- * http://opensource.org/licenses/MIT
- *
- */
-
-;(function ( $, window, document, undefined ) {
-
-  $.api = $.fn.api = function(parameters) {
-
-    var
-      settings       = $.extend(true, {}, $.api.settings, parameters),
-
-      // if this keyword isn't a jQuery object, create one
-      context        = (typeof this != 'function')
-        ? this
-        : $('<div/>'),
-      // context defines the element used for loading/error state
-      $context       = (settings.stateContext)
-        ? $(settings.stateContext)
-        : $(context),
-      // module is the thing that initiates the api action, can be independent of context
-      $module = typeof this == 'object'
-        ? $(context)
-        : $context,
-
-      element         = this,
-      time            = new Date().getTime(),
-      performance     = [],
-
-      moduleSelector  = $module.selector || '',
-      moduleNamespace = settings.namespace + '-module',
-
-      className       = settings.className,
-      metadata        = settings.metadata,
-      error           = settings.error,
-
-      instance        = $module.data(moduleNamespace),
-
-      query           = arguments[0],
-      methodInvoked   = (instance !== undefined && typeof query == 'string'),
-      queryArguments  = [].slice.call(arguments, 1),
-
-      module,
-      returnedValue
-    ;
-
-    module = {
-      initialize: function() {
-        var
-          runSettings,
-
-          loadingTimer   = new Date().getTime(),
-          loadingDelay,
-
-          promise,
-          url,
-
-          formData       = {},
-          data,
-
-          ajaxSettings   = {},
-          xhr
-        ;
-
-        // serialize parent form if requested!
-        if(settings.serializeForm && $(this).toJSON() !== undefined) {
-          formData = module.get.formData();
-          module.debug('Adding form data to API Request', formData);
-          $.extend(true, settings.data, formData);
-        }
-
-        // let beforeSend change settings object
-        runSettings = $.proxy(settings.beforeSend, $module)(settings);
-
-        // check for exit conditions
-        if(runSettings !== undefined && !runSettings) {
-          module.error(error.beforeSend);
-          module.reset();
-          return;
-        }
-
-        // get real url from template
-        url = module.get.url( module.get.templateURL() );
-
-        // exit conditions reached from missing url parameters
-        if( !url ) {
-          module.error(error.missingURL);
-          module.reset();
-          return;
-        }
-
-        // promise handles notification on api request, so loading min. delay can occur for all notifications
-        promise =
-          $.Deferred()
-            .always(function() {
-              if(settings.stateContext) {
-                $context
-                  .removeClass(className.loading)
-                ;
-              }
-              $.proxy(settings.complete, $module)();
-            })
-            .done(function(response) {
-              module.debug('API request successful');
-              // take a stab at finding success state if json
-              if(settings.dataType == 'json') {
-                if (response.error !== undefined) {
-                  $.proxy(settings.failure, $context)(response.error, settings, $module);
-                }
-                else if ($.isArray(response.errors)) {
-                  $.proxy(settings.failure, $context)(response.errors[0], settings, $module);
-                }
-                else {
-                  $.proxy(settings.success, $context)(response, settings, $module);
-                }
-              }
-              // otherwise
-              else {
-                $.proxy(settings.success, $context)(response, settings, $module);
-              }
-            })
-            .fail(function(xhr, status, httpMessage) {
-              var
-                errorMessage = (settings.error[status] !== undefined)
-                  ? settings.error[status]
-                  : httpMessage,
-                response
-              ;
-              // let em know unless request aborted
-              if(xhr !== undefined) {
-                // readyState 4 = done, anything less is not really sent
-                if(xhr.readyState !== undefined && xhr.readyState == 4) {
-
-                  // if http status code returned and json returned error, look for it
-                  if( xhr.status != 200 && httpMessage !== undefined && httpMessage !== '') {
-                    module.error(error.statusMessage + httpMessage);
-                  }
-                  else {
-                    if(status == 'error' && settings.dataType == 'json') {
-                      try {
-                        response = $.parseJSON(xhr.responseText);
-                        if(response && response.error !== undefined) {
-                          errorMessage = response.error;
-                        }
-                      }
-                      catch(error) {
-                        module.error(error.JSONParse);
-                      }
-                    }
-                  }
-                  $context
-                    .removeClass(className.loading)
-                    .addClass(className.error)
-                  ;
-                  // show error state only for duration specified in settings
-                  if(settings.errorLength > 0) {
-                    setTimeout(function(){
-                      $context
-                        .removeClass(className.error)
-                      ;
-                    }, settings.errorLength);
-                  }
-                  module.debug('API Request error:', errorMessage);
-                  $.proxy(settings.failure, $context)(errorMessage, settings, this);
-                }
-                else {
-                  module.debug('Request Aborted (Most likely caused by page change)');
-                }
-              }
-            })
-        ;
-
-        // look for params in data
-        $.extend(true, ajaxSettings, settings, {
-          success    : function(){},
-          failure    : function(){},
-          complete   : function(){},
-          type       : settings.method || settings.type,
-          data       : data,
-          url        : url,
-          beforeSend : settings.beforeXHR
-        });
-
-        if(settings.stateContext) {
-          $context
-            .addClass(className.loading)
-          ;
-        }
-
-        if(settings.progress) {
-          module.verbose('Adding progress events');
-          $.extend(true, ajaxSettings, {
-            xhr: function() {
-              var
-                xhr = new window.XMLHttpRequest()
-              ;
-              xhr.upload.addEventListener('progress', function(event) {
-                var
-                  percentComplete
-                ;
-                if (event.lengthComputable) {
-                  percentComplete = Math.round(event.loaded / event.total * 10000) / 100 + '%';
-                  $.proxy(settings.progress, $context)(percentComplete, event);
-                }
-              }, false);
-              xhr.addEventListener('progress', function(event) {
-                var
-                  percentComplete
-                ;
-                if (event.lengthComputable) {
-                  percentComplete = Math.round(event.loaded / event.total * 10000) / 100 + '%';
-                  $.proxy(settings.progress, $context)(percentComplete, event);
-                }
-              }, false);
-              return xhr;
-            }
-          });
-        }
-
-        module.verbose('Creating AJAX request with settings: ', ajaxSettings);
-        xhr =
-          $.ajax(ajaxSettings)
-            .always(function() {
-              // calculate if loading time was below minimum threshold
-              loadingDelay = ( settings.loadingLength - (new Date().getTime() - loadingTimer) );
-              settings.loadingDelay = loadingDelay < 0
-                ? 0
-                : loadingDelay
-              ;
-            })
-            .done(function(response) {
-              var
-                context = this
-              ;
-              setTimeout(function(){
-                promise.resolveWith(context, [response]);
-              }, settings.loadingDelay);
-            })
-            .fail(function(xhr, status, httpMessage) {
-              var
-                context = this
-              ;
-              // page triggers abort on navigation, dont show error
-              if(status != 'abort') {
-                setTimeout(function(){
-                  promise.rejectWith(context, [xhr, status, httpMessage]);
-                }, settings.loadingDelay);
-              }
-              else {
-                $context
-                  .removeClass(className.error)
-                  .removeClass(className.loading)
-                ;
-              }
-            })
-        ;
-        if(settings.stateContext) {
-          $module
-            .data(metadata.promise, promise)
-            .data(metadata.xhr, xhr)
-          ;
-        }
-      },
-
-      get: {
-        formData: function() {
-          return $module
-            .closest('form')
-              .toJSON()
-          ;
-        },
-        templateURL: function() {
-          var
-            action = $module.data(settings.metadata.action) || settings.action || false,
-            url
-          ;
-          if(action) {
-            module.debug('Creating url for: ', action);
-            if(settings.api[action] !== undefined) {
-              url = settings.api[action];
-            }
-            else {
-              module.error(error.missingAction);
-            }
-          }
-          // override with url if specified
-          if(settings.url) {
-            url = settings.url;
-            module.debug('Getting url', url);
-          }
-          return url;
-        },
-        url: function(url, urlData) {
-          var
-            urlVariables
-          ;
-          if(url) {
-            urlVariables = url.match(settings.regExpTemplate);
-            urlData      = urlData || settings.urlData;
-
-            if(urlVariables) {
-              module.debug('Looking for URL variables', urlVariables);
-              $.each(urlVariables, function(index, templateValue){
-                var
-                  term      = templateValue.substr( 2, templateValue.length - 3),
-                  termValue = ($.isPlainObject(urlData) && urlData[term] !== undefined)
-                    ? urlData[term]
-                    : ($module.data(term) !== undefined)
-                      ? $module.data(term)
-                      : urlData[term]
-                ;
-                module.verbose('Looking for variable', term, $module, $module.data(term), urlData[term]);
-                // remove optional value
-                if(termValue === false) {
-                  module.debug('Removing variable from URL', urlVariables);
-                  url = url.replace('/' + templateValue, '');
-                }
-                // undefined condition
-                else if(termValue === undefined || !termValue) {
-                  module.error(error.missingParameter + term);
-                  url = false;
-                  return false;
-                }
-                else {
-                  url = url.replace(templateValue, termValue);
-                }
-              });
-            }
-          }
-          return url;
-        }
-      },
-
-      // reset api request
-      reset: function() {
-        $module
-          .data(metadata.promise, false)
-          .data(metadata.xhr, false)
-        ;
-        $context
-          .removeClass(className.error)
-          .removeClass(className.loading)
-        ;
-      },
-
-      setting: function(name, value) {
-        if( $.isPlainObject(name) ) {
-          $.extend(true, settings, name);
-        }
-        else if(value !== undefined) {
-          settings[name] = value;
-        }
-        else {
-          return settings[name];
-        }
-      },
-      internal: function(name, value) {
-        if( $.isPlainObject(name) ) {
-          $.extend(true, module, name);
-        }
-        else if(value !== undefined) {
-          module[name] = value;
-        }
-        else {
-          return module[name];
-        }
-      },
-      debug: function() {
-        if(settings.debug) {
-          if(settings.performance) {
-            module.performance.log(arguments);
-          }
-          else {
-            module.debug = Function.prototype.bind.call(console.info, console, settings.name + ':');
-            module.debug.apply(console, arguments);
-          }
-        }
-      },
-      verbose: function() {
-        if(settings.verbose && settings.debug) {
-          if(settings.performance) {
-            module.performance.log(arguments);
-          }
-          else {
-            module.verbose = Function.prototype.bind.call(console.info, console, settings.name + ':');
-            module.verbose.apply(console, arguments);
-          }
-        }
-      },
-      error: function() {
-        module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
-        module.error.apply(console, arguments);
-      },
-      performance: {
-        log: function(message) {
-          var
-            currentTime,
-            executionTime,
-            previousTime
-          ;
-          if(settings.performance) {
-            currentTime   = new Date().getTime();
-            previousTime  = time || currentTime;
-            executionTime = currentTime - previousTime;
-            time          = currentTime;
-            performance.push({
-              'Element'        : element,
-              'Name'           : message[0],
-              'Arguments'      : [].slice.call(message, 1) || '',
-              'Execution Time' : executionTime
-            });
-          }
-          clearTimeout(module.performance.timer);
-          module.performance.timer = setTimeout(module.performance.display, 100);
-        },
-        display: function() {
-          var
-            title = settings.name + ':',
-            totalTime = 0
-          ;
-          time = false;
-          clearTimeout(module.performance.timer);
-          $.each(performance, function(index, data) {
-            totalTime += data['Execution Time'];
-          });
-          title += ' ' + totalTime + 'ms';
-          if(moduleSelector) {
-            title += ' \'' + moduleSelector + '\'';
-          }
-          if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
-            console.groupCollapsed(title);
-            if(console.table) {
-              console.table(performance);
-            }
-            else {
-              $.each(performance, function(index, data) {
-                console.log(data['Name'] + ': ' + data['Execution Time']+'ms');
-              });
-            }
-            console.groupEnd();
-          }
-          performance = [];
-        }
-      },
-      invoke: function(query, passedArguments, context) {
-        var
-          object = instance,
-          maxDepth,
-          found,
-          response
-        ;
-        passedArguments = passedArguments || queryArguments;
-        context         = element         || context;
-        if(typeof query == 'string' && object !== undefined) {
-          query    = query.split(/[\. ]/);
-          maxDepth = query.length - 1;
-          $.each(query, function(depth, value) {
-            var camelCaseValue = (depth != maxDepth)
-              ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
-              : query
-            ;
-            if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
-              object = object[camelCaseValue];
-            }
-            else if( object[camelCaseValue] !== undefined ) {
-              found = object[camelCaseValue];
-              return false;
-            }
-            else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
-              object = object[value];
-            }
-            else if( object[value] !== undefined ) {
-              found = object[value];
-              return false;
-            }
-            else {
-              return false;
-            }
-          });
-        }
-        if ( $.isFunction( found ) ) {
-          response = found.apply(context, passedArguments);
-        }
-        else if(found !== undefined) {
-          response = found;
-        }
-        if($.isArray(returnedValue)) {
-          returnedValue.push(response);
-        }
-        else if(returnedValue !== undefined) {
-          returnedValue = [returnedValue, response];
-        }
-        else if(response !== undefined) {
-          returnedValue = response;
-        }
-        return found;
-      }
-    };
-
-    if(methodInvoked) {
-      if(instance === undefined) {
-        module.initialize();
-      }
-      module.invoke(query);
-    }
-    else {
-      if(instance !== undefined) {
-        module.destroy();
-      }
-      module.initialize();
-    }
-
-    return (returnedValue !== undefined)
-      ? returnedValue
-      : this
-    ;
-  };
-
-  // handle DOM attachment to API functionality
-  $.fn.apiButton = function(parameters) {
-    $(this)
-      .each(function(){
-        var
-          // if only function passed it is success callback
-          $module  = $(this),
-          selector = $(this).selector || '',
-
-          settings = ( $.isFunction(parameters) )
-            ? $.extend(true, {}, $.api.settings, $.fn.apiButton.settings, { stateContext: this, success: parameters })
-            : $.extend(true, {}, $.api.settings, $.fn.apiButton.settings, { stateContext: this}, parameters),
-          module
-        ;
-        module = {
-          initialize: function() {
-            if(settings.context && selector !== '') {
-              $(settings.context)
-                .on(selector, 'click.' + settings.namespace, module.click)
-              ;
-            }
-            else {
-              $module
-                .on('click.' + settings.namespace, module.click)
-              ;
-            }
-          },
-          click: function() {
-            if(!settings.filter || $(this).filter(settings.filter).size() === 0) {
-              $.proxy( $.api, this )(settings);
-            }
-          }
-        };
-        module.initialize();
-      })
-    ;
-    return this;
-  };
-
-  $.api.settings = {
-
-    name        : 'API',
-    namespace   : 'api',
-
-    debug       : true,
-    verbose     : true,
-    performance : true,
-
-    api         : {},
-
-    beforeSend  : function(settings) {
-      return settings;
-    },
-    beforeXHR   : function(xhr) {},
-    success     : function(response) {},
-    complete    : function(response) {},
-    failure     : function(errorCode) {},
-    progress    : false,
-
-    error : {
-      missingAction    : 'API action used but no url was defined',
-      missingURL       : 'URL not specified for the API action',
-      missingParameter : 'Missing an essential URL parameter: ',
-
-      timeout          : 'Your request timed out',
-      error            : 'There was an error with your request',
-      parseError       : 'There was an error parsing your request',
-      JSONParse        : 'JSON could not be parsed during error handling',
-      statusMessage    : 'Server gave an error: ',
-      beforeSend       : 'The before send function has aborted the request',
-      exitConditions   : 'API Request Aborted. Exit conditions met'
-    },
-
-    className: {
-      loading : 'loading',
-      error   : 'error'
-    },
-
-    metadata: {
-      action  : 'action',
-      promise : 'promise',
-      xhr     : 'xhr'
-    },
-
-    regExpTemplate: /\{\$([A-z]+)\}/g,
-
-    action        : false,
-    url           : false,
-    urlData       : false,
-    serializeForm : false,
-
-    stateContext  : false,
-
-    method        : 'get',
-    data          : {},
-    dataType      : 'json',
-    cache         : true,
-
-    loadingLength : 200,
-    errorLength   : 2000
-
-  };
-
-  $.fn.apiButton.settings = {
-    filter       : '.disabled, .loading',
-    context      : false,
-    stateContext : false
-  };
 
 })( jQuery, window , document );
 /*
  * # Semantic - Colorize
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -1344,10 +1090,10 @@ $.extend( $.easing, {
 
 /*
  * # Semantic - Form Validation
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -1434,7 +1180,18 @@ $.fn.form = function(fields, parameters) {
           ;
         },
 
+        attachEvents: function(selector, action) {
+          action = action || 'submit';
+          $(selector)
+            .on('click', function(event) {
+              module[action]();
+              event.preventDefault();
+            })
+          ;
+        },
+
         bindEvents: function() {
+
           if(settings.keyboardShortcuts) {
             $field
               .on('keydown' + eventNamespace, module.event.field.keydown)
@@ -1446,9 +1203,9 @@ $.fn.form = function(fields, parameters) {
           $field
             .on('blur' + eventNamespace, module.event.field.blur)
           ;
-          $submit
-            .on('click' + eventNamespace, module.submit)
-          ;
+          // attach submit events
+          module.attachEvents($submit, 'submit');
+
           $field
             .each(function() {
               var
@@ -1494,7 +1251,7 @@ $.fn.form = function(fields, parameters) {
                   .blur()
                 ;
               }
-              if(!event.ctrlKey && key == keyCode.enter && $field.is(selector.input) ) {
+              if(!event.ctrlKey && key == keyCode.enter && $field.is(selector.input) && $field.not(selector.checkbox).size() > 0 ) {
                 module.debug('Enter key pressed, submitting form');
                 $submit
                   .addClass(className.down)
@@ -1502,8 +1259,6 @@ $.fn.form = function(fields, parameters) {
                 $field
                   .one('keyup' + eventNamespace, module.event.field.keyup)
                 ;
-                event.preventDefault();
-                return false;
               }
             },
             keyup: function() {
@@ -1543,7 +1298,7 @@ $.fn.form = function(fields, parameters) {
 
         get: {
           changeEvent: function(type) {
-            if(type == 'checkbox' || type == 'radio' || type == 'hidden') {
+            if(type == 'checkbox' || type == 'radio') {
               return 'change';
             }
             else {
@@ -1678,11 +1433,27 @@ $.fn.form = function(fields, parameters) {
           }
         },
 
+        set: {
+          success: function() {
+            $module
+              .removeClass(className.error)
+              .addClass(className.success)
+            ;
+          },
+          error: function() {
+            $module
+              .removeClass(className.success)
+              .addClass(className.error)
+            ;
+          }
+        },
+
         validate: {
 
           form: function(event) {
             var
-              allValid = true
+              allValid = true,
+              apiRequest
             ;
             // reset errors
             formErrors = [];
@@ -1693,17 +1464,18 @@ $.fn.form = function(fields, parameters) {
             });
             if(allValid) {
               module.debug('Form has no validation errors, submitting');
-              $module
-                .removeClass(className.error)
-                .addClass(className.success)
-              ;
+              module.set.success();
               return $.proxy(settings.onSuccess, this)(event);
             }
             else {
               module.debug('Form has errors');
-              $module.addClass(className.error);
+              module.set.error();
               if(!settings.inline) {
                 module.add.errors(formErrors);
+              }
+              // prevent ajax submit
+              if($module.data('moduleApi') !== undefined) {
+                event.stopImmediatePropagation();
               }
               return $.proxy(settings.onFailure, this)(formErrors);
             }
@@ -1826,9 +1598,9 @@ $.fn.form = function(fields, parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -1948,7 +1720,7 @@ $.fn.form.settings = {
   name              : 'Form',
   namespace         : 'form',
 
-  debug             : true,
+  debug             : false,
   verbose           : true,
   performance       : true,
 
@@ -1977,9 +1749,10 @@ $.fn.form.settings = {
     message : '.error.message',
     field   : 'input, textarea, select',
     group   : '.field',
+    checkbox: 'input[type="checkbox"], input[type="radio"]',
     input   : 'input',
     prompt  : '.prompt',
-    submit  : '.submit:not([type="submit"])'
+    submit  : '.submit'
   },
 
   className : {
@@ -2083,10 +1856,10 @@ $.fn.form.settings = {
 
 /*
  * # Semantic - State
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -2101,6 +1874,7 @@ $.fn.state = function(parameters) {
 
     moduleSelector  = $allModules.selector || '',
 
+    hasTouch        = ('ontouchstart' in document.documentElement),
     time            = new Date().getTime(),
     performance     = [],
 
@@ -2109,12 +1883,12 @@ $.fn.state = function(parameters) {
     queryArguments  = [].slice.call(arguments, 1),
 
     // shortcuts
-    error         = settings.error,
-    metadata      = settings.metadata,
-    className     = settings.className,
-    namespace     = settings.namespace,
-    states        = settings.states,
-    text          = settings.text,
+    error           = settings.error,
+    metadata        = settings.metadata,
+    className       = settings.className,
+    namespace       = settings.namespace,
+    states          = settings.states,
+    text            = settings.text,
 
     eventNamespace  = '.' + namespace,
     moduleNamespace = namespace + '-module',
@@ -2144,24 +1918,6 @@ $.fn.state = function(parameters) {
 
           // bind events with delegated events
           if(settings.context && moduleSelector !== '') {
-            if( module.allows('hover') ) {
-              $(element, settings.context)
-                .on(moduleSelector, 'mouseenter' + eventNamespace, module.enable.hover)
-                .on(moduleSelector, 'mouseleave' + eventNamespace, module.disable.hover)
-              ;
-            }
-            if( module.allows('down') ) {
-              $(element, settings.context)
-                .on(moduleSelector, 'mousedown' + eventNamespace, module.enable.down)
-                .on(moduleSelector, 'mouseup'   + eventNamespace, module.disable.down)
-              ;
-            }
-            if( module.allows('focus') ) {
-              $(element, settings.context)
-                .on(moduleSelector, 'focus' + eventNamespace, module.enable.focus)
-                .on(moduleSelector, 'blur'  + eventNamespace, module.disable.focus)
-              ;
-            }
             $(settings.context)
               .on(moduleSelector, 'mouseenter' + eventNamespace, module.change.text)
               .on(moduleSelector, 'mouseleave' + eventNamespace, module.reset.text)
@@ -2169,24 +1925,6 @@ $.fn.state = function(parameters) {
             ;
           }
           else {
-            if( module.allows('hover') ) {
-              $module
-                .on('mouseenter' + eventNamespace, module.enable.hover)
-                .on('mouseleave' + eventNamespace, module.disable.hover)
-              ;
-            }
-            if( module.allows('down') ) {
-              $module
-                .on('mousedown' + eventNamespace, module.enable.down)
-                .on('mouseup'   + eventNamespace, module.disable.down)
-              ;
-            }
-            if( module.allows('focus') ) {
-              $module
-                .on('focus' + eventNamespace, module.enable.focus)
-                .on('blur'  + eventNamespace, module.disable.focus)
-              ;
-            }
             $module
               .on('mouseenter' + eventNamespace, module.change.text)
               .on('mouseleave' + eventNamespace, module.reset.text)
@@ -2244,6 +1982,12 @@ $.fn.state = function(parameters) {
           inactive: function() {
             return !( $module.hasClass(className.active) );
           },
+          state: function(state) {
+            if(className[state] === undefined) {
+              return false;
+            }
+            return $module.hasClass( className[state] );
+          },
 
           enabled: function() {
             return !( $module.is(settings.filter.active) );
@@ -2261,6 +2005,9 @@ $.fn.state = function(parameters) {
           },
           input: function() {
             return $module.is('input');
+          },
+          progress: function() {
+            return $module.is('.ui.progress');
           }
         },
 
@@ -2277,55 +2024,41 @@ $.fn.state = function(parameters) {
           return states[state] || false;
         },
 
-        enable: {
-          state: function(state) {
-            if(module.allows(state)) {
-              $module.addClass( className[state] );
-            }
-          },
-          // convenience
-          focus: function() {
-            $module.addClass(className.focus);
-          },
-          hover: function() {
-            $module.addClass(className.hover);
-          },
-          down: function() {
-            $module.addClass(className.down);
-          },
+        enable: function() {
+          $module.removeClass(className.disabled);
         },
 
-        disable: {
-          state: function(state) {
-            if(module.allows(state)) {
-              $module.removeClass( className[state] );
-            }
-          },
-          // convenience
-          focus: function() {
-            $module.removeClass(className.focus);
-          },
-          hover: function() {
-            $module.removeClass(className.hover);
-          },
-          down: function() {
-            $module.removeClass(className.down);
-          },
+        disable: function() {
+          $module.addClass(className.disabled);
+        },
+
+        setState: function(state) {
+          if(module.allows(state)) {
+            $module.addClass( className[state] );
+          }
+        },
+
+        removeState: function(state) {
+          if(module.allows(state)) {
+            $module.removeClass( className[state] );
+          }
         },
 
         toggle: {
           state: function() {
             var
-              apiRequest = $module.data(metadata.promise)
+              apiRequest
             ;
             if( module.allows('active') && module.is.enabled() ) {
               module.refresh();
-              if(apiRequest !== undefined) {
-                module.listenTo(apiRequest);
+              if($.fn.api !== undefined) {
+                apiRequest = $module.api('get request');
+                if(apiRequest) {
+                  module.listenTo(apiRequest);
+                  return;
+                }
               }
-              else {
-                module.change.state();
-              }
+              module.change.state();
             }
           }
         },
@@ -2379,7 +2112,11 @@ $.fn.state = function(parameters) {
 
           text: function() {
             if( module.is.textEnabled() ) {
-              if( module.is.active() ) {
+              if(module.is.disabled() ) {
+                module.verbose('Changing text to disabled text', text.hover);
+                module.update.text(text.disabled);
+              }
+              else if( module.is.active() ) {
                 if(text.hover) {
                   module.verbose('Changing text to hover text', text.hover);
                   module.update.text(text.hover);
@@ -2454,16 +2191,18 @@ $.fn.state = function(parameters) {
         },
 
         flash: {
-          text: function(text, duration) {
+          text: function(text, duration, callback) {
             var
               previousText = module.get.text()
             ;
             module.debug('Flashing text message', text, duration);
             text     = text     || settings.text.flash;
             duration = duration || settings.flashDuration;
+            callback = callback || function() {};
             module.update.text(text);
             setTimeout(function(){
               module.update.text(previousText);
+              $.proxy(callback, element)();
             }, duration);
           }
         },
@@ -2582,9 +2321,9 @@ $.fn.state = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -2705,7 +2444,7 @@ $.fn.state.settings = {
   name : 'State',
 
   // debug output
-  debug      : true,
+  debug      : false,
 
   // verbose debug output
   verbose    : true,
@@ -2755,11 +2494,12 @@ $.fn.state.settings = {
 
   // change class on state
   className: {
-    focus   : 'focus',
-    hover   : 'hover',
-    down    : 'down',
-    active  : 'active',
-    loading : 'loading'
+    active   : 'active',
+    disabled : 'disabled',
+    error    : 'error',
+    loading  : 'loading',
+    success  : 'success',
+    warning  : 'warning'
   },
 
   selector: {
@@ -2769,30 +2509,34 @@ $.fn.state.settings = {
 
   defaults : {
     input: {
-      hover   : true,
-      focus   : true,
-      down    : true,
-      loading : false,
-      active  : false
+      disabled : true,
+      loading  : true,
+      active   : true
     },
     button: {
-      hover   : true,
-      focus   : false,
-      down    : true,
-      active  : true,
-      loading : true
+      disabled : true,
+      loading  : true,
+      active   : true,
+    },
+    progress: {
+      active   : true,
+      success  : true,
+      warning  : true,
+      error    : true
     }
   },
 
   states     : {
-    hover   : true,
-    focus   : true,
-    down    : true,
-    loading : false,
-    active  : false
+    active   : true,
+    disabled : true,
+    error    : true,
+    loading  : true,
+    success  : true,
+    warning  : true
   },
 
   text     : {
+    disabled : false,
     flash    : false,
     hover    : false,
     active   : false,
@@ -2808,17 +2552,2444 @@ $.fn.state.settings = {
 })( jQuery, window , document );
 
 /*
- * # Semantic - Chatroom
- * http://github.com/jlukic/semantic-ui/
+ * # Semantic - Visibility
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
+ * Released under the MIT license
+ * http://opensource.org/licenses/MIT
+ *
+ */
+
+;(function ( $, window, document, undefined ) {
+
+$.fn.visibility = function(parameters) {
+  var
+    $allModules    = $(this),
+    moduleSelector = $allModules.selector || '',
+
+    time           = new Date().getTime(),
+    performance    = [],
+
+    query          = arguments[0],
+    methodInvoked  = (typeof query == 'string'),
+    queryArguments = [].slice.call(arguments, 1),
+    returnedValue
+  ;
+
+  $allModules
+    .each(function() {
+      var
+        settings        = $.extend(true, {}, $.fn.visibility.settings, parameters),
+
+        className       = settings.className,
+        namespace       = settings.namespace,
+        error           = settings.error,
+
+        eventNamespace  = '.' + namespace,
+        moduleNamespace = 'module-' + namespace,
+
+        $window         = $(window),
+        $module         = $(this),
+        $context        = $(settings.context),
+        $container      = $module.offsetParent(),
+
+        selector        = $module.selector || '',
+        instance        = $module.data(moduleNamespace),
+
+        requestAnimationFrame = window.requestAnimationFrame
+          || window.mozRequestAnimationFrame
+          || window.webkitRequestAnimationFrame
+          || window.msRequestAnimationFrame
+          || function(callback) { setTimeout(callback, 0); },
+
+        element         = this,
+        module
+      ;
+
+      module      = {
+
+        initialize: function() {
+          module.verbose('Initializing visibility', settings);
+
+          module.setup.cache();
+          module.save.position();
+          module.bindEvents();
+          module.instantiate();
+
+          if(settings.type == 'image') {
+            module.setup.image();
+          }
+
+          requestAnimationFrame(module.checkVisibility);
+        },
+
+        instantiate: function() {
+          module.verbose('Storing instance of module', module);
+          instance = module;
+          $module
+            .data(moduleNamespace, module)
+          ;
+        },
+
+        destroy: function() {
+          module.verbose('Destroying previous module');
+          $module
+            .off(eventNamespace)
+            .removeData(moduleNamespace)
+          ;
+        },
+
+        bindEvents: function() {
+          module.verbose('Binding visibility events to scroll and resize');
+          $window
+            .on('resize' + eventNamespace, module.event.refresh)
+          ;
+          $context
+            .on('scroll' + eventNamespace, module.event.scroll)
+          ;
+        },
+
+        event: {
+          refresh: function() {
+            requestAnimationFrame(module.refresh);
+          },
+          scroll: function() {
+            module.verbose('Scroll position changed');
+            if(settings.throttle) {
+              clearTimeout(module.timer);
+              module.timer = setTimeout(module.checkVisibility, settings.throttle);
+            }
+            else {
+              requestAnimationFrame(module.checkVisibility);
+            }
+          }
+        },
+
+        precache: function(images, callback) {
+          if (!(images instanceof Array)) {
+            images = [images];
+          }
+          var
+            imagesLength  = images.length,
+            loadedCounter = 0,
+            cache         = [],
+            cacheImage    = document.createElement('img'),
+            handleLoad    = function() {
+              loadedCounter++;
+              if (loadedCounter >= images.length) {
+                if ($.isFunction(callback)) {
+                  callback();
+                }
+              }
+            }
+          ;
+          while (imagesLength--) {
+            cacheImage         = document.createElement('img');
+            cacheImage.onload  = handleLoad;
+            cacheImage.onerror = handleLoad;
+            cacheImage.src     = images[imagesLength];
+            cache.push(cacheImage);
+          }
+        },
+
+        setup: {
+          cache: function() {
+            module.cache = {
+              occurred : {},
+              screen   : {},
+              element  : {},
+            };
+          },
+          image: function() {
+            var
+              src = $module.data('src')
+            ;
+            if(src) {
+              module.verbose('Lazy loading image', src);
+              // show when top visible
+              module.topVisible(function() {
+                module.precache(src, function() {
+                  module.set.image(src);
+                  settings.onTopVisible = false;
+                });
+              });
+            }
+          }
+        },
+
+        set: {
+          image: function(src) {
+            var
+              offScreen = (module.cache.screen.bottom < module.cache.element.top)
+            ;
+            $module
+              .attr('src', src)
+            ;
+            if(offScreen) {
+              $module.show();
+            }
+            else {
+              if($.fn.transition !== undefined) {
+                $module.transition(settings.transition, settings.duration);
+              }
+              else {
+                $module.fadeIn(settings.duration);
+              }
+            }
+          }
+        },
+
+        refresh: function() {
+          module.debug('Refreshing constants (element width/height)');
+          module.reset();
+          module.save.position();
+          module.checkVisibility();
+          $.proxy(settings.onRefresh, element)();
+        },
+
+        reset: function() {
+          module.verbose('Reseting all cached values');
+          if( $.isPlainObject(module.cache) ) {
+            module.cache.screen = {};
+            module.cache.element = {};
+            if(!settings.once) {
+              module.cache.occurred = {};
+            }
+          }
+          else {
+
+          }
+        },
+
+        checkVisibility: function() {
+          module.verbose('Checking visibility of element', module.cache.element);
+          module.save.scroll();
+          module.save.direction();
+          module.save.screenCalculations();
+          module.save.elementCalculations();
+          // percentage
+          module.passed();
+
+          // reverse (must be first)
+          module.passingReverse();
+          module.topVisibleReverse();
+          module.bottomVisibleReverse();
+          module.topPassedReverse();
+          module.bottomPassedReverse();
+
+          // one time
+          module.passing();
+          module.topVisible();
+          module.bottomVisible();
+          module.topPassed();
+          module.bottomPassed();
+        },
+
+        passed: function(amount, newCallback) {
+          var
+            calculations   = module.get.elementCalculations(),
+            amountInPixels
+          ;
+          // assign callback
+          if(amount !== undefined && newCallback !== undefined) {
+            settings.onPassed[amount] = newCallback;
+          }
+          else if(amount !== undefined) {
+            return (module.get.pixelsPassed(amount) > calculations.pixelsPassed);
+          }
+          else if(calculations.passing) {
+            $.each(settings.onPassed, function(amount, callback) {
+              if(calculations.bottomVisible || calculations.pixelsPassed > module.get.pixelsPassed(amount)) {
+                module.execute(callback, amount);
+              }
+              else if(!settings.once) {
+                module.remove.occurred(callback);
+              }
+            });
+          }
+        },
+
+        passing: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onPassing,
+            callbackName = 'passing'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for passing', newCallback);
+            settings.onPassing = newCallback;
+          }
+          if(calculations.passing) {
+            module.execute(callback, callbackName);
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback !== undefined) {
+            return calculations.passing;
+          }
+        },
+
+
+        topVisible: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onTopVisible,
+            callbackName = 'topVisible'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for top visible', newCallback);
+            settings.onTopVisible = newCallback;
+          }
+          if(calculations.topVisible) {
+            module.execute(callback, callbackName);
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback === undefined) {
+            return calculations.topVisible;
+          }
+        },
+
+        bottomVisible: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onBottomVisible,
+            callbackName = 'bottomVisible'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for bottom visible', newCallback);
+            settings.onBottomVisible = newCallback;
+          }
+          if(calculations.bottomVisible) {
+            module.execute(callback, callbackName);
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback === undefined) {
+            return calculations.bottomVisible;
+          }
+        },
+
+        topPassed: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onTopPassed,
+            callbackName = 'topPassed'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for top passed', newCallback);
+            settings.onTopPassed = newCallback;
+          }
+          if(calculations.topPassed) {
+            module.execute(callback, callbackName);
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback === undefined) {
+            return calculations.onTopPassed;
+          }
+        },
+
+        bottomPassed: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onBottomPassed,
+            callbackName = 'bottomPassed'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for bottom passed', newCallback);
+            settings.onBottomPassed = newCallback;
+          }
+          if(calculations.bottomPassed) {
+            module.execute(callback, callbackName);
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback === undefined) {
+            return calculations.bottomPassed;
+          }
+        },
+
+        passingReverse: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onPassingReverse,
+            callbackName = 'passingReverse'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for passing reverse', newCallback);
+            settings.onPassingReverse = newCallback;
+          }
+          if(!calculations.passing) {
+            if(module.get.occurred('passing')) {
+              module.execute(callback, callbackName);
+            }
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback !== undefined) {
+            return !calculations.passing;
+          }
+        },
+
+
+        topVisibleReverse: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onTopVisibleReverse,
+            callbackName = 'topVisibleReverse'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for top visible reverse', newCallback);
+            settings.onTopVisibleReverse = newCallback;
+          }
+          if(!calculations.topVisible) {
+            if(module.get.occurred('topVisible')) {
+              module.execute(callback, callbackName);
+            }
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback === undefined) {
+            return !calculations.topVisible;
+          }
+        },
+
+        bottomVisibleReverse: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onBottomVisibleReverse,
+            callbackName = 'bottomVisibleReverse'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for bottom visible reverse', newCallback);
+            settings.onBottomVisibleReverse = newCallback;
+          }
+          if(!calculations.bottomVisible) {
+            if(module.get.occurred('bottomVisible')) {
+              module.execute(callback, callbackName);
+            }
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback === undefined) {
+            return !calculations.bottomVisible;
+          }
+        },
+
+        topPassedReverse: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onTopPassedReverse,
+            callbackName = 'topPassedReverse'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for top passed reverse', newCallback);
+            settings.onTopPassedReverse = newCallback;
+          }
+          if(!calculations.topPassed) {
+            if(module.get.occurred('topPassed')) {
+              module.execute(callback, callbackName);
+            }
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback === undefined) {
+            return !calculations.onTopPassed;
+          }
+        },
+
+        bottomPassedReverse: function(newCallback) {
+          var
+            calculations = module.get.elementCalculations(),
+            callback     = newCallback || settings.onBottomPassedReverse,
+            callbackName = 'bottomPassedReverse'
+          ;
+          if(newCallback) {
+            module.debug('Adding callback for bottom passed reverse', newCallback);
+            settings.onBottomPassedReverse = newCallback;
+          }
+          if(!calculations.bottomPassed) {
+            if(module.get.occurred('bottomPassed')) {
+              module.execute(callback, callbackName);
+            }
+          }
+          else if(!settings.once) {
+            module.remove.occurred(callbackName);
+          }
+          if(newCallback === undefined) {
+            return !calculations.bottomPassed;
+          }
+        },
+
+        execute: function(callback, callbackName) {
+          var
+            calculations = module.get.elementCalculations(),
+            screen       = module.get.screenCalculations()
+          ;
+          callback     = callback || false;
+          if(callback) {
+            if(settings.continuous) {
+              module.debug('Callback being called continuously', callbackName, calculations);
+              $.proxy(callback, element)(calculations, screen);
+            }
+            else if(!module.get.occurred(callbackName)) {
+              module.debug('Conditions met', callbackName, calculations);
+              $.proxy(callback, element)(calculations, screen);
+            }
+          }
+          module.save.occurred(callbackName);
+        },
+
+        remove: {
+          occurred: function(callback) {
+            if(callback) {
+              if(module.cache.occurred[callback] !== undefined && module.cache.occurred[callback] === true) {
+                module.debug('Callback can now be called again', callback);
+                module.cache.occurred[callback] = false;
+              }
+            }
+            else {
+              module.cache.occurred = {};
+            }
+          }
+        },
+
+        save: {
+          occurred: function(callback) {
+            if(callback) {
+              if(module.cache.occurred[callback] === undefined || (module.cache.occurred[callback] !== true)) {
+                module.verbose('Saving callback occurred', callback);
+                module.cache.occurred[callback] = true;
+              }
+            }
+          },
+          scroll: function() {
+            module.cache.scroll = $context.scrollTop() + settings.offset;
+          },
+          direction: function() {
+            var
+              scroll     = module.get.scroll(),
+              lastScroll = module.get.lastScroll(),
+              direction
+            ;
+            if(scroll > lastScroll && lastScroll) {
+              direction = 'down';
+            }
+            else if(scroll < lastScroll && lastScroll) {
+              direction = 'up';
+            }
+            else {
+              direction = 'static';
+            }
+            module.cache.direction = direction;
+            return module.cache.direction;
+          },
+          elementPosition: function() {
+            var
+              screen = module.get.screenSize()
+            ;
+            module.verbose('Saving element position');
+            $.extend(module.cache.element, {
+              margin : {
+                top    : parseInt($module.css('margin-top'), 10),
+                bottom : parseInt($module.css('margin-bottom'), 10)
+              },
+              fits   : (element.height < screen.height),
+              offset : $module.offset(),
+              width  : $module.outerWidth(),
+              height : $module.outerHeight()
+            });
+            return module.cache.element;
+          },
+          elementCalculations: function() {
+            var
+              screen  = module.get.screenCalculations(),
+              element = module.get.elementPosition()
+            ;
+            // offset
+            if(settings.includeMargin) {
+              $.extend(module.cache.element, {
+                top    : element.offset.top - element.margin.top,
+                bottom : element.offset.top + element.height + element.margin.bottom
+              });
+            }
+            else {
+              $.extend(module.cache.element, {
+                top    : element.offset.top,
+                bottom : element.offset.top + element.height
+              });
+            }
+            // visibility
+            $.extend(module.cache.element, {
+              topVisible       : (screen.bottom >= element.top),
+              topPassed        : (screen.top >= element.top),
+              bottomVisible    : (screen.bottom >= element.bottom),
+              bottomPassed     : (screen.top >= element.bottom),
+              pixelsPassed     : 0,
+              percentagePassed : 0
+            });
+            // meta calculations
+            $.extend(module.cache.element, {
+              visible : (module.cache.element.topVisible || module.cache.element.bottomVisible),
+              passing : (module.cache.element.topPassed && !module.cache.element.bottomPassed),
+              hidden  : (!module.cache.element.topVisible && !module.cache.element.bottomVisible)
+            });
+            if(module.cache.element.passing) {
+              module.cache.element.pixelsPassed = (screen.top - element.top);
+              module.cache.element.percentagePassed = (screen.top - element.top) / element.height;
+            }
+            module.verbose('Updated element calculations', module.cache.element);
+          },
+          screenCalculations: function() {
+            var
+              scroll = $context.scrollTop() + settings.offset
+            ;
+            if(module.cache.scroll === undefined) {
+              module.cache.scroll = $context.scrollTop() + settings.offset;
+            }
+            module.save.direction();
+            $.extend(module.cache.screen, {
+              top    : scroll,
+              bottom : scroll + module.cache.screen.height
+            });
+            return module.cache.screen;
+          },
+          screenSize: function() {
+            module.verbose('Saving window position');
+            module.cache.screen = {
+              height: $context.height()
+            };
+          },
+          position: function() {
+            module.save.screenSize();
+            module.save.elementPosition();
+          }
+        },
+
+        get: {
+          pixelsPassed: function(amount) {
+            var
+              element = module.get.elementCalculations()
+            ;
+            if(amount.search('%') > -1) {
+              return ( element.height * (parseInt(amount, 10) / 100) );
+            }
+            return parseInt(amount, 10);
+          },
+          occurred: function(callback) {
+            return (module.cache.occurred !== undefined)
+              ? module.cache.occurred[callback] || false
+              : false
+            ;
+          },
+          direction: function() {
+            if(module.cache.direction === undefined) {
+              module.save.direction();
+            }
+            return module.cache.direction;
+          },
+          elementPosition: function() {
+            if(module.cache.element === undefined) {
+              module.save.elementPosition();
+            }
+            return module.cache.element;
+          },
+          elementCalculations: function() {
+            if(module.cache.element === undefined) {
+              module.save.elementCalculations();
+            }
+            return module.cache.element;
+          },
+          screenCalculations: function() {
+            if(module.cache.screen === undefined) {
+              module.save.screenCalculations();
+            }
+            return module.cache.screen;
+          },
+          screenSize: function() {
+            if(module.cache.screen === undefined) {
+              module.save.screenSize();
+            }
+            return module.cache.screen;
+          },
+          scroll: function() {
+            if(module.cache.scroll === undefined) {
+              module.save.scroll();
+            }
+            return module.cache.scroll;
+          },
+          lastScroll: function() {
+            if(module.cache.screen === undefined) {
+              module.debug('First scroll event, no last scroll could be found');
+              return false;
+            }
+            return module.cache.screen.top;
+          }
+        },
+
+        setting: function(name, value) {
+          if( $.isPlainObject(name) ) {
+            $.extend(true, settings, name);
+          }
+          else if(value !== undefined) {
+            settings[name] = value;
+          }
+          else {
+            return settings[name];
+          }
+        },
+        internal: function(name, value) {
+          if( $.isPlainObject(name) ) {
+            $.extend(true, module, name);
+          }
+          else if(value !== undefined) {
+            module[name] = value;
+          }
+          else {
+            return module[name];
+          }
+        },
+        debug: function() {
+          if(settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.debug = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.debug.apply(console, arguments);
+            }
+          }
+        },
+        verbose: function() {
+          if(settings.verbose && settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.verbose = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.verbose.apply(console, arguments);
+            }
+          }
+        },
+        error: function() {
+          module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
+          module.error.apply(console, arguments);
+        },
+        performance: {
+          log: function(message) {
+            var
+              currentTime,
+              executionTime,
+              previousTime
+            ;
+            if(settings.performance) {
+              currentTime   = new Date().getTime();
+              previousTime  = time || currentTime;
+              executionTime = currentTime - previousTime;
+              time          = currentTime;
+              performance.push({
+                'Name'           : message[0],
+                'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
+                'Execution Time' : executionTime
+              });
+            }
+            clearTimeout(module.performance.timer);
+            module.performance.timer = setTimeout(module.performance.display, 100);
+          },
+          display: function() {
+            var
+              title = settings.name + ':',
+              totalTime = 0
+            ;
+            time = false;
+            clearTimeout(module.performance.timer);
+            $.each(performance, function(index, data) {
+              totalTime += data['Execution Time'];
+            });
+            title += ' ' + totalTime + 'ms';
+            if(moduleSelector) {
+              title += ' \'' + moduleSelector + '\'';
+            }
+            if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
+              console.groupCollapsed(title);
+              if(console.table) {
+                console.table(performance);
+              }
+              else {
+                $.each(performance, function(index, data) {
+                  console.log(data['Name'] + ': ' + data['Execution Time']+'ms');
+                });
+              }
+              console.groupEnd();
+            }
+            performance = [];
+          }
+        },
+        invoke: function(query, passedArguments, context) {
+          var
+            object = instance,
+            maxDepth,
+            found,
+            response
+          ;
+          passedArguments = passedArguments || queryArguments;
+          context         = element         || context;
+          if(typeof query == 'string' && object !== undefined) {
+            query    = query.split(/[\. ]/);
+            maxDepth = query.length - 1;
+            $.each(query, function(depth, value) {
+              var camelCaseValue = (depth != maxDepth)
+                ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
+                : query
+              ;
+              if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
+                object = object[camelCaseValue];
+              }
+              else if( object[camelCaseValue] !== undefined ) {
+                found = object[camelCaseValue];
+                return false;
+              }
+              else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
+                object = object[value];
+              }
+              else if( object[value] !== undefined ) {
+                found = object[value];
+                return false;
+              }
+              else {
+                return false;
+              }
+            });
+          }
+          if ( $.isFunction( found ) ) {
+            response = found.apply(context, passedArguments);
+          }
+          else if(found !== undefined) {
+            response = found;
+          }
+          if($.isArray(returnedValue)) {
+            returnedValue.push(response);
+          }
+          else if(returnedValue !== undefined) {
+            returnedValue = [returnedValue, response];
+          }
+          else if(response !== undefined) {
+            returnedValue = response;
+          }
+          return found;
+        }
+      };
+
+      if(methodInvoked) {
+        if(instance === undefined) {
+          module.initialize();
+        }
+        module.invoke(query);
+      }
+      else {
+        if(instance !== undefined) {
+          module.destroy();
+        }
+        module.initialize();
+      }
+    })
+  ;
+
+  return (returnedValue !== undefined)
+    ? returnedValue
+    : this
+  ;
+};
+
+$.fn.visibility.settings = {
+
+  name                   : 'Visibility',
+  namespace              : 'visibility',
+
+  debug                  : false,
+  verbose                : false,
+  performance            : true,
+
+  offset                 : 0,
+  includeMargin          : false,
+
+  context                : window,
+
+  // visibility check delay in ms
+  throttle               : false,
+
+  // special visibility type
+  type                   : false,
+  transition             : 'fade in',
+  duration               : 500,
+
+  // array of callbacks for percentage
+  onPassed               : {},
+
+  // standard callbacks
+  onPassing              : false,
+  onTopVisible           : false,
+  onBottomVisible        : false,
+  onTopPassed            : false,
+  onBottomPassed         : false,
+
+  // reverse callbacks
+  onPassingReverse       : false,
+  onTopVisibleReverse    : false,
+  onBottomVisibleReverse : false,
+  onTopPassedReverse     : false,
+  onBottomPassedReverse  : false,
+
+  once                   : true,
+  continuous             : false,
+
+  // utility callbacks
+  onRefresh              : function(){},
+  onScroll               : function(){},
+
+  error : {
+    method   : 'The method you called is not defined.'
+  }
+
+};
+
+})( jQuery, window , document );
+
+/*
+ * # Semantic - Visit
+ * http://github.com/semantic-org/semantic-ui/
+ *
+ *
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
 
 ;(function ($, window, document, undefined) {
+
+$.visit = $.fn.visit = function(parameters) {
+  var
+    $allModules     = $.isFunction(this)
+        ? $(window)
+        : $(this),
+    moduleSelector  = $allModules.selector || '',
+
+    time            = new Date().getTime(),
+    performance     = [],
+
+    query           = arguments[0],
+    methodInvoked   = (typeof query == 'string'),
+    queryArguments  = [].slice.call(arguments, 1),
+    returnedValue
+  ;
+  $allModules
+    .each(function() {
+      var
+        settings        = $.extend(true, {}, $.fn.visit.settings, parameters),
+
+        error           = settings.error,
+        namespace       = settings.namespace,
+
+        eventNamespace  = '.' + namespace,
+        moduleNamespace = namespace + '-module',
+
+        $module         = $(this),
+        $displays       = $(),
+
+        element         = this,
+        instance        = $module.data(moduleNamespace),
+        module
+      ;
+      module = {
+
+        initialize: function() {
+          if(settings.count) {
+            module.store(settings.key.count, settings.count);
+          }
+          else if(settings.id) {
+            module.add.id(settings.id);
+          }
+          else if(settings.increment && methodInvoked !== 'increment') {
+            module.increment();
+          }
+          module.add.display($module);
+          module.instantiate();
+        },
+
+        instantiate: function() {
+          module.verbose('Storing instance of visit module', module);
+          instance = module;
+          $module
+            .data(moduleNamespace, module)
+          ;
+        },
+
+        destroy: function() {
+          module.verbose('Destroying instance');
+          $module
+            .removeData(moduleNamespace)
+          ;
+        },
+
+        increment: function(id) {
+          var
+            currentValue = module.get.count(),
+            newValue     = +(currentValue) + 1
+          ;
+          if(id) {
+            module.add.id(id);
+          }
+          else {
+            if(newValue > settings.limit && !settings.surpass) {
+              newValue = settings.limit;
+            }
+            module.debug('Incrementing visits', newValue);
+            module.store(settings.key.count, newValue);
+          }
+        },
+
+        decrement: function(id) {
+          var
+            currentValue = module.get.count(),
+            newValue     = +(currentValue) - 1
+          ;
+          if(id) {
+            module.remove.id(id);
+          }
+          else {
+            module.debug('Removing visit');
+            module.store(settings.key.count, newValue);
+          }
+        },
+
+        get: {
+          count: function() {
+            return +(module.retrieve(settings.key.count)) || 0;
+          },
+          idCount: function(ids) {
+            ids = ids || module.get.ids();
+            return ids.length;
+          },
+          ids: function(delimitedIDs) {
+            var
+              idArray = []
+            ;
+            delimitedIDs = delimitedIDs || module.retrieve(settings.key.ids);
+            if(typeof delimitedIDs === 'string') {
+              idArray = delimitedIDs.split(settings.delimiter);
+            }
+            module.verbose('Found visited ID list', idArray);
+            return idArray;
+          },
+          storageOptions: function(data) {
+            var
+              options = {}
+            ;
+            if(settings.expires) {
+              options.expires = settings.expires;
+            }
+            if(settings.domain) {
+              options.domain = settings.domain;
+            }
+            if(settings.path) {
+              options.path = settings.path;
+            }
+            return options;
+          }
+        },
+
+        has: {
+          visited: function(id, ids) {
+            var
+              visited = false
+            ;
+            ids = ids || module.get.ids();
+            if(id !== undefined && ids) {
+              $.each(ids, function(index, value){
+                if(value == id) {
+                  visited = true;
+                }
+              });
+            }
+            return visited;
+          }
+        },
+
+        set: {
+          count: function(value) {
+            module.store(settings.key.count, value);
+          },
+          ids: function(value) {
+            module.store(settings.key.ids, value);
+          }
+        },
+
+        reset: function() {
+          module.store(settings.key.count, 0);
+          module.store(settings.key.ids, null);
+        },
+
+        add: {
+          id: function(id) {
+            var
+              currentIDs = module.retrieve(settings.key.ids),
+              newIDs = (currentIDs === undefined || currentIDs === '')
+                ? id
+                : currentIDs + settings.delimiter + id
+            ;
+            if( module.has.visited(id) ) {
+              module.debug('Unique content already visited, not adding visit', id, currentIDs);
+            }
+            else if(id === undefined) {
+              module.debug('ID is not defined');
+            }
+            else {
+              module.debug('Adding visit to unique content', id);
+              module.store(settings.key.ids, newIDs);
+            }
+            module.set.count( module.get.idCount() );
+          },
+          display: function(selector) {
+            var
+              $element = $(selector)
+            ;
+            if($element.size() > 0 && !$.isWindow($element[0])) {
+              module.debug('Updating visit count for element', $element);
+              $displays = ($displays.size() > 0)
+                ? $displays.add($element)
+                : $element
+              ;
+            }
+          }
+        },
+
+        remove: {
+          id: function(id) {
+            var
+              currentIDs = module.get.ids(),
+              newIDs     = []
+            ;
+            if(id !== undefined && currentIDs !== undefined) {
+              module.debug('Removing visit to unique content', id, currentIDs);
+              $.each(currentIDs, function(index, value){
+                if(value !== id) {
+                  newIDs.push(value);
+                }
+              });
+              newIDs = newIDs.join(settings.delimiter);
+              module.store(settings.key.ids, newIDs );
+            }
+            module.set.count( module.get.idCount() );
+          }
+        },
+
+        check: {
+          limit: function(value) {
+            value = value || module.get.count();
+            if(settings.limit) {
+              if(value >= settings.limit) {
+                module.debug('Pages viewed exceeded limit, firing callback', value, settings.limit);
+                $.proxy(settings.onLimit, this)(value);
+              }
+              module.debug('Limit not reached', value, settings.limit);
+              $.proxy(settings.onChange, this)(value);
+            }
+            module.update.display(value);
+          }
+        },
+
+        update: {
+          display: function(value) {
+            value = value || module.get.count();
+            if($displays.size() > 0) {
+              module.debug('Updating displayed view count', $displays);
+              $displays.html(value);
+            }
+          }
+        },
+
+        store: function(key, value) {
+          var
+            options = module.get.storageOptions(value)
+          ;
+          if(settings.storageMethod == 'localstorage' && window.localStorage !== undefined) {
+            window.localStorage.setItem(key, value);
+            module.debug('Value stored using local storage', key, value);
+          }
+          else if($.cookie !== undefined) {
+            $.cookie(key, value, options);
+            module.debug('Value stored using cookie', key, value, options);
+          }
+          else {
+            module.error(error.noCookieStorage);
+            return;
+          }
+          if(key == settings.key.count) {
+            module.check.limit(value);
+          }
+        },
+        retrieve: function(key, value) {
+          var
+            storedValue
+          ;
+          if(settings.storageMethod == 'localstorage' && window.localStorage !== undefined) {
+            storedValue = window.localStorage.getItem(key);
+          }
+          // get by cookie
+          else if($.cookie !== undefined) {
+            storedValue = $.cookie(key);
+          }
+          else {
+            module.error(error.noCookieStorage);
+          }
+          if(storedValue == 'undefined' || storedValue == 'null' || storedValue === undefined || storedValue === null) {
+            storedValue = undefined;
+          }
+          return storedValue;
+        },
+
+        setting: function(name, value) {
+          if( $.isPlainObject(name) ) {
+            $.extend(true, settings, name);
+          }
+          else if(value !== undefined) {
+            settings[name] = value;
+          }
+          else {
+            return settings[name];
+          }
+        },
+        internal: function(name, value) {
+          module.debug('Changing internal', name, value);
+          if(value !== undefined) {
+            if( $.isPlainObject(name) ) {
+              $.extend(true, module, name);
+            }
+            else {
+              module[name] = value;
+            }
+          }
+          else {
+            return module[name];
+          }
+        },
+        debug: function() {
+          if(settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.debug = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.debug.apply(console, arguments);
+            }
+          }
+        },
+        verbose: function() {
+          if(settings.verbose && settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.verbose = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.verbose.apply(console, arguments);
+            }
+          }
+        },
+        error: function() {
+          module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
+          module.error.apply(console, arguments);
+        },
+        performance: {
+          log: function(message) {
+            var
+              currentTime,
+              executionTime,
+              previousTime
+            ;
+            if(settings.performance) {
+              currentTime   = new Date().getTime();
+              previousTime  = time || currentTime;
+              executionTime = currentTime - previousTime;
+              time          = currentTime;
+              performance.push({
+                'Name'           : message[0],
+                'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
+                'Execution Time' : executionTime
+              });
+            }
+            clearTimeout(module.performance.timer);
+            module.performance.timer = setTimeout(module.performance.display, 100);
+          },
+          display: function() {
+            var
+              title = settings.name + ':',
+              totalTime = 0
+            ;
+            time = false;
+            clearTimeout(module.performance.timer);
+            $.each(performance, function(index, data) {
+              totalTime += data['Execution Time'];
+            });
+            title += ' ' + totalTime + 'ms';
+            if(moduleSelector) {
+              title += ' \'' + moduleSelector + '\'';
+            }
+            if($allModules.size() > 1) {
+              title += ' ' + '(' + $allModules.size() + ')';
+            }
+            if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
+              console.groupCollapsed(title);
+              if(console.table) {
+                console.table(performance);
+              }
+              else {
+                $.each(performance, function(index, data) {
+                  console.log(data['Name'] + ': ' + data['Execution Time']+'ms');
+                });
+              }
+              console.groupEnd();
+            }
+            performance = [];
+          }
+        },
+        invoke: function(query, passedArguments, context) {
+          var
+            object = instance,
+            maxDepth,
+            found,
+            response
+          ;
+          passedArguments = passedArguments || queryArguments;
+          context         = element         || context;
+          if(typeof query == 'string' && object !== undefined) {
+            query    = query.split(/[\. ]/);
+            maxDepth = query.length - 1;
+            $.each(query, function(depth, value) {
+              var camelCaseValue = (depth != maxDepth)
+                ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
+                : query
+              ;
+              if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
+                object = object[camelCaseValue];
+              }
+              else if( object[camelCaseValue] !== undefined ) {
+                found = object[camelCaseValue];
+                return false;
+              }
+              else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
+                object = object[value];
+              }
+              else if( object[value] !== undefined ) {
+                found = object[value];
+                return false;
+              }
+              else {
+                return false;
+              }
+            });
+          }
+          if ( $.isFunction( found ) ) {
+            response = found.apply(context, passedArguments);
+          }
+          else if(found !== undefined) {
+            response = found;
+          }
+          if($.isArray(returnedValue)) {
+            returnedValue.push(response);
+          }
+          else if(returnedValue !== undefined) {
+            returnedValue = [returnedValue, response];
+          }
+          else if(response !== undefined) {
+            returnedValue = response;
+          }
+          return found;
+        }
+      };
+      if(methodInvoked) {
+        if(instance === undefined) {
+          module.initialize();
+        }
+        module.invoke(query);
+      }
+      else {
+        if(instance !== undefined) {
+          module.destroy();
+        }
+        module.initialize();
+      }
+
+    })
+  ;
+  return (returnedValue !== undefined)
+    ? returnedValue
+    : this
+  ;
+};
+
+$.fn.visit.settings = {
+
+  name          : 'Visit',
+
+  debug         : false,
+  verbose       : true,
+  performance   : true,
+
+  namespace     : 'visit',
+
+  increment     : false,
+  surpass       : false,
+  count         : false,
+  limit         : false,
+
+  delimiter     : '&',
+  storageMethod : 'localstorage',
+
+  key           : {
+    count : 'visit-count',
+    ids   : 'visit-ids'
+  },
+
+  expires       : 30,
+  domain        : false,
+  path          : '/',
+
+  onLimit       : function() {},
+  onChange      : function() {},
+
+  error         : {
+    method          : 'The method you called is not defined',
+    missingPersist  : 'Using the persist setting requires the inclusion of PersistJS',
+    noCookieStorage : 'The default storage cookie requires $.cookie to be included.'
+  }
+
+};
+
+})( jQuery, window , document );
+
+/*! jquery.cookie v1.4.1 | MIT */
+!function(a){"function"==typeof define&&define.amd?define(["jquery"],a):"object"==typeof exports?a(require("jquery")):a(jQuery)}(function(a){function b(a){return h.raw?a:encodeURIComponent(a)}function c(a){return h.raw?a:decodeURIComponent(a)}function d(a){return b(h.json?JSON.stringify(a):String(a))}function e(a){0===a.indexOf('"')&&(a=a.slice(1,-1).replace(/\\"/g,'"').replace(/\\\\/g,"\\"));try{return a=decodeURIComponent(a.replace(g," ")),h.json?JSON.parse(a):a}catch(b){}}function f(b,c){var d=h.raw?b:e(b);return a.isFunction(c)?c(d):d}var g=/\+/g,h=a.cookie=function(e,g,i){if(void 0!==g&&!a.isFunction(g)){if(i=a.extend({},h.defaults,i),"number"==typeof i.expires){var j=i.expires,k=i.expires=new Date;k.setTime(+k+864e5*j)}return document.cookie=[b(e),"=",d(g),i.expires?"; expires="+i.expires.toUTCString():"",i.path?"; path="+i.path:"",i.domain?"; domain="+i.domain:"",i.secure?"; secure":""].join("")}for(var l=e?void 0:{},m=document.cookie?document.cookie.split("; "):[],n=0,o=m.length;o>n;n++){var p=m[n].split("="),q=c(p.shift()),r=p.join("=");if(e&&e===q){l=f(r,g);break}e||void 0===(r=f(r))||(l[q]=r)}return l};h.defaults={},a.removeCookie=function(b,c){return void 0===a.cookie(b)?!1:(a.cookie(b,"",a.extend({},c,{expires:-1})),!a.cookie(b))}});
+/*
+ * # Semantic - Site
+ * http://github.com/semantic-org/semantic-ui/
+ *
+ *
+ * Copyright 2014 Contributor
+ * Released under the MIT license
+ * http://opensource.org/licenses/MIT
+ *
+ */
+;(function ( $, window, document, undefined ) {
+
+$.site = $.fn.site = function(parameters) {
+  var
+    time           = new Date().getTime(),
+    performance    = [],
+
+    query          = arguments[0],
+    methodInvoked  = (typeof query == 'string'),
+    queryArguments = [].slice.call(arguments, 1),
+
+    settings        = ( $.isPlainObject(parameters) )
+      ? $.extend(true, {}, $.site.settings, parameters)
+      : $.extend({}, $.site.settings),
+
+    namespace       = settings.namespace,
+    error           = settings.error,
+
+    eventNamespace  = '.' + namespace,
+    moduleNamespace = 'module-' + namespace,
+
+    $document       = $(document),
+    $module         = $document,
+    element         = this,
+    instance        = $module.data(moduleNamespace),
+
+    module,
+    returnedValue
+  ;
+  module = {
+
+    initialize: function() {
+      module.instantiate();
+    },
+
+    instantiate: function() {
+      module.verbose('Storing instance of site', module);
+      instance = module;
+      $module
+        .data(moduleNamespace, module)
+      ;
+    },
+
+    normalize: function() {
+      module.fix.console();
+      module.fix.requestAnimationFrame();
+    },
+
+    fix: {
+      console: function() {
+        module.debug('Normalizing window.console');
+        if (console === undefined || console.log === undefined) {
+          module.verbose('Console not available, normalizing events');
+          module.disable.console();
+        }
+        if (typeof console.group == 'undefined' || typeof console.groupEnd == 'undefined' || typeof console.groupCollapsed == 'undefined') {
+          module.verbose('Console group not available, normalizing events');
+          window.console.group = function() {};
+          window.console.groupEnd = function() {};
+          window.console.groupCollapsed = function() {};
+        }
+        if (typeof console.markTimeline == 'undefined') {
+          module.verbose('Mark timeline not available, normalizing events');
+          window.console.markTimeline = function() {};
+        }
+      },
+      consoleClear: function() {
+        module.debug('Disabling programmatic console clearing');
+        window.console.clear = function() {};
+      },
+      requestAnimationFrame: function() {
+        module.debug('Normalizing requestAnimationFrame');
+        if(window.requestAnimationFrame === undefined) {
+          module.debug('RequestAnimationFrame not available, normailizing event');
+          window.requestAnimationFrame = window.requestAnimationFrame
+            || window.mozRequestAnimationFrame
+            || window.webkitRequestAnimationFrame
+            || window.msRequestAnimationFrame
+            || function(callback) { setTimeout(callback, 0); }
+          ;
+        }
+      }
+    },
+
+    moduleExists: function(name) {
+      return ($.fn[name] !== undefined && $.fn[name].settings !== undefined);
+    },
+
+    enabled: {
+      modules: function(modules) {
+        var
+          enabledModules = []
+        ;
+        modules = modules || settings.modules;
+        $.each(modules, function(index, name) {
+          if(module.moduleExists(name)) {
+            enabledModules.push(name);
+          }
+        });
+        return enabledModules;
+      }
+    },
+
+    disabled: {
+      modules: function(modules) {
+        var
+          disabledModules = []
+        ;
+        modules = modules || settings.modules;
+        $.each(modules, function(index, name) {
+          if(!module.moduleExists(name)) {
+            disabledModules.push(name);
+          }
+        });
+        return disabledModules;
+      }
+    },
+
+    change: {
+      setting: function(setting, value, modules, modifyExisting) {
+        modules = (typeof modules === 'string')
+          ? (modules === 'all')
+            ? settings.modules
+            : [modules]
+          : modules || settings.modules
+        ;
+        modifyExisting = (modifyExisting !== undefined)
+          ? modifyExisting
+          : true
+        ;
+        $.each(modules, function(index, name) {
+          var
+            namespace = (module.moduleExists(name))
+              ? $.fn[name].settings.namespace || false
+              : true,
+            $existingModules
+          ;
+          if(module.moduleExists(name)) {
+            module.verbose('Changing default setting', setting, value, name);
+            $.fn[name].settings[setting] = value;
+            if(modifyExisting && namespace) {
+              $existingModules = $(':data(module-' + namespace + ')');
+              if($existingModules.size() > 0) {
+                module.verbose('Modifying existing settings', $existingModules);
+                $existingModules[name]('setting', setting, value);
+              }
+            }
+          }
+        });
+      },
+      settings: function(newSettings, modules, modifyExisting) {
+        modules = (typeof modules === 'string')
+          ? [modules]
+          : modules || settings.modules
+        ;
+        modifyExisting = (modifyExisting !== undefined)
+          ? modifyExisting
+          : true
+        ;
+        $.each(modules, function(index, name) {
+          var
+            $existingModules
+          ;
+          if(module.moduleExists(name)) {
+            module.verbose('Changing default setting', newSettings, name);
+            $.extend(true, $.fn[name].settings, newSettings);
+            if(modifyExisting && namespace) {
+              $existingModules = $(':data(module-' + namespace + ')');
+              if($existingModules.size() > 0) {
+                module.verbose('Modifying existing settings', $existingModules);
+                $existingModules[name]('setting', newSettings);
+              }
+            }
+          }
+        });
+      }
+    },
+
+    enable: {
+      console: function() {
+        module.console(true);
+      },
+      debug: function(modules, modifyExisting) {
+        modules = modules || settings.modules;
+        module.debug('Enabling debug for modules', modules);
+        module.change.setting('debug', true, modules, modifyExisting);
+      },
+      verbose: function(modules, modifyExisting) {
+        modules = modules || settings.modules;
+        module.debug('Enabling verbose debug for modules', modules);
+        module.change.setting('verbose', true, modules, modifyExisting);
+      }
+    },
+    disable: {
+      console: function() {
+        module.console(false);
+      },
+      debug: function(modules, modifyExisting) {
+        modules = modules || settings.modules;
+        module.debug('Disabling debug for modules', modules);
+        module.change.setting('debug', false, modules, modifyExisting);
+      },
+      verbose: function(modules, modifyExisting) {
+        modules = modules || settings.modules;
+        module.debug('Disabling verbose debug for modules', modules);
+        module.change.setting('verbose', false, modules, modifyExisting);
+      }
+    },
+
+    console: function(enable) {
+      if(enable) {
+        if(instance.cache.console === undefined) {
+          module.error(error.console);
+          return;
+        }
+        module.debug('Restoring console function');
+        window.console = instance.cache.console;
+      }
+      else {
+        module.debug('Disabling console function');
+        instance.cache.console = window.console;
+        window.console = {
+          clear          : function(){},
+          error          : function(){},
+          group          : function(){},
+          groupCollapsed : function(){},
+          groupEnd       : function(){},
+          info           : function(){},
+          log            : function(){},
+          markTimeline   : function(){},
+          warn           : function(){}
+        };
+      }
+    },
+
+    destroy: function() {
+      module.verbose('Destroying previous site for', $module);
+      $module
+        .removeData(moduleNamespace)
+      ;
+    },
+
+    cache: {},
+
+    setting: function(name, value) {
+      if( $.isPlainObject(name) ) {
+        $.extend(true, settings, name);
+      }
+      else if(value !== undefined) {
+        settings[name] = value;
+      }
+      else {
+        return settings[name];
+      }
+    },
+    internal: function(name, value) {
+      if( $.isPlainObject(name) ) {
+        $.extend(true, module, name);
+      }
+      else if(value !== undefined) {
+        module[name] = value;
+      }
+      else {
+        return module[name];
+      }
+    },
+    debug: function() {
+      if(settings.debug) {
+        if(settings.performance) {
+          module.performance.log(arguments);
+        }
+        else {
+          module.debug = Function.prototype.bind.call(console.info, console, settings.name + ':');
+          module.debug.apply(console, arguments);
+        }
+      }
+    },
+    verbose: function() {
+      if(settings.verbose && settings.debug) {
+        if(settings.performance) {
+          module.performance.log(arguments);
+        }
+        else {
+          module.verbose = Function.prototype.bind.call(console.info, console, settings.name + ':');
+          module.verbose.apply(console, arguments);
+        }
+      }
+    },
+    error: function() {
+      module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
+      module.error.apply(console, arguments);
+    },
+    performance: {
+      log: function(message) {
+        var
+          currentTime,
+          executionTime,
+          previousTime
+        ;
+        if(settings.performance) {
+          currentTime   = new Date().getTime();
+          previousTime  = time || currentTime;
+          executionTime = currentTime - previousTime;
+          time          = currentTime;
+          performance.push({
+            'Element'        : element,
+            'Name'           : message[0],
+            'Arguments'      : [].slice.call(message, 1) || '',
+            'Execution Time' : executionTime
+          });
+        }
+        clearTimeout(module.performance.timer);
+        module.performance.timer = setTimeout(module.performance.display, 100);
+      },
+      display: function() {
+        var
+          title = settings.name + ':',
+          totalTime = 0
+        ;
+        time = false;
+        clearTimeout(module.performance.timer);
+        $.each(performance, function(index, data) {
+          totalTime += data['Execution Time'];
+        });
+        title += ' ' + totalTime + 'ms';
+        if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
+          console.groupCollapsed(title);
+          if(console.table) {
+            console.table(performance);
+          }
+          else {
+            $.each(performance, function(index, data) {
+              console.log(data['Name'] + ': ' + data['Execution Time']+'ms');
+            });
+          }
+          console.groupEnd();
+        }
+        performance = [];
+      }
+    },
+    invoke: function(query, passedArguments, context) {
+      var
+        object = instance,
+        maxDepth,
+        found,
+        response
+      ;
+      passedArguments = passedArguments || queryArguments;
+      context         = element         || context;
+      if(typeof query == 'string' && object !== undefined) {
+        query    = query.split(/[\. ]/);
+        maxDepth = query.length - 1;
+        $.each(query, function(depth, value) {
+          var camelCaseValue = (depth != maxDepth)
+            ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
+            : query
+          ;
+          if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
+            object = object[camelCaseValue];
+          }
+          else if( object[camelCaseValue] !== undefined ) {
+            found = object[camelCaseValue];
+            return false;
+          }
+          else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
+            object = object[value];
+          }
+          else if( object[value] !== undefined ) {
+            found = object[value];
+            return false;
+          }
+          else {
+            module.error(error.method, query);
+            return false;
+          }
+        });
+      }
+      if ( $.isFunction( found ) ) {
+        response = found.apply(context, passedArguments);
+      }
+      else if(found !== undefined) {
+        response = found;
+      }
+      if($.isArray(returnedValue)) {
+        returnedValue.push(response);
+      }
+      else if(returnedValue !== undefined) {
+        returnedValue = [returnedValue, response];
+      }
+      else if(response !== undefined) {
+        returnedValue = response;
+      }
+      return found;
+    }
+  };
+
+  if(methodInvoked) {
+    if(instance === undefined) {
+      module.initialize();
+    }
+    module.invoke(query);
+  }
+  else {
+    if(instance !== undefined) {
+      module.destroy();
+    }
+    module.initialize();
+  }
+  return (returnedValue !== undefined)
+    ? returnedValue
+    : this
+  ;
+};
+
+$.site.settings = {
+
+  name        : 'Site',
+  namespace   : 'site',
+
+  error : {
+    console : 'Console cannot be restored, most likely it was overwritten outside of module',
+    method : 'The method you called is not defined.'
+  },
+
+  debug       : false,
+  verbose     : true,
+  performance : true,
+
+  modules: [
+    'accordion',
+    'api',
+    'checkbox',
+    'dimmer',
+    'dropdown',
+    'form',
+    'modal',
+    'nag',
+    'popup',
+    'rating',
+    'shape',
+    'sidebar',
+    'state',
+    'sticky',
+    'tab',
+    'transition',
+    'video',
+    'visit',
+    'visibility'
+  ],
+
+  siteNamespace   : 'site',
+  namespaceStub   : {
+    cache     : {},
+    config    : {},
+    sections  : {},
+    section   : {},
+    utilities : {}
+  }
+
+};
+
+// allows for selection of elements with data attributes
+$.extend($.expr[ ":" ], {
+  data: ($.expr.createPseudo)
+    ? $.expr.createPseudo(function(dataName) {
+        return function(elem) {
+          return !!$.data(elem, dataName);
+        };
+      })
+    : function(elem, i, match) {
+      // support: jQuery < 1.8
+      return !!$.data(elem, match[ 3 ]);
+    }
+});
+
+
+})( jQuery, window , document );
+/*
+ * # Semantic - Accordion
+ * http://github.com/semantic-org/semantic-ui/
+ *
+ *
+ * Copyright 2014 Contributor
+ * Released under the MIT license
+ * http://opensource.org/licenses/MIT
+ *
+ */
+
+;(function ($, window, document, undefined) {
+
+"use strict";
+
+$.fn.accordion = function(parameters) {
+  var
+    $allModules     = $(this),
+
+    time            = new Date().getTime(),
+    performance     = [],
+
+    query           = arguments[0],
+    methodInvoked   = (typeof query == 'string'),
+    queryArguments  = [].slice.call(arguments, 1),
+
+    requestAnimationFrame = window.requestAnimationFrame
+      || window.mozRequestAnimationFrame
+      || window.webkitRequestAnimationFrame
+      || window.msRequestAnimationFrame
+      || function(callback) { setTimeout(callback, 0); },
+
+    returnedValue
+  ;
+  $allModules
+    .each(function() {
+      var
+        settings        = ( $.isPlainObject(parameters) )
+          ? $.extend(true, {}, $.fn.accordion.settings, parameters)
+          : $.extend({}, $.fn.accordion.settings),
+
+        className       = settings.className,
+        namespace       = settings.namespace,
+        selector        = settings.selector,
+        error           = settings.error,
+
+        eventNamespace  = '.' + namespace,
+        moduleNamespace = 'module-' + namespace,
+        moduleSelector  = $allModules.selector || '',
+
+        $module  = $(this),
+        $title   = $module.find(selector.title),
+        $content = $module.find(selector.content),
+
+        element  = this,
+        instance = $module.data(moduleNamespace),
+        observer,
+        module
+      ;
+
+      module = {
+
+        initialize: function() {
+          module.debug('Initializing accordion with bound events', $module);
+          $module
+            .on('click' + eventNamespace, selector.title, module.event.click)
+          ;
+          module.observeChanges();
+          module.instantiate();
+        },
+
+        instantiate: function() {
+          instance = module;
+          $module
+            .data(moduleNamespace, module)
+          ;
+        },
+
+        destroy: function() {
+          module.debug('Destroying previous accordion for', $module);
+          $module
+            .removeData(moduleNamespace)
+          ;
+          $title
+            .off(eventNamespace)
+          ;
+        },
+
+        refresh: function() {
+          $title   = $module.find(selector.title);
+          $content = $module.find(selector.content);
+        },
+
+        observeChanges: function() {
+          if(MutationObserver !== undefined) {
+            observer = new MutationObserver(function(mutations) {
+              module.debug('DOM tree modified, updating selector cache');
+              module.refresh();
+            });
+            observer.observe(element, {
+              childList : true,
+              subtree   : true
+            });
+            module.debug('Setting up mutation observer', observer);
+          }
+        },
+
+
+        event: {
+          click: function() {
+            $.proxy(module.toggle, this)();
+          }
+        },
+
+        toggle: function(query) {
+          var
+            $activeTitle = (query !== undefined)
+              ? (typeof query === 'number')
+                ? $title.eq(query)
+                : $(query)
+              : $(this),
+            $activeContent = $activeTitle.next($content),
+            contentIsOpen  = $activeContent.is(':visible')
+          ;
+          module.debug('Toggling visibility of content', $activeTitle);
+          if(contentIsOpen) {
+            if(settings.collapsible) {
+              $.proxy(module.close, $activeTitle)();
+            }
+            else {
+              module.debug('Cannot close accordion content collapsing is disabled');
+            }
+          }
+          else {
+            $.proxy(module.open, $activeTitle)();
+          }
+        },
+
+        open: function(query) {
+          var
+            $activeTitle = (query !== undefined)
+              ? (typeof query === 'number')
+                ? $title.eq(query)
+                : $(query)
+              : $(this),
+            $activeContent     = $activeTitle.next($content),
+            currentlyAnimating = $activeContent.is(':animated'),
+            currentlyActive    = $activeContent.hasClass(className.active)
+          ;
+          if(!currentlyAnimating && !currentlyActive) {
+            module.debug('Opening accordion content', $activeTitle);
+            if(settings.exclusive) {
+              $.proxy(module.closeOthers, $activeTitle)();
+            }
+            $activeTitle
+              .addClass(className.active)
+            ;
+            $activeContent
+              .stop()
+              .children()
+                .stop()
+                .animate({
+                  opacity: 1
+                }, settings.duration, module.reset.display)
+                .end()
+              .slideDown(settings.duration, settings.easing, function() {
+                $activeContent
+                  .addClass(className.active)
+                ;
+                $.proxy(module.reset.display, this)();
+                $.proxy(settings.onOpen, this)();
+                $.proxy(settings.onChange, this)();
+              })
+            ;
+          }
+        },
+
+        close: function(query) {
+          var
+            $activeTitle = (query !== undefined)
+              ? (typeof query === 'number')
+                ? $title.eq(query)
+                : $(query)
+              : $(this),
+            $activeContent = $activeTitle.next($content),
+            isActive       = $activeContent.hasClass(className.active)
+          ;
+          if(isActive) {
+            module.debug('Closing accordion content', $activeContent);
+            $activeTitle
+              .removeClass(className.active)
+            ;
+            $activeContent
+              .removeClass(className.active)
+              .show()
+              .stop()
+              .children()
+                .stop()
+                .animate({
+                  opacity: 0
+                }, settings.duration, module.reset.opacity)
+                .end()
+              .slideUp(settings.duration, settings.easing, function() {
+                $.proxy(module.reset.display, this)();
+                $.proxy(settings.onClose, this)();
+                $.proxy(settings.onChange, this)();
+              })
+            ;
+          }
+        },
+
+        closeOthers: function(index) {
+          var
+            $activeTitle = (index !== undefined)
+              ? $title.eq(index)
+              : $(this),
+            $parentTitles    = $activeTitle.parents(selector.content).prev(selector.title),
+            $activeAccordion = $activeTitle.closest(selector.accordion),
+            activeSelector   = selector.title + '.' + className.active + ':visible',
+            activeContent    = selector.content + '.' + className.active + ':visible',
+            $openTitles,
+            $nestedTitles,
+            $openContents
+          ;
+          if(settings.closeNested) {
+            $openTitles   = $activeAccordion.find(activeSelector).not($parentTitles);
+            $openContents = $openTitles.next($content);
+          }
+          else {
+            $openTitles   = $activeAccordion.find(activeSelector).not($parentTitles);
+            $nestedTitles = $activeAccordion.find(activeContent).find(activeSelector).not($parentTitles);
+            $openTitles = $openTitles.not($nestedTitles);
+            $openContents = $openTitles.next($content);
+          }
+          if( ($openTitles.size() > 0) ) {
+            module.debug('Exclusive enabled, closing other content', $openTitles);
+            $openTitles
+              .removeClass(className.active)
+            ;
+            $openContents
+              .stop()
+              .children()
+                .stop()
+                .animate({
+                  opacity: 0
+                }, settings.duration, module.resetOpacity)
+                .end()
+              .slideUp(settings.duration , settings.easing, function() {
+                $(this).removeClass(className.active);
+                $.proxy(module.reset.display, this)();
+              })
+            ;
+          }
+        },
+
+        reset: {
+
+          display: function() {
+            module.verbose('Removing inline display from element', this);
+            $(this).css('display', '');
+            if( $(this).attr('style') === '') {
+              $(this)
+                .attr('style', '')
+                .removeAttr('style')
+              ;
+            }
+          },
+
+          opacity: function() {
+            module.verbose('Removing inline opacity from element', this);
+            $(this).css('opacity', '');
+            if( $(this).attr('style') === '') {
+              $(this)
+                .attr('style', '')
+                .removeAttr('style')
+              ;
+            }
+          },
+
+        },
+
+        setting: function(name, value) {
+          module.debug('Changing setting', name, value);
+          if( $.isPlainObject(name) ) {
+            $.extend(true, settings, name);
+          }
+          else if(value !== undefined) {
+            settings[name] = value;
+          }
+          else {
+            return settings[name];
+          }
+        },
+        internal: function(name, value) {
+          module.debug('Changing internal', name, value);
+          if(value !== undefined) {
+            if( $.isPlainObject(name) ) {
+              $.extend(true, module, name);
+            }
+            else {
+              module[name] = value;
+            }
+          }
+          else {
+            return module[name];
+          }
+        },
+        debug: function() {
+          if(settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.debug = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.debug.apply(console, arguments);
+            }
+          }
+        },
+        verbose: function() {
+          if(settings.verbose && settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.verbose = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.verbose.apply(console, arguments);
+            }
+          }
+        },
+        error: function() {
+          module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
+          module.error.apply(console, arguments);
+        },
+        performance: {
+          log: function(message) {
+            var
+              currentTime,
+              executionTime,
+              previousTime
+            ;
+            if(settings.performance) {
+              currentTime   = new Date().getTime();
+              previousTime  = time || currentTime;
+              executionTime = currentTime - previousTime;
+              time          = currentTime;
+              performance.push({
+                'Name'           : message[0],
+                'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
+                'Execution Time' : executionTime
+              });
+            }
+            clearTimeout(module.performance.timer);
+            module.performance.timer = setTimeout(module.performance.display, 100);
+          },
+          display: function() {
+            var
+              title = settings.name + ':',
+              totalTime = 0
+            ;
+            time = false;
+            clearTimeout(module.performance.timer);
+            $.each(performance, function(index, data) {
+              totalTime += data['Execution Time'];
+            });
+            title += ' ' + totalTime + 'ms';
+            if(moduleSelector) {
+              title += ' \'' + moduleSelector + '\'';
+            }
+            if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
+              console.groupCollapsed(title);
+              if(console.table) {
+                console.table(performance);
+              }
+              else {
+                $.each(performance, function(index, data) {
+                  console.log(data['Name'] + ': ' + data['Execution Time']+'ms');
+                });
+              }
+              console.groupEnd();
+            }
+            performance = [];
+          }
+        },
+        invoke: function(query, passedArguments, context) {
+          var
+            object = instance,
+            maxDepth,
+            found,
+            response
+          ;
+          passedArguments = passedArguments || queryArguments;
+          context         = element         || context;
+          if(typeof query == 'string' && object !== undefined) {
+            query    = query.split(/[\. ]/);
+            maxDepth = query.length - 1;
+            $.each(query, function(depth, value) {
+              var camelCaseValue = (depth != maxDepth)
+                ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
+                : query
+              ;
+              if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
+                object = object[camelCaseValue];
+              }
+              else if( object[camelCaseValue] !== undefined ) {
+                found = object[camelCaseValue];
+                return false;
+              }
+              else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
+                object = object[value];
+              }
+              else if( object[value] !== undefined ) {
+                found = object[value];
+                return false;
+              }
+              else {
+                return false;
+              }
+            });
+          }
+          if ( $.isFunction( found ) ) {
+            response = found.apply(context, passedArguments);
+          }
+          else if(found !== undefined) {
+            response = found;
+          }
+          if($.isArray(returnedValue)) {
+            returnedValue.push(response);
+          }
+          else if(returnedValue !== undefined) {
+            returnedValue = [returnedValue, response];
+          }
+          else if(response !== undefined) {
+            returnedValue = response;
+          }
+          return found;
+        }
+      };
+      if(methodInvoked) {
+        if(instance === undefined) {
+          module.initialize();
+        }
+        module.invoke(query);
+      }
+      else {
+        if(instance !== undefined) {
+          module.destroy();
+        }
+        module.initialize();
+      }
+    })
+  ;
+  return (returnedValue !== undefined)
+    ? returnedValue
+    : this
+  ;
+};
+
+$.fn.accordion.settings = {
+
+  name        : 'Accordion',
+  namespace   : 'accordion',
+
+  debug       : false,
+  verbose     : true,
+  performance : true,
+
+  exclusive   : true,
+  collapsible : true,
+  closeNested : false,
+
+  duration    : 500,
+  easing      : 'easeInOutQuint',
+
+  onOpen      : function(){},
+  onClose     : function(){},
+  onChange    : function(){},
+
+  error: {
+    method    : 'The method you called is not defined'
+  },
+
+  className   : {
+    active : 'active'
+  },
+
+  selector    : {
+    accordion : '.accordion',
+    title     : '.title',
+    content   : '.content'
+  }
+
+};
+
+// Adds easing
+$.extend( $.easing, {
+  easeInOutQuint: function (x, t, b, c, d) {
+    if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
+    return c/2*((t-=2)*t*t*t*t + 2) + b;
+  }
+});
+
+})( jQuery, window , document );
+
+
+/*
+ * # Semantic - Chatroom
+ * http://github.com/semantic-org/semantic-ui/
+ *
+ *
+ * Copyright 2014 Contributor
+ * Released under the MIT license
+ * http://opensource.org/licenses/MIT
+ *
+ */
+
+;(function ($, window, document, undefined) {
+
+"use strict";
 
 $.fn.chatroom = function(parameters) {
   var
@@ -3397,6 +5568,7 @@ $.fn.chatroom = function(parameters) {
     }
   })
 ;
+
   return (returnedValue !== undefined)
     ? returnedValue
     : this
@@ -3406,8 +5578,9 @@ $.fn.chatroom = function(parameters) {
   $.fn.chatroom.settings = {
 
     name            : 'Chat',
-    debug           : false,
     namespace       : 'chat',
+
+    debug           : false,
 
     channel         : 'present-chat',
 
@@ -3582,16 +5755,18 @@ $.fn.chatroom = function(parameters) {
 
 /*
  * # Semantic - Checkbox
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
 
 ;(function ( $, window, document, undefined ) {
+
+"use strict";
 
 $.fn.checkbox = function(parameters) {
   var
@@ -3614,18 +5789,19 @@ $.fn.checkbox = function(parameters) {
 
         className       = settings.className,
         namespace       = settings.namespace,
+        selector        = settings.selector,
         error           = settings.error,
 
         eventNamespace  = '.' + namespace,
         moduleNamespace = 'module-' + namespace,
 
         $module         = $(this),
-        $label          = $(this).next(settings.selector.label).first(),
-        $input          = $(this).find(settings.selector.input),
+        $label          = $(this).next(selector.label).first(),
+        $input          = $(this).find(selector.input),
 
-        selector        = $module.selector || '',
         instance        = $module.data(moduleNamespace),
 
+        observer,
         element         = this,
         module
       ;
@@ -3634,22 +5810,24 @@ $.fn.checkbox = function(parameters) {
 
         initialize: function() {
           module.verbose('Initializing checkbox', settings);
-          if(settings.context && selector !== '') {
-            module.verbose('Adding delegated events');
-            $(element, settings.context)
-              .on(selector, 'click' + eventNamespace, module.toggle)
-              .on(selector + ' + ' + settings.selector.label, 'click' + eventNamespace, module.toggle)
-            ;
+          $module
+            .on('click'   + eventNamespace, module.toggle)
+            .on('keydown' + eventNamespace, selector.input, module.event.keydown)
+          ;
+          if( module.is.checked() ) {
+            module.set.checked();
+            if(settings.fireOnInit) {
+              $.proxy(settings.onChecked, $input.get())();
+            }
           }
           else {
-            $module
-              .on('click' + eventNamespace, module.toggle)
-              .data(moduleNamespace, module)
-            ;
-            $label
-              .on('click' + eventNamespace, module.toggle)
-            ;
+            module.remove.checked();
+            if(settings.fireOnInit) {
+              $.proxy(settings.onUnchecked, $input.get())();
+            }
           }
+          module.observeChanges();
+
           module.instantiate();
         },
 
@@ -3667,61 +5845,164 @@ $.fn.checkbox = function(parameters) {
             .off(eventNamespace)
             .removeData(moduleNamespace)
           ;
+          $input
+            .off(eventNamespace, module.event.keydown)
+          ;
+          $label
+            .off(eventNamespace)
+          ;
+        },
+
+        refresh: function() {
+          $module = $(this);
+          $label  = $(this).next(selector.label).first();
+          $input  = $(this).find(selector.input);
+        },
+
+        observeChanges: function() {
+          if(MutationObserver !== undefined) {
+            observer = new MutationObserver(function(mutations) {
+              module.debug('DOM tree modified, updating selector cache');
+              module.refresh();
+            });
+            observer.observe(element, {
+              childList : true,
+              subtree   : true
+            });
+            module.debug('Setting up mutation observer', observer);
+          }
+        },
+
+        attachEvents: function(selector, event) {
+          var
+            $toggle = $(selector)
+          ;
+          event = $.isFunction(module[event])
+            ? module[event]
+            : module.toggle
+          ;
+          if($toggle.size() > 0) {
+            module.debug('Attaching checkbox events to element', selector, event);
+            $toggle
+              .on('click' + eventNamespace, event)
+            ;
+          }
+          else {
+            module.error(error.notFound);
+          }
+        },
+
+        event: {
+          keydown: function(event) {
+            var
+              key     = event.which,
+              keyCode = {
+                enter  : 13,
+                escape : 27
+              }
+            ;
+            if( key == keyCode.escape) {
+              module.verbose('Escape key pressed blurring field');
+              $module
+                .blur()
+              ;
+            }
+            if(!event.ctrlKey && key == keyCode.enter) {
+              module.verbose('Enter key pressed, toggling checkbox');
+              $.proxy(module.toggle, this)();
+              event.preventDefault();
+            }
+          }
         },
 
         is: {
           radio: function() {
             return $module.hasClass(className.radio);
           },
-          enabled: function() {
+          checked: function() {
             return $input.prop('checked') !== undefined && $input.prop('checked');
           },
-          disabled: function() {
-            return !module.is.enabled();
+          unchecked: function() {
+            return !module.is.checked();
           }
         },
 
         can: {
-          disable: function() {
-            return (typeof settings.required === 'boolean')
-              ? settings.required
+          change: function() {
+            return !( $module.hasClass(className.disabled) || $module.hasClass(className.readOnly) || $input.prop('disabled') );
+          },
+          uncheck: function() {
+            return (typeof settings.uncheckable === 'boolean')
+              ? settings.uncheckable
               : !module.is.radio()
             ;
           }
         },
 
+        set: {
+          checked: function() {
+            $module.addClass(className.checked);
+          }
+        },
+
+        remove: {
+          checked: function() {
+            $module.removeClass(className.checked);
+          }
+        },
+
+        disable: function() {
+          module.debug('Enabling checkbox functionality');
+          $module.addClass(className.disabled);
+          $input.removeProp('disabled');
+          $.proxy(settings.onDisabled, $input.get())();
+        },
+
         enable: function() {
+          module.debug('Disabling checkbox functionality');
+          $module.removeClass(className.disabled);
+          $input.prop('disabled', 'disabled');
+          $.proxy(settings.onEnabled, $input.get())();
+        },
+
+        check: function() {
           module.debug('Enabling checkbox', $input);
           $input
             .prop('checked', true)
             .trigger('change')
           ;
+          module.set.checked();
           $.proxy(settings.onChange, $input.get())();
-          $.proxy(settings.onEnable, $input.get())();
+          $.proxy(settings.onChecked, $input.get())();
         },
 
-        disable: function() {
+        uncheck: function() {
           module.debug('Disabling checkbox');
           $input
             .prop('checked', false)
             .trigger('change')
           ;
+          module.remove.checked();
           $.proxy(settings.onChange, $input.get())();
-          $.proxy(settings.onDisable, $input.get())();
+          $.proxy(settings.onUnchecked, $input.get())();
         },
 
         toggle: function(event) {
+          if( !module.can.change() ) {
+            console.log(module.can.change());
+            module.debug('Checkbox is read-only or disabled, ignoring toggle');
+            return;
+          }
           module.verbose('Determining new checkbox state');
-          if( !$input.prop('disabled') ) {
-            if( module.is.disabled() ) {
-              module.enable();
-            }
-            else if( module.is.enabled() && module.can.disable() ) {
-              module.disable();
-            }
+          if( module.is.unchecked() ) {
+            module.check();
+          }
+          else if( module.is.checked() && module.can.uncheck() ) {
+            module.uncheck();
           }
         },
         setting: function(name, value) {
+          module.debug('Changing setting', name, value);
           if( $.isPlainObject(name) ) {
             $.extend(true, settings, name);
           }
@@ -3782,9 +6063,9 @@ $.fn.checkbox = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -3906,12 +6187,21 @@ $.fn.checkbox.settings = {
   performance : true,
 
   // delegated event context
-  context     : false,
-  required    : 'auto',
+  uncheckable : 'auto',
+  fireOnInit  : true,
 
   onChange    : function(){},
-  onEnable    : function(){},
-  onDisable   : function(){},
+  onChecked   : function(){},
+  onUnchecked : function(){},
+  onEnabled   : function(){},
+  onDisabled  : function(){},
+
+  className   : {
+    checked  : 'checked',
+    disabled : 'disabled',
+    radio    : 'radio',
+    readOnly : 'read-only'
+  },
 
   error     : {
     method   : 'The method you called is not defined.'
@@ -3920,10 +6210,6 @@ $.fn.checkbox.settings = {
   selector : {
     input  : 'input[type=checkbox], input[type=radio]',
     label  : 'label'
-  },
-
-  className : {
-    radio  : 'radio'
   }
 
 };
@@ -3932,10 +6218,10 @@ $.fn.checkbox.settings = {
 
 /*
  * # Semantic - Dimmer
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -4017,13 +6303,12 @@ $.fn.dimmer = function(parameters) {
               .on(clickEvent + eventNamespace, module.toggle)
             ;
           }
-
           if( module.is.page() ) {
             module.debug('Setting as a page dimmer', $dimmable);
             module.set.pageDimmer();
           }
 
-          if(settings.closable) {
+          if(settings.on == 'click' && settings.closable) {
             module.verbose('Adding dimmer close event', $dimmer);
             $dimmer
               .on(clickEvent + eventNamespace, module.event.click)
@@ -4124,13 +6409,13 @@ $.fn.dimmer = function(parameters) {
             ;
             if(settings.on != 'hover' && settings.useCSS && $.fn.transition !== undefined && $dimmer.transition('is supported')) {
               module.verbose('Hiding dimmer with css');
+              module.remove.dimmed();
               $dimmer
                 .transition({
                   animation : settings.transition + ' out',
                   duration  : module.get.duration(),
                   queue     : true,
                   complete  : function() {
-                    module.remove.dimmed();
                     module.remove.active();
                     callback();
                   }
@@ -4139,11 +6424,11 @@ $.fn.dimmer = function(parameters) {
             }
             else {
               module.verbose('Hiding dimmer with javascript');
+              module.remove.dimmed();
               $dimmer
                 .stop()
                 .fadeOut(module.get.duration(), function() {
                   $dimmer.removeAttr('style');
-                  module.remove.dimmed();
                   module.remove.active();
                   callback();
                 })
@@ -4291,6 +6576,7 @@ $.fn.dimmer = function(parameters) {
         },
 
         setting: function(name, value) {
+          module.debug('Changing setting', name, value);
           if( $.isPlainObject(name) ) {
             $.extend(true, settings, name);
           }
@@ -4351,9 +6637,9 @@ $.fn.dimmer = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -4498,7 +6784,7 @@ $.fn.dimmer.settings = {
   },
 
   selector: {
-    dimmable : '.ui.dimmable',
+    dimmable : '.dimmable',
     dimmer   : '.ui.dimmer',
     content  : '.ui.dimmer > .content, .ui.dimmer > .content > .center'
   },
@@ -4511,7 +6797,7 @@ $.fn.dimmer.settings = {
 
   className : {
     active     : 'active',
-    dimmable   : 'ui dimmable',
+    dimmable   : 'dimmable',
     dimmed     : 'dimmed',
     disabled   : 'disabled',
     pageDimmer : 'page',
@@ -4525,18 +6811,21 @@ $.fn.dimmer.settings = {
 })( jQuery, window , document );
 /*
  * # Semantic - Dropdown
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
+
 ;(function ( $, window, document, undefined ) {
 
+"use strict";
+
 $.fn.dropdown = function(parameters) {
-    var
+  var
     $allModules    = $(this),
     $document      = $(document),
 
@@ -4569,15 +6858,22 @@ $.fn.dropdown = function(parameters) {
         moduleNamespace = 'module-' + namespace,
 
         $module         = $(this),
-        $item           = $module.find(selector.item),
         $text           = $module.find(selector.text),
+        $search         = $module.find(selector.search),
         $input          = $module.find(selector.input),
 
+        $combo = ($module.prev().find(selector.text).size() > 0)
+          ? $module.prev().find(selector.text)
+          : $module.prev(),
+
         $menu           = $module.children(selector.menu),
+        $item           = $menu.find(selector.item),
 
-
+        activated       = false,
+        selectionCache  = false,
         element         = this,
         instance        = $module.data(moduleNamespace),
+        observer,
         module
       ;
 
@@ -4585,13 +6881,14 @@ $.fn.dropdown = function(parameters) {
 
         initialize: function() {
           module.debug('Initializing dropdown', settings);
-
+          module.setup.layout();
           module.save.defaults();
           module.set.selected();
 
           if(hasTouch) {
             module.bind.touchEvents();
           }
+          module.observeChanges();
           module.bind.mouseEvents();
           module.bind.keyboardEvents();
           module.instantiate();
@@ -4607,57 +6904,168 @@ $.fn.dropdown = function(parameters) {
 
         destroy: function() {
           module.verbose('Destroying previous dropdown for', $module);
-          $item
-            .off(eventNamespace)
-          ;
           $module
             .off(eventNamespace)
             .removeData(moduleNamespace)
           ;
         },
 
+        observeChanges: function() {
+          if(MutationObserver !== undefined) {
+            observer = new MutationObserver(function(mutations) {
+              module.debug('DOM tree modified, updating selector cache');
+              module.refresh();
+            });
+            observer.observe(element, {
+              childList : true,
+              subtree   : true
+            });
+            module.debug('Setting up mutation observer', observer);
+          }
+        },
+
+        setup: {
+
+          layout: function() {
+            if( $module.is('select') ) {
+              module.setup.select();
+            }
+            if( module.is.search() && !module.is.searchable() ) {
+              $search = $('<input />')
+                .addClass(className.search)
+                .insertBefore($text)
+              ;
+            }
+            if(settings.allowTab) {
+              if( module.is.searchable() ) {
+                module.debug('Searchable dropdown initialized');
+                $search
+                  .val('')
+                  .attr('tabindex', 0)
+                ;
+                $menu
+                  .attr('tabindex', '-1')
+                ;
+              }
+              else {
+                module.debug('Simple selection dropdown initialized');
+                if(!$module.attr('tabindex') ) {
+                  $module
+                    .attr('tabindex', 0)
+                  ;
+                  $menu
+                    .attr('tabindex', '-1')
+                  ;
+                }
+              }
+            }
+          },
+          select: function() {
+            var
+              selectValues = module.get.selectValues()
+            ;
+            module.debug('Dropdown initialized on a select', selectValues);
+            // see if select exists inside a dropdown
+            $input = $module;
+            if($input.parents(selector.dropdown).size() > 0) {
+              module.debug('Creating dropdown menu only from template');
+              $module = $input.closest(selector.dropdown);
+              if($module.find('.' + className.dropdown).size() === 0) {
+                $('<div />')
+                  .addClass(className.menu)
+                  .html( settings.templates.menu( selectValues ))
+                  .appendTo($module)
+                ;
+              }
+            }
+            else {
+              module.debug('Creating entire dropdown from template');
+              $module = $('<div />')
+                .attr('class', $input.attr('class') )
+                .addClass(className.selection)
+                .addClass(className.dropdown)
+                .html( settings.templates.dropdown(selectValues) )
+                .insertBefore($input)
+              ;
+              $input
+                .removeAttr('class')
+                .prependTo($module)
+              ;
+            }
+            module.refresh();
+          }
+        },
+
+        refresh: function() {
+          $text   = $module.find(selector.text);
+          $search = $module.find(selector.search);
+          $input  = $module.find(selector.input);
+          $menu   = $module.children(selector.menu);
+          $item   = $menu.find(selector.item);
+        },
+
         bind: {
           keyboardEvents: function() {
             module.debug('Binding keyboard events');
             $module
-              .on('keydown' + eventNamespace, module.handleKeyboard)
+              .on('keydown' + eventNamespace, module.event.keydown)
             ;
-            $module
-              .on('focus' + eventNamespace, module.show)
-            ;
-          },
-          touchEvents: function() {
-            module.debug('Touch device detected binding touch events');
-            $module
-              .on('touchstart' + eventNamespace, module.event.test.toggle)
-            ;
-            $item
-              .on('touchstart' + eventNamespace, module.event.item.mouseenter)
-              .on('touchstart' + eventNamespace, module.event.item.click)
-            ;
-          },
-          mouseEvents: function() {
-            module.verbose('Mouse detected binding mouse events');
-            if(settings.on == 'click') {
+            if( module.is.searchable() ) {
               $module
-                .on('click' + eventNamespace, module.event.test.toggle)
+                .on(module.get.inputEvent(), selector.search, module.event.input)
               ;
             }
-            else if(settings.on == 'hover') {
+            if( module.is.searchSelection() ) {
               $module
-                .on('mouseenter' + eventNamespace, module.delay.show)
-                .on('mouseleave' + eventNamespace, module.delay.hide)
+                .on('focus' + eventNamespace, selector.search, module.event.searchFocus)
+                .on('blur' + eventNamespace, selector.search, module.event.blur)
               ;
             }
             else {
               $module
-                .on(settings.on + eventNamespace, module.toggle)
+                .on('mousedown', module.event.mousedown)
+                .on('mouseup', module.event.mouseup)
+                .on('focus' + eventNamespace, module.event.focus)
+                .on('blur' + eventNamespace, module.event.blur)
               ;
             }
-            $item
-              .on('mouseenter' + eventNamespace, module.event.item.mouseenter)
-              .on('mouseleave' + eventNamespace, module.event.item.mouseleave)
-              .on('click'      + eventNamespace, module.event.item.click)
+          },
+          touchEvents: function() {
+            module.debug('Touch device detected binding touch events');
+            if( !module.is.searchSelection() ) {
+              $module
+                .on('touchstart' + eventNamespace, module.event.test.toggle)
+              ;
+            }
+            $module
+              .on('touchstart' + eventNamespace, selector.item, module.event.item.mouseenter)
+              .on('touchstart' + eventNamespace, selector.item, module.event.item.click)
+            ;
+          },
+          mouseEvents: function() {
+            module.verbose('Mouse detected binding mouse events');
+            if( !module.is.searchSelection() ) {
+              if(settings.on == 'click') {
+                $module
+                  .on('click' + eventNamespace, module.event.test.toggle)
+                ;
+              }
+              else if(settings.on == 'hover') {
+                $module
+                  .on('mouseenter' + eventNamespace, module.delay.show)
+                  .on('mouseleave' + eventNamespace, module.delay.hide)
+                ;
+              }
+              else {
+                $module
+                  .on(settings.on + eventNamespace, module.toggle)
+                ;
+              }
+            }
+            $module
+              .on('mouseenter' + eventNamespace, selector.item, module.event.item.mouseenter)
+              .on('mouseleave' + eventNamespace, selector.item, module.event.item.mouseleave)
+              .on('click'      + eventNamespace, selector.item, module.event.item.click)
             ;
           },
           intent: function() {
@@ -4689,78 +7097,175 @@ $.fn.dropdown = function(parameters) {
           }
         },
 
-        handleKeyboard: function(event) {
+        filter: function(searchTerm) {
           var
-            $selectedItem = $item.filter('.' + className.selected),
-            pressedKey    = event.which,
-            keys          = {
-              enter     : 13,
-              escape    : 27,
-              upArrow   : 38,
-              downArrow : 40
-            },
-            selectedClass   = className.selected,
-            currentIndex    = $item.index( $selectedItem ),
-            hasSelectedItem = ($selectedItem.size() > 0),
-            resultSize      = $item.size(),
-            newIndex
+            $results       = $(),
+            exactRegExp    = new RegExp('(?:\s|^)' + searchTerm, 'i'),
+            fullTextRegExp = new RegExp(searchTerm, 'i'),
+            $filteredItems
           ;
-          // close shortcuts
-          if(pressedKey == keys.escape) {
-            module.verbose('Escape key pressed, closing dropdown');
-            module.hide();
-          }
-          // result shortcuts
-          if(module.is.visible()) {
-            if(pressedKey == keys.enter && hasSelectedItem) {
-              module.verbose('Enter key pressed, choosing selected item');
-              $.proxy(module.event.item.click, $item.filter('.' + selectedClass) )(event);
-              event.preventDefault();
-              return false;
-            }
-            else if(pressedKey == keys.upArrow) {
-              module.verbose('Up key pressed, changing active item');
-              newIndex = (currentIndex - 1 < 0)
-                ? currentIndex
-                : currentIndex - 1
+          $item
+            .each(function(){
+              var
+                $choice = $(this),
+                text    = ( $choice.data(metadata.text) !== undefined )
+                  ? $choice.data(metadata.text)
+                  : (settings.preserveHTML)
+                    ? $choice.html()
+                    : $choice.text(),
+                value   = ( $choice.data(metadata.value) !== undefined)
+                  ? $choice.data(metadata.value)
+                  : (typeof text === 'string')
+                      ? text.toLowerCase()
+                      : text
               ;
-              $item
-                .removeClass(selectedClass)
-                .eq(newIndex)
-                  .addClass(selectedClass)
-              ;
-              event.preventDefault();
-            }
-            else if(pressedKey == keys.downArrow) {
-              module.verbose('Down key pressed, changing active item');
-              newIndex = (currentIndex + 1 >= resultSize)
-                ? currentIndex
-                : currentIndex + 1
-              ;
-              $item
-                .removeClass(selectedClass)
-                .eq(newIndex)
-                  .addClass(selectedClass)
-              ;
-              event.preventDefault();
-            }
-          }
-          else {
-            if(pressedKey == keys.enter) {
-              module.show();
-            }
-          }
+              if( exactRegExp.test( text ) || exactRegExp.test( value ) ) {
+                $results = $results.add($choice);
+              }
+              else if(settings.fullTextSearch) {
+                if( fullTextRegExp.test( text ) || fullTextRegExp.test( value ) ) {
+                  $results = $results.add($choice);
+                }
+              }
+            })
+          ;
+          $filteredItems = $item.not($results);
+          $item
+            .removeClass(className.filtered)
+            .removeClass(className.selected)
+          ;
+          $filteredItems
+            .addClass(className.filtered)
+          ;
+          $item
+            .not('.' + className.filtered)
+              .eq(0)
+              .addClass(className.selected)
+          ;
         },
 
         event: {
+          // prevents focus from occuring on mousedown
+          mousedown: function() {
+            activated = true;
+          },
+          mouseup: function() {
+            activated = false;
+          },
+          focus: function() {
+            if(!activated) {
+              module.show();
+            }
+          },
+          searchFocus: function() {
+            activated = true;
+            module.show();
+          },
+          blur: function(event) {
+            if(!activated) {
+              module.hide();
+            }
+          },
+          input: function(event) {
+            var
+              query = $search.val()
+            ;
+            $text.addClass(className.filtered);
+            module.filter(query);
+          },
+          keydown: function(event) {
+            var
+              $selectedItem = $item.not(className.filtered).filter('.' + className.selected).eq(0),
+              $visibleItems = $item.not('.' + className.filtered),
+              pressedKey    = event.which,
+              keys          = {
+                enter     : 13,
+                escape    : 27,
+                upArrow   : 38,
+                downArrow : 40
+              },
+              selectedClass   = className.selected,
+              currentIndex    = $visibleItems.index( $selectedItem ),
+              hasSelectedItem = ($selectedItem.size() > 0),
+              $nextItem,
+              newIndex
+            ;
+            // default to activated choice if no selection present
+            if(!hasSelectedItem) {
+              $selectedItem   = $item.filter('.' + className.active).eq(0);
+              hasSelectedItem = ($selectedItem.size() > 0);
+            }
+            // close shortcuts
+            if(pressedKey == keys.escape) {
+              module.verbose('Escape key pressed, closing dropdown');
+              $search.blur();
+              module.hide();
+            }
+            // result shortcuts
+            if(module.is.visible()) {
+              if(pressedKey == keys.enter && hasSelectedItem) {
+                module.verbose('Enter key pressed, choosing selected item');
+                if(module.is.searchable()) {
+                  module.verbose('Removing focus from search input');
+                  $search.blur();
+                }
+                $.proxy(module.event.item.click, $selectedItem)(event);
+                event.preventDefault();
+                return false;
+              }
+              else if(pressedKey == keys.upArrow) {
+                if(!hasSelectedItem) {
+                  $nextItem = $visibleItems.eq(0);
+                }
+                else {
+                  $nextItem = $selectedItem.prevAll(selector.item + ':not(.' + className.filtered + ')').eq(0);
+                }
+                if(currentIndex !== 0) {
+                  module.verbose('Up key pressed, changing active item');
+                  $item
+                    .removeClass(selectedClass)
+                  ;
+                  $nextItem
+                    .addClass(selectedClass)
+                  ;
+                  module.set.scrollPosition($nextItem);
+                }
+                event.preventDefault();
+              }
+              else if(pressedKey == keys.downArrow) {
+                if(!hasSelectedItem) {
+                  $nextItem = $visibleItems.eq(0);
+                }
+                else {
+                  $nextItem = $selectedItem.nextAll(selector.item + ':not(.' + className.filtered + ')').eq(0);
+                }
+                if(currentIndex + 1 < $visibleItems.size() ) {
+                  module.verbose('Down key pressed, changing active item');
+                  $item
+                    .removeClass(selectedClass)
+                  ;
+                  $nextItem
+                    .addClass(selectedClass)
+                  ;
+                  module.set.scrollPosition($nextItem);
+                }
+                event.preventDefault();
+              }
+            }
+            else {
+              if(pressedKey == keys.enter) {
+                module.show();
+              }
+            }
+          },
           test: {
             toggle: function(event) {
-              if( module.determine.intent(event, module.toggle) ) {
+              if( module.determine.eventInMenu(event, module.toggle) ) {
                 event.preventDefault();
               }
             },
             touch: function(event) {
-              module.determine.intent(event, function() {
+              module.determine.eventInMenu(event, function() {
                 if(event.type == 'touchstart') {
                   module.timer = setTimeout(module.hide, settings.delay.touch);
                 }
@@ -4771,7 +7276,7 @@ $.fn.dropdown = function(parameters) {
               event.stopPropagation();
             },
             hide: function(event) {
-              module.determine.intent(event, module.hide);
+              module.determine.eventInModule(event, module.hide);
             }
           },
 
@@ -4779,22 +7284,17 @@ $.fn.dropdown = function(parameters) {
 
             mouseenter: function(event) {
               var
-                $currentMenu = $(this).find(selector.submenu),
+                $currentMenu = $(this).find(selector.menu),
                 $otherMenus  = $(this).siblings(selector.item).children(selector.menu)
               ;
-              if($currentMenu.length > 0  || $otherMenus.length > 0) {
+              if( $currentMenu.size() > 0 ) {
                 clearTimeout(module.itemTimer);
-                  module.itemTimer = setTimeout(function() {
-                  if($otherMenus.length > 0) {
-                    module.animate.hide(false, $otherMenus.filter(':visible'));
-                  }
-                  if($currentMenu.length > 0) {
-                    module.verbose('Showing sub-menu', $currentMenu);
-                    module.animate.show(false, $currentMenu);
-                  }
+                module.itemTimer = setTimeout(function() {
+                  module.animate.hide(false, $otherMenus);
+                  module.verbose('Showing sub-menu', $currentMenu);
+                  module.animate.show(false,  $currentMenu);
                 }, settings.delay.show * 2);
                 event.preventDefault();
-                event.stopPropagation();
               }
             },
 
@@ -4816,18 +7316,22 @@ $.fn.dropdown = function(parameters) {
                 $choice = $(this),
                 text    = ( $choice.data(metadata.text) !== undefined )
                   ? $choice.data(metadata.text)
-                  : $choice.text(),
+                  : (settings.preserveHTML)
+                    ? $choice.html()
+                    : $choice.text(),
                 value   = ( $choice.data(metadata.value) !== undefined)
                   ? $choice.data(metadata.value)
                   : (typeof text === 'string')
                       ? text.toLowerCase()
                       : text,
                 callback = function() {
+                  $search.val('');
                   module.determine.selectAction(text, value);
-                  $.proxy(settings.onChange, element)(value, text);
-                }
+                  $.proxy(settings.onChange, element)(value, text, $choice);
+                },
+                openingSubMenu = ($choice.find(selector.menu).size() > 0)
               ;
-              if( $choice.find(selector.menu).size() === 0 ) {
+              if( !openingSubMenu ) {
                 if(event.type == 'touchstart') {
                   $choice.one('click', callback);
                 }
@@ -4860,8 +7364,19 @@ $.fn.dropdown = function(parameters) {
               module.error(error.action, settings.action);
             }
           },
-          intent: function(event, callback) {
-            module.debug('Determining whether event occurred in dropdown', event.target);
+          eventInModule: function(event, callback) {
+            callback = callback || function(){};
+            if( $(event.target).closest($module).size() === 0 ) {
+              module.verbose('Triggering event', callback);
+              callback();
+              return true;
+            }
+            else {
+              module.verbose('Event occurred in dropdown, canceling callback');
+              return false;
+            }
+          },
+          eventInMenu: function(event, callback) {
             callback = callback || function(){};
             if( $(event.target).closest($menu).size() === 0 ) {
               module.verbose('Triggering event', callback);
@@ -4869,7 +7384,7 @@ $.fn.dropdown = function(parameters) {
               return true;
             }
             else {
-              module.verbose('Event occurred in dropdown, canceling callback');
+              module.verbose('Event occurred in dropdown menu, canceling callback');
               return false;
             }
           }
@@ -4883,6 +7398,16 @@ $.fn.dropdown = function(parameters) {
             module.hide();
           },
 
+          select: function(text, value) {
+            value = (value !== undefined)
+              ? value
+              : text
+            ;
+            module.set.selected(value);
+            module.set.value(value);
+            module.hide();
+          },
+
           activate: function(text, value) {
             value = (value !== undefined)
               ? value
@@ -4893,29 +7418,7 @@ $.fn.dropdown = function(parameters) {
             module.hide();
           },
 
-          /* Deprecated */
-          auto: function(text, value) {
-            value = (value !== undefined)
-              ? value
-              : text
-            ;
-            module.set.selected(value);
-            module.set.value(value);
-            module.hide();
-          },
-
-          /* Deprecated */
-          changeText: function(text, value) {
-            value = (value !== undefined)
-              ? value
-              : text
-            ;
-            module.set.selected(value);
-            module.hide();
-          },
-
-          /* Deprecated */
-          updateForm: function(text, value) {
+          combo: function(text, value) {
             value = (value !== undefined)
               ? value
               : text
@@ -4937,6 +7440,46 @@ $.fn.dropdown = function(parameters) {
               : $module.data(metadata.value)
             ;
           },
+          inputEvent: function() {
+            var
+              input = $search[0]
+            ;
+            if(input) {
+              return (input.oninput !== undefined)
+                ? 'input'
+                : (input.onpropertychange !== undefined)
+                  ? 'propertychange'
+                  : 'keyup'
+              ;
+            }
+            return false;
+          },
+          selectValues: function() {
+            var
+              select = {
+                values : {}
+              }
+            ;
+            $module
+              .find('option')
+                .each(function() {
+                  var
+                    name  = $(this).html(),
+                    value = ( $(this).attr('value') !== undefined )
+                      ? $(this).attr('value')
+                      : name
+                  ;
+                  if(value === '') {
+                    select.placeholder = name;
+                  }
+                  else {
+                    select.values[value] = name;
+                  }
+                })
+            ;
+            module.debug('Retrieved values from select', select);
+            return select;
+          },
           item: function(value, strict) {
             var
               $selectedItem = false
@@ -4947,13 +7490,10 @@ $.fn.dropdown = function(parameters) {
                 ? module.get.value()
                 : module.get.text()
             ;
-            if(strict === undefined && value === '') {
-              module.debug('Ambiguous dropdown value using strict type check', value);
-              strict = true;
-            }
-            else {
-              strict = strict || false;
-            }
+            strict = (value === '' || value === 0)
+              ? true
+              : strict || false
+            ;
             if(value !== undefined) {
               $item
                 .each(function() {
@@ -4961,7 +7501,9 @@ $.fn.dropdown = function(parameters) {
                     $choice       = $(this),
                     optionText    = ( $choice.data(metadata.text) !== undefined )
                       ? $choice.data(metadata.text)
-                      : $choice.text(),
+                      : (settings.preserveHTML)
+                        ? $choice.html()
+                        : $choice.text(),
                     optionValue   = ( $choice.data(metadata.value) !== undefined )
                       ? $choice.data(metadata.value)
                       : (typeof optionText === 'string')
@@ -4969,6 +7511,7 @@ $.fn.dropdown = function(parameters) {
                         : optionText
                   ;
                   if(strict) {
+                    module.debug('Ambiguous dropdown value using strict type check', value);
                     if( optionValue === value ) {
                       $selectedItem = $(this);
                     }
@@ -4978,9 +7521,11 @@ $.fn.dropdown = function(parameters) {
                   }
                   else {
                     if( optionValue == value ) {
+                      module.verbose('Found select item by value', optionValue, value);
                       $selectedItem = $(this);
                     }
                     else if( !$selectedItem && optionText == value ) {
+                      module.verbose('Found select item by text', optionText, value);
                       $selectedItem = $(this);
                     }
                   }
@@ -5032,10 +7577,60 @@ $.fn.dropdown = function(parameters) {
         },
 
         set: {
+          scrollPosition: function($item) {
+            var
+              $item         = $item || module.get.item(),
+              hasActive     = ($item && $item.size() > 0),
+              edgeTolerance = 5,
+              offset,
+              itemHeight,
+              itemOffset,
+              menuOffset,
+              menuScroll,
+              menuHeight,
+              abovePage,
+              belowPage
+            ;
+            if($item && hasActive) {
+              menuHeight = $menu.height();
+              itemHeight = $item.height();
+              menuScroll = $menu.scrollTop();
+              menuOffset = $menu.offset().top;
+              itemOffset = $item.offset().top;
+              offset     = menuScroll - menuOffset + itemOffset;
+              belowPage  = menuScroll + menuHeight < (offset + edgeTolerance);
+              abovePage  = ((offset - edgeTolerance) < menuScroll);
+              if(abovePage || belowPage) {
+                module.debug('Scrolling to active item');
+                $menu
+                  .scrollTop(offset)
+                ;
+              }
+            }
+          },
           text: function(text) {
-            module.debug('Changing text', text, $text);
-            $text.removeClass(className.placeholder);
-            $text.text(text);
+            if(settings.action == 'combo') {
+              module.debug('Changing combo button text', text, $combo);
+              if(settings.preserveHTML) {
+                $combo.html(text);
+              }
+              else {
+                $combo.text(text);
+              }
+            }
+            else if(settings.action !== 'select') {
+              module.debug('Changing text', text, $text);
+              $text
+                .removeClass(className.filtered)
+                .removeClass(className.placeholder)
+              ;
+              if(settings.preserveHTML) {
+                $text.html(text);
+              }
+              else {
+                $text.text(text);
+              }
+            }
           },
           value: function(value) {
             module.debug('Adding selected value to hidden input', value, $input);
@@ -5050,7 +7645,9 @@ $.fn.dropdown = function(parameters) {
             }
           },
           active: function() {
-            $module.addClass(className.active);
+            $module
+              .addClass(className.active)
+            ;
           },
           visible: function() {
             $module.addClass(className.visible);
@@ -5064,13 +7661,17 @@ $.fn.dropdown = function(parameters) {
               module.debug('Setting selected menu item to', $selectedItem);
               selectedText = ($selectedItem.data(metadata.text) !== undefined)
                 ? $selectedItem.data(metadata.text)
-                : $selectedItem.text()
+                : (settings.preserveHTML)
+                  ? $selectedItem.html()
+                  : $selectedItem.text()
               ;
               $item
                 .removeClass(className.active)
+                .removeClass(className.selected)
               ;
               $selectedItem
                 .addClass(className.active)
+                .addClass(className.selected)
               ;
               module.set.text(selectedText);
             }
@@ -5087,6 +7688,15 @@ $.fn.dropdown = function(parameters) {
         },
 
         is: {
+          search: function() {
+            return $module.hasClass(className.search);
+          },
+          searchable: function() {
+            return ($search.size() > 0);
+          },
+          searchSelection: function() {
+            return ( module.is.searchable() && $search.parent().is($module) );
+          },
           selection: function() {
             return $module.hasClass(className.selection);
           },
@@ -5104,8 +7714,8 @@ $.fn.dropdown = function(parameters) {
           },
           hidden: function($subMenu) {
             return ($subMenu)
-              ? $subMenu.is(':not(:visible)')
-              : $menu.is(':not(:visible)')
+              ? $subMenu.is(':hidden')
+              : $menu.is(':hidden')
             ;
           }
         },
@@ -5128,15 +7738,17 @@ $.fn.dropdown = function(parameters) {
             if( module.is.hidden($currentMenu) ) {
               module.verbose('Doing menu show animation', $currentMenu);
               if(settings.transition == 'none') {
-                callback();
+                $.proxy(callback, element)();
               }
               else if($.fn.transition !== undefined && $module.transition('is supported')) {
                 $currentMenu
                   .transition({
                     animation : settings.transition + ' in',
                     duration  : settings.duration,
-                    complete  : callback,
-                    queue     : false
+                    queue     : true,
+                    complete  : function() {
+                      $.proxy(callback, element)();
+                    }
                   })
                 ;
               }
@@ -5154,7 +7766,7 @@ $.fn.dropdown = function(parameters) {
                     .end()
                   .slideDown(100, 'easeOutQuad', function() {
                     $.proxy(module.event.resetStyle, this)();
-                    callback();
+                    $.proxy(callback, element)();
                   })
                 ;
               }
@@ -5164,7 +7776,7 @@ $.fn.dropdown = function(parameters) {
                   .clearQueue()
                   .fadeIn(settings.duration, function() {
                     $.proxy(module.event.resetStyle, this)();
-                    callback();
+                    $.proxy(callback, element)();
                   })
                 ;
               }
@@ -5178,20 +7790,23 @@ $.fn.dropdown = function(parameters) {
               $currentMenu = $subMenu || $menu
             ;
             callback = callback || function(){};
-            if(module.is.visible($currentMenu) ) {
+            if( module.is.visible($currentMenu) ) {
               module.verbose('Doing menu hide animation', $currentMenu);
-              if($.fn.transition !== undefined && $module.transition('is supported')) {
+
+              if(settings.transition == 'none') {
+                $.proxy(callback, element)();
+              }
+              else if($.fn.transition !== undefined && $module.transition('is supported')) {
                 $currentMenu
                   .transition({
                     animation : settings.transition + ' out',
                     duration  : settings.duration,
-                    complete  : callback,
-                    queue     : false
+                    queue     : true,
+                    complete  : function() {
+                      $.proxy(callback, element)();
+                    }
                   })
                 ;
-              }
-              else if(settings.transition == 'none') {
-                callback();
               }
               else if(settings.transition == 'slide down') {
                 $currentMenu
@@ -5207,7 +7822,7 @@ $.fn.dropdown = function(parameters) {
                   .delay(50)
                   .slideUp(100, 'easeOutQuad', function() {
                     $.proxy(module.event.resetStyle, this)();
-                    callback();
+                    $.proxy(callback, element)();
                   })
                 ;
               }
@@ -5217,7 +7832,7 @@ $.fn.dropdown = function(parameters) {
                   .clearQueue()
                   .fadeOut(150, function() {
                     $.proxy(module.event.resetStyle, this)();
-                    callback();
+                    $.proxy(callback, element)();
                   })
                 ;
               }
@@ -5233,6 +7848,7 @@ $.fn.dropdown = function(parameters) {
           if( module.is.hidden() ) {
             module.hideOthers();
             module.set.active();
+            module.set.scrollPosition();
             module.animate.show(function() {
               if( module.can.click() ) {
                 module.bind.intent();
@@ -5250,7 +7866,12 @@ $.fn.dropdown = function(parameters) {
               module.unbind.intent();
             }
             module.remove.active();
-            module.animate.hide(module.remove.visible);
+            module.animate.hide(function() {
+              $item
+                .removeClass(className.filtered)
+              ;
+              module.remove.visible();
+            });
             $.proxy(settings.onHide, element)();
           }
         },
@@ -5288,6 +7909,7 @@ $.fn.dropdown = function(parameters) {
         },
 
         setting: function(name, value) {
+          module.debug('Changing setting', name, value);
           if( $.isPlainObject(name) ) {
             $.extend(true, settings, name);
           }
@@ -5348,9 +7970,9 @@ $.fn.dropdown = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -5465,17 +8087,23 @@ $.fn.dropdown = function(parameters) {
 
 $.fn.dropdown.settings = {
 
-  name        : 'Dropdown',
-  namespace   : 'dropdown',
+  name           : 'Dropdown',
+  namespace      : 'dropdown',
 
-  debug       : false,
-  verbose     : true,
-  performance : true,
+  debug          : false,
+  verbose        : true,
+  performance    : true,
 
-  on          : 'click',
-  action      : 'activate',
+  type           : false,
 
-  delay: {
+  on             : 'click',
+  action         : 'activate',
+
+  allowTab       : true,
+  fullTextSearch : true,
+  preserveHTML   : true,
+
+  delay          : {
     show  : 200,
     hide  : 300,
     touch : 50
@@ -5484,13 +8112,13 @@ $.fn.dropdown.settings = {
   transition : 'slide down',
   duration   : 250,
 
-  onChange : function(value, text){},
-  onShow   : function(){},
-  onHide   : function(){},
+  onChange   : function(value, text){},
+  onShow     : function(){},
+  onHide     : function(){},
 
   error   : {
-    action    : 'You called a dropdown action that was not defined',
-    method    : 'The method you called is not defined.',
+    action     : 'You called a dropdown action that was not defined',
+    method     : 'The method you called is not defined.',
     transition : 'The requested transition was not found'
   },
 
@@ -5502,40 +8130,88 @@ $.fn.dropdown.settings = {
   },
 
   selector : {
-    menu    : '.menu',
-    submenu : '> .menu',
-    item    : '.menu > .item',
-    text    : '> .text',
-    input   : '> input[type="hidden"]'
+    dropdown : '.ui.dropdown',
+    text     : '> .text:not(.icon)',
+    input    : '> input[type="hidden"], > select',
+    search   : '> .search, .menu > .search > input, .menu > input.search',
+    menu     : '.menu',
+    item     : '.item'
   },
 
   className : {
     active      : 'active',
-    placeholder : 'default',
     disabled    : 'disabled',
-    visible     : 'visible',
+    dropdown    : 'ui dropdown',
+    filtered    : 'filtered',
+    menu        : 'menu',
+    placeholder : 'default',
+    search      : 'search',
     selected    : 'selected',
-    selection   : 'selection'
+    selection   : 'selection',
+    visible     : 'visible'
   }
 
+};
+
+$.fn.dropdown.settings.templates = {
+  menu: function(select) {
+    var
+      placeholder = select.placeholder || false,
+      values      = select.values || {},
+      html        = ''
+    ;
+    $.each(select.values, function(value, name) {
+      if(value === name) {
+        html += '<div class="item">' + name + '</div>';
+      }
+      else {
+        html += '<div class="item" data-value="' + value + '">' + name + '</div>';
+      }
+    });
+    return html;
+  },
+  dropdown: function(select) {
+    var
+      placeholder = select.placeholder || false,
+      values      = select.values || {},
+      html        = ''
+    ;
+    html +=  '<i class="dropdown icon"></i>';
+    if(select.placeholder) {
+      html += '<div class="default text">' + placeholder + '</div>';
+    }
+    else {
+      html += '<div class="text"></div>';
+    }
+    html += '<div class="menu">';
+    $.each(select.values, function(value, name) {
+      if(value === name) {
+        html += '<div class="item">' + name + '</div>';
+      }
+      else {
+        html += '<div class="item" data-value="' + value + '">' + name + '</div>';
+      }
+    });
+    html += '</div>';
+    return html;
+  }
 };
 
 // Adds easing
 $.extend( $.easing, {
   easeOutQuad: function (x, t, b, c, d) {
     return -c *(t/=d)*(t-2) + b;
-  }
+  },
 });
 
 
 })( jQuery, window , document );
-
 /*
  * # Semantic - Modal
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -5543,19 +8219,23 @@ $.extend( $.easing, {
 
 ;(function ( $, window, document, undefined ) {
 
+"use strict";
+
 $.fn.modal = function(parameters) {
   var
-    $allModules = $(this),
-    $window     = $(window),
-    $document   = $(document),
-    $body       = $('body'),
+    $allModules    = $(this),
+    $window        = $(window),
+    $document      = $(document),
+    $body          = $('body'),
 
-    time            = new Date().getTime(),
-    performance     = [],
+    moduleSelector = $allModules.selector || '',
 
-    query           = arguments[0],
-    methodInvoked   = (typeof query == 'string'),
-    queryArguments  = [].slice.call(arguments, 1),
+    time           = new Date().getTime(),
+    performance    = [],
+
+    query          = arguments[0],
+    methodInvoked  = (typeof query == 'string'),
+    queryArguments = [].slice.call(arguments, 1),
 
     requestAnimationFrame = window.requestAnimationFrame
       || window.mozRequestAnimationFrame
@@ -5565,7 +8245,6 @@ $.fn.modal = function(parameters) {
 
     returnedValue
   ;
-
 
   $allModules
     .each(function() {
@@ -5581,7 +8260,6 @@ $.fn.modal = function(parameters) {
 
         eventNamespace  = '.' + namespace,
         moduleNamespace = 'module-' + namespace,
-        moduleSelector  = $allModules.selector || '',
 
         $module      = $(this),
         $context     = $(settings.context),
@@ -5597,7 +8275,6 @@ $.fn.modal = function(parameters) {
         instance     = $module.data(moduleNamespace),
         module
       ;
-
       module  = {
 
         initialize: function() {
@@ -5626,7 +8303,8 @@ $.fn.modal = function(parameters) {
             .dimmer('get dimmer')
           ;
 
-          module.refreshSelectors();
+          $otherModals = $module.siblings(selector.modal);
+          $allModals   = $otherModals.add($module);
 
           module.verbose('Attaching close events', $close);
           $close
@@ -5666,11 +8344,6 @@ $.fn.modal = function(parameters) {
           module.set.screenHeight();
           module.set.type();
           module.set.position();
-        },
-
-        refreshSelectors: function() {
-          $otherModals = $module.siblings(selector.modal);
-          $allModals   = $otherModals.add($module);
         },
 
         attachEvents: function(selector, event) {
@@ -5756,7 +8429,7 @@ $.fn.modal = function(parameters) {
         },
 
         toggle: function() {
-          if( module.is.active() ) {
+          if( module.is.active() || module.is.animating() ) {
             module.hide();
           }
           else {
@@ -5773,62 +8446,51 @@ $.fn.modal = function(parameters) {
           module.showModal(callback);
         },
 
-        onlyVisible: function() {
-          module.refreshSelectors();
-          return module.is.active() && $otherModals.filter(':visible').size() === 0;
-        },
-
-        othersVisible: function() {
-          module.refreshSelectors();
-          return $otherModals.filter(':visible').size() > 0;
-        },
-
         showModal: function(callback) {
-          if(module.is.active()) {
-            module.debug('Modal is already visible');
-            return;
-          }
-
           callback = $.isFunction(callback)
             ? callback
             : function(){}
           ;
-
-          module.save.focus();
-          module.add.keyboardShortcuts();
-
-          if(module.cache === undefined) {
+          if( !module.is.active() ) {
             module.cacheSizes();
-          }
-          module.set.position();
-          module.set.screenHeight();
-          module.set.type();
+            module.set.position();
+            module.set.screenHeight();
+            module.set.type();
 
-          if(module.othersVisible()  && !settings.allowMultiple) {
-            module.debug('Other modals visible, queueing show animation');
-            module.hideOthers(module.showModal);
-          }
-          else {
-            $.proxy(settings.onShow, element)();
-
-            var transitionCallback = function() {
-              module.set.active();
-              $.proxy(settings.onVisible, element)();
-              callback();
-            };
-
-            if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported')) {
-              module.debug('Showing modal with css animations');
-              $module
-                .transition(settings.transition + ' in', settings.duration, transitionCallback)
-              ;
+            if( $otherModals.filter(':visible').size() > 0 && !settings.allowMultiple) {
+              module.debug('Other modals visible, queueing show animation');
+              module.hideOthers(module.showModal);
             }
             else {
-              module.debug('Showing modal with javascript');
-              $module
-                .fadeIn(settings.duration, settings.easing, transitionCallback)
-              ;
+              $.proxy(settings.onShow, element)();
+              if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported')) {
+                module.debug('Showing modal with css animations');
+                $module
+                  .transition({
+                    animation : settings.transition + ' in',
+                    duration  : settings.duration,
+                    complete  : function() {
+                      $.proxy(settings.onVisible, element)();
+                      module.set.active();
+                      callback();
+                    }
+                  })
+                ;
+              }
+              else {
+                module.debug('Showing modal with javascript');
+                $module
+                  .fadeIn(settings.duration, settings.easing, function() {
+                    $.proxy(settings.onVisible, element)();
+                    module.set.active();
+                    callback();
+                  })
+                ;
+              }
             }
+          }
+          else {
+            module.debug('Modal is already visible');
           }
         },
 
@@ -5838,7 +8500,7 @@ $.fn.modal = function(parameters) {
             $dimmable.dimmer('show');
           }
           else {
-            module.debug('Dimmer is already visible');
+            module.debug('Dimmer already visible');
           }
         },
 
@@ -5847,16 +8509,15 @@ $.fn.modal = function(parameters) {
             ? callback
             : function(){}
           ;
-          module.refreshSelectors();
-          if(module.onlyVisible()) {
+          if($allModals.filter(':visible').size() <= 1) {
             module.hideDimmer();
           }
           module.hideModal(callback);
         },
 
         hideDimmer: function() {
-          if( !module.is.active() ) {
-            module.debug('Dimmer is already hidden');
+          if( !($dimmable.dimmer('is active') || $dimmable.dimmer('is animating')) ) {
+            module.debug('Dimmer is not visible cannot hide');
             return;
           }
           module.debug('Hiding dimmer');
@@ -5867,9 +8528,6 @@ $.fn.modal = function(parameters) {
           }
           $dimmable.dimmer('hide', function() {
             if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported')) {
-              $module
-                .transition('reset')
-              ;
               module.remove.screenHeight();
             }
             module.remove.active();
@@ -5877,37 +8535,39 @@ $.fn.modal = function(parameters) {
         },
 
         hideModal: function(callback) {
-          if(!module.is.active()) {
-            module.debug('Modal is already hidden');
-            return;
-          }
-
           callback = $.isFunction(callback)
             ? callback
             : function(){}
           ;
-
-          module.restore.focus();
+          if( !(module.is.active() || module.is.animating()) ) {
+            module.debug('Cannot hide modal it is not active');
+            return;
+          }
+          module.debug('Hiding modal');
           module.remove.keyboardShortcuts();
-
           $.proxy(settings.onHide, element)();
-
-          var transitionCallback = function() {
-            module.remove.active();
-            $.proxy(settings.onHidden, element)();
-            callback();
-          };
-
           if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported')) {
-            module.debug('Hiding modal with css animations');
             $module
-              .transition(settings.transition + ' out', settings.duration, transitionCallback)
+              .transition({
+                animation : settings.transition + ' out',
+                duration  : settings.duration,
+                complete  : function() {
+                  $.proxy(settings.onHidden, element)();
+                  module.remove.active();
+                  module.restore.focus();
+                  callback();
+                }
+              })
             ;
           }
           else {
-            module.debug('Hiding modal with javascript');
             $module
-              .fadeOut(settings.duration, settings.easing, transitionCallback)
+              .fadeOut(settings.duration, settings.easing, function() {
+                $.proxy(settings.onHidden, element)();
+                module.remove.active();
+                module.restore.focus();
+                callback();
+              })
             ;
           }
         },
@@ -5917,7 +8577,7 @@ $.fn.modal = function(parameters) {
             ? callback
             : function(){}
           ;
-          if( $module.is(':visible') || module.othersVisible() ) {
+          if( $allModals.is(':visible') ) {
             module.debug('Hiding all visible modals');
             module.hideDimmer();
             $allModals
@@ -5932,7 +8592,7 @@ $.fn.modal = function(parameters) {
             ? callback
             : function(){}
           ;
-          if( module.othersVisible() ) {
+          if( $otherModals.is(':visible') ) {
             module.debug('Hiding other modals');
             $otherModals
               .filter(':visible')
@@ -5988,7 +8648,6 @@ $.fn.modal = function(parameters) {
           }
         },
 
-
         cacheSizes: function() {
           var
             modalHeight = $module.outerHeight()
@@ -6001,10 +8660,9 @@ $.fn.modal = function(parameters) {
                 ? $(window).height()
                 : $dimmable.height()
             };
-            module.debug('Caching modal and container sizes', module.cache);
           }
+          module.debug('Caching modal and container sizes', module.cache);
         },
-
 
         can: {
           fit: function() {
@@ -6015,6 +8673,12 @@ $.fn.modal = function(parameters) {
         is: {
           active: function() {
             return $module.hasClass(className.active);
+          },
+          animating: function() {
+            return $module.transition('is supported')
+              ? $module.transition('is animating')
+              : $module.is(':visible')
+            ;
           },
           modernBrowser: function() {
             // appName for IE11 reports 'Netscape' can no longer use
@@ -6032,21 +8696,26 @@ $.fn.modal = function(parameters) {
             }
           },
           active: function() {
-            $module.addClass(className.active);
-
+            module.add.keyboardShortcuts();
+            module.save.focus();
+            $module
+              .addClass(className.active)
+            ;
             if(settings.closable) {
               $dimmer
                 .off('click' + eventNamespace)
                 .on('click' + eventNamespace, module.event.click)
               ;
             }
-
             if(settings.autofocus) {
-                var $inputs    = $module.find(':input:visible');
-                var $autofocus = $inputs.filter('[autofocus]');
-                var $input     = $autofocus.length ? $autofocus : $inputs;
-
-                $input.first().focus();
+              var
+                $inputs    = $module.find(':input:visible'),
+                $autofocus = $inputs.filter('[autofocus]'),
+                $input     = ($autofocus.size() > 0)
+                  ? $autofocus
+                  : $inputs
+              ;
+              $input.first().focus();
             }
           },
           scrolling: function() {
@@ -6076,7 +8745,7 @@ $.fn.modal = function(parameters) {
             else {
               $module
                 .css({
-                  marginTop : '1em',
+                  marginTop : '',
                   top       : $document.scrollTop()
                 })
               ;
@@ -6146,9 +8815,9 @@ $.fn.modal = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -6269,14 +8938,15 @@ $.fn.modal.settings = {
   verbose       : true,
   performance   : true,
 
-  allowMultiple : true,
+  allowMultiple : false,
   detachable    : true,
   closable      : true,
   autofocus     : true,
+
   context       : 'body',
 
   duration      : 500,
-  easing        : 'easeOutQuad',
+  easing        : 'easeOutExpo',
   offset        : 0,
   transition    : 'scale',
 
@@ -6299,7 +8969,8 @@ $.fn.modal.settings = {
   },
   error : {
     dimmer    : 'UI Dimmer, a required component is not included in this page',
-    method    : 'The method you called is not defined.'
+    method    : 'The method you called is not defined.',
+    notFound  : 'The element you specified could not be found'
   },
   className : {
     active    : 'active',
@@ -6307,21 +8978,15 @@ $.fn.modal.settings = {
   }
 };
 
-// Adds easing
-$.extend( $.easing, {
-  easeOutQuad: function (x, t, b, c, d) {
-    return -c *(t/=d)*(t-2) + b;
-  }
-});
 
 })( jQuery, window , document );
 
 /*
  * # Semantic - Nag
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -6329,23 +8994,27 @@ $.extend( $.easing, {
 
 ;(function ($, window, document, undefined) {
 
+"use strict";
+
 $.fn.nag = function(parameters) {
   var
-    $allModules     = $(this),
-    moduleSelector  = $allModules.selector || '',
+    $allModules    = $(this),
+    moduleSelector = $allModules.selector || '',
 
-    time            = new Date().getTime(),
-    performance     = [],
+    time           = new Date().getTime(),
+    performance    = [],
 
-    query           = arguments[0],
-    methodInvoked   = (typeof query == 'string'),
-    queryArguments  = [].slice.call(arguments, 1),
+    query          = arguments[0],
+    methodInvoked  = (typeof query == 'string'),
+    queryArguments = [].slice.call(arguments, 1),
     returnedValue
   ;
-  $(this)
+  $allModules
     .each(function() {
       var
-        settings        = $.extend(true, {}, $.fn.nag.settings, parameters),
+        settings          = ( $.isPlainObject(parameters) )
+          ? $.extend(true, {}, $.fn.nag.settings, parameters)
+          : $.extend({}, $.fn.nag.settings),
 
         className       = settings.className,
         selector        = settings.selector,
@@ -6358,8 +9027,9 @@ $.fn.nag = function(parameters) {
         $module         = $(this),
 
         $close          = $module.find(selector.close),
-        $context        = $(settings.context),
-
+        $context        = (settings.context)
+          ? $(settings.context)
+          : $('body'),
 
         element         = this,
         instance        = $module.data(moduleNamespace),
@@ -6387,12 +9057,6 @@ $.fn.nag = function(parameters) {
 
         initialize: function() {
           module.verbose('Initializing element');
-          // calculate module offset once
-          moduleOffset  = $module.offset();
-          moduleHeight  = $module.outerHeight();
-          contextWidth  = $context.outerWidth();
-          contextHeight = $context.outerHeight();
-          contextOffset = $context.offset();
 
           $module
             .data(moduleNamespace, module)
@@ -6400,43 +9064,18 @@ $.fn.nag = function(parameters) {
           $close
             .on('click' + eventNamespace, module.dismiss)
           ;
-          // lets avoid javascript if we dont need to reposition
-          if(settings.context == window && settings.position == 'fixed') {
+
+          if(settings.detachable && $module.parent()[0] !== $context[0]) {
             $module
-              .addClass(className.fixed)
+              .detach()
+              .prependTo($context)
             ;
-          }
-          if(settings.sticky) {
-            module.verbose('Adding scroll events');
-            // retrigger on scroll for absolute
-            if(settings.position == 'absolute') {
-              $context
-                .on('scroll' + eventNamespace, module.event.scroll)
-                .on('resize' + eventNamespace, module.event.scroll)
-              ;
-            }
-            // fixed is always relative to window
-            else {
-              $(window)
-                .on('scroll' + eventNamespace, module.event.scroll)
-                .on('resize' + eventNamespace, module.event.scroll)
-              ;
-            }
-            // fire once to position on init
-            $.proxy(module.event.scroll, this)();
           }
 
           if(settings.displayTime > 0) {
             setTimeout(module.hide, settings.displayTime);
           }
-          if(module.should.show()) {
-            if( !$module.is(':visible') ) {
-              module.show();
-            }
-          }
-          else {
-            module.hide();
-          }
+          module.show();
         },
 
         destroy: function() {
@@ -6445,33 +9084,21 @@ $.fn.nag = function(parameters) {
             .removeData(moduleNamespace)
             .off(eventNamespace)
           ;
-          if(settings.sticky) {
-            $context
-              .off(eventNamespace)
-            ;
-          }
-        },
-
-        refresh: function() {
-          module.debug('Refreshing cached calculations');
-          moduleOffset  = $module.offset();
-          moduleHeight  = $module.outerHeight();
-          contextWidth  = $context.outerWidth();
-          contextHeight = $context.outerHeight();
-          contextOffset = $context.offset();
         },
 
         show: function() {
-          module.debug('Showing nag', settings.animation.show);
-          if(settings.animation.show == 'fade') {
-            $module
-              .fadeIn(settings.duration, settings.easing)
-            ;
-          }
-          else {
-            $module
-              .slideDown(settings.duration, settings.easing)
-            ;
+          if( module.should.show() && !$module.is(':visible') ) {
+            module.debug('Showing nag', settings.animation.show);
+            if(settings.animation.show == 'fade') {
+              $module
+                .fadeIn(settings.duration, settings.easing)
+              ;
+            }
+            else {
+              $module
+                .slideDown(settings.duration, settings.easing)
+              ;
+            }
           }
         },
 
@@ -6497,43 +9124,9 @@ $.fn.nag = function(parameters) {
           }
         },
 
-        stick: function() {
-          module.refresh();
-
-          if(settings.position == 'fixed') {
-            var
-              windowScroll = $(window).prop('pageYOffset') || $(window).scrollTop(),
-              fixedOffset = ( $module.hasClass(className.bottom) )
-                ? contextOffset.top + (contextHeight - moduleHeight) - windowScroll
-                : contextOffset.top - windowScroll
-            ;
-            $module
-              .css({
-                position : 'fixed',
-                top      : fixedOffset,
-                left     : contextOffset.left,
-                width    : contextWidth - settings.scrollBarWidth
-              })
-            ;
-          }
-          else {
-            $module
-              .css({
-                top : yPosition
-              })
-            ;
-          }
-        },
-        unStick: function() {
-          $module
-            .css({
-              top : ''
-            })
-          ;
-        },
         dismiss: function(event) {
           if(settings.storageMethod) {
-            module.storage.set(settings.storedKey, settings.storedValue);
+            module.storage.set(settings.key, settings.value);
           }
           module.hide();
           event.stopImmediatePropagation();
@@ -6546,77 +9139,93 @@ $.fn.nag = function(parameters) {
               module.debug('Persistent nag is set, can show nag');
               return true;
             }
-            if(module.storage.get(settings.storedKey) != settings.storedValue) {
-              module.debug('Stored value is not set, can show nag', module.storage.get(settings.storedKey));
+            if( module.storage.get(settings.key) != settings.value.toString() ) {
+              module.debug('Stored value is not set, can show nag', module.storage.get(settings.key));
               return true;
             }
-            module.debug('Stored value is set, cannot show nag', module.storage.get(settings.storedKey));
-            return false;
-          },
-          stick: function() {
-            yOffset   = $context.prop('pageYOffset') || $context.scrollTop();
-            yPosition = ( $module.hasClass(className.bottom) )
-              ? (contextHeight - $module.outerHeight() ) + yOffset
-              : yOffset
-            ;
-            // absolute position calculated when y offset met
-            if(yPosition > moduleOffset.top) {
-              return true;
-            }
-            else if(settings.position == 'fixed') {
-              return true;
-            }
+            module.debug('Stored value is set, cannot show nag', module.storage.get(settings.key));
             return false;
           }
+        },
+
+        get: {
+          storageOptions: function() {
+            var
+              options = {}
+            ;
+            if(settings.expires) {
+              options.expires = settings.expires;
+            }
+            if(settings.domain) {
+              options.domain = settings.domain;
+            }
+            if(settings.path) {
+              options.path = settings.path;
+            }
+            return options;
+          }
+        },
+
+        clear: function() {
+          module.storage.remove(settings.key);
         },
 
         storage: {
-
           set: function(key, value) {
-            module.debug('Setting stored value', key, value, settings.storageMethod);
-            if(settings.storageMethod == 'local' && window.store !== undefined) {
-              window.store.set(key, value);
+            var
+              options = module.get.storageOptions()
+            ;
+            if(settings.storageMethod == 'localstorage' && window.localStorage !== undefined) {
+              window.localStorage.setItem(key, value);
+              module.debug('Value stored using local storage', key, value);
             }
-            // store by cookie
             else if($.cookie !== undefined) {
-              $.cookie(key, value);
+              $.cookie(key, value, options);
+              module.debug('Value stored using cookie', key, value, options);
             }
             else {
-              module.error(error.noStorage);
+              module.error(error.noCookieStorage);
+              return;
             }
           },
-          get: function(key) {
-            module.debug('Getting stored value', key, settings.storageMethod);
-            if(settings.storageMethod == 'local' && window.store !== undefined) {
-              return window.store.get(key);
+          get: function(key, value) {
+            var
+              storedValue
+            ;
+            if(settings.storageMethod == 'localstorage' && window.localStorage !== undefined) {
+              storedValue = window.localStorage.getItem(key);
             }
             // get by cookie
             else if($.cookie !== undefined) {
-              return $.cookie(key);
+              storedValue = $.cookie(key);
+            }
+            else {
+              module.error(error.noCookieStorage);
+            }
+            if(storedValue == 'undefined' || storedValue == 'null' || storedValue === undefined || storedValue === null) {
+              storedValue = undefined;
+            }
+            return storedValue;
+          },
+          remove: function(key) {
+            var
+              options = module.get.storageOptions()
+            ;
+            if(settings.storageMethod == 'local' && window.store !== undefined) {
+              window.localStorage.removeItem(key);
+            }
+            // store by cookie
+            else if($.cookie !== undefined) {
+              $.removeCookie(key, options);
             }
             else {
               module.error(error.noStorage);
             }
           }
-
         },
 
-        event: {
-          scroll: function() {
-            if(timer !== undefined) {
-              clearTimeout(timer);
-            }
-            timer = setTimeout(function() {
-              if(module.should.stick() ) {
-                requestAnimationFrame(module.stick);
-              }
-              else {
-                module.unStick();
-              }
-            }, settings.lag);
-          }
-        },
         setting: function(name, value) {
+          module.debug('Changing setting', name, value);
           if( $.isPlainObject(name) ) {
             $.extend(true, settings, name);
           }
@@ -6628,14 +9237,11 @@ $.fn.nag = function(parameters) {
           }
         },
         internal: function(name, value) {
-          module.debug('Changing internal', name, value);
-          if(value !== undefined) {
-            if( $.isPlainObject(name) ) {
-              $.extend(true, module, name);
-            }
-            else {
-              module[name] = value;
-            }
+          if( $.isPlainObject(name) ) {
+            $.extend(true, module, name);
+          }
+          else if(value !== undefined) {
+            module[name] = value;
           }
           else {
             return module[name];
@@ -6680,9 +9286,9 @@ $.fn.nag = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -6702,9 +9308,6 @@ $.fn.nag = function(parameters) {
             title += ' ' + totalTime + 'ms';
             if(moduleSelector) {
               title += ' \'' + moduleSelector + '\'';
-            }
-            if($allModules.size() > 1) {
-              title += ' ' + '(' + $allModules.size() + ')';
             }
             if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
               console.groupCollapsed(title);
@@ -6753,6 +9356,7 @@ $.fn.nag = function(parameters) {
                 return false;
               }
               else {
+                module.error(error.method, query);
                 return false;
               }
             });
@@ -6775,6 +9379,7 @@ $.fn.nag = function(parameters) {
           return found;
         }
       };
+
       if(methodInvoked) {
         if(instance === undefined) {
           module.initialize();
@@ -6787,9 +9392,9 @@ $.fn.nag = function(parameters) {
         }
         module.initialize();
       }
-
     })
   ;
+
   return (returnedValue !== undefined)
     ? returnedValue
     : this
@@ -6809,46 +9414,40 @@ $.fn.nag.settings = {
   // allows cookie to be overriden
   persist     : false,
 
-  // set to zero to manually dismiss, otherwise hides on its own
+  // set to zero to require manually dismissal, otherwise hides on its own
   displayTime : 0,
 
   animation   : {
-    show: 'slide',
-    hide: 'slide'
+    show : 'slide',
+    hide : 'slide'
   },
 
-  // method of stickyness
-  position       : 'fixed',
-  scrollBarWidth : 18,
+  context       : false,
+  detachable    : false,
+
+  expires       : 30,
+  domain        : false,
+  path          : '/',
 
   // type of storage to use
-  storageMethod  : 'cookie',
+  storageMethod : 'cookie',
 
   // value to store in dismissed localstorage/cookie
-  storedKey      : 'nag',
-  storedValue    : 'dismiss',
-
-  // need to calculate stickyness on scroll
-  sticky         : false,
-
-  // how often to check scroll event
-  lag            : 0,
-
-  // context for scroll event
-  context        : window,
+  key           : 'nag',
+  value         : 'dismiss',
 
   error: {
-    noStorage  : 'Neither $.cookie or store is defined. A storage solution is required for storing state',
+    noStorage : 'Neither $.cookie or store is defined. A storage solution is required for storing state',
     method    : 'The method you called is not defined.'
   },
 
   className     : {
-    bottom      : 'bottom',
-    fixed       : 'fixed'
+    bottom : 'bottom',
+    fixed  : 'fixed'
   },
 
   selector      : {
-    close: '.icon.close'
+    close : '.close.icon'
   },
 
   speed         : 500,
@@ -6860,12 +9459,14 @@ $.fn.nag.settings = {
 
 })( jQuery, window , document );
 
+/*! jquery.cookie v1.4.1 | MIT */
+!function(a){"function"==typeof define&&define.amd?define(["jquery"],a):"object"==typeof exports?a(require("jquery")):a(jQuery)}(function(a){function b(a){return h.raw?a:encodeURIComponent(a)}function c(a){return h.raw?a:decodeURIComponent(a)}function d(a){return b(h.json?JSON.stringify(a):String(a))}function e(a){0===a.indexOf('"')&&(a=a.slice(1,-1).replace(/\\"/g,'"').replace(/\\\\/g,"\\"));try{return a=decodeURIComponent(a.replace(g," ")),h.json?JSON.parse(a):a}catch(b){}}function f(b,c){var d=h.raw?b:e(b);return a.isFunction(c)?c(d):d}var g=/\+/g,h=a.cookie=function(e,g,i){if(void 0!==g&&!a.isFunction(g)){if(i=a.extend({},h.defaults,i),"number"==typeof i.expires){var j=i.expires,k=i.expires=new Date;k.setTime(+k+864e5*j)}return document.cookie=[b(e),"=",d(g),i.expires?"; expires="+i.expires.toUTCString():"",i.path?"; path="+i.path:"",i.domain?"; domain="+i.domain:"",i.secure?"; secure":""].join("")}for(var l=e?void 0:{},m=document.cookie?document.cookie.split("; "):[],n=0,o=m.length;o>n;n++){var p=m[n].split("="),q=c(p.shift()),r=p.join("=");if(e&&e===q){l=f(r,g);break}e||void 0===(r=f(r))||(l[q]=r)}return l};h.defaults={},a.removeCookie=function(b,c){return void 0===a.cookie(b)?!1:(a.cookie(b,"",a.extend({},c,{expires:-1})),!a.cookie(b))}});
 /*
  * # Semantic - Popup
  * http://github.com/jlukic/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -6873,19 +9474,22 @@ $.fn.nag.settings = {
 
 ;(function ($, window, document, undefined) {
 
+"use strict";
+
 $.fn.popup = function(parameters) {
   var
-    $allModules     = $(this),
-    $document       = $(document),
+    $allModules    = $(this),
+    $document      = $(document),
 
-    moduleSelector  = $allModules.selector || '',
+    moduleSelector = $allModules.selector || '',
 
-    time            = new Date().getTime(),
-    performance     = [],
+    hasTouch       = ('ontouchstart' in document.documentElement),
+    time           = new Date().getTime(),
+    performance    = [],
 
-    query           = arguments[0],
-    methodInvoked   = (typeof query == 'string'),
-    queryArguments  = [].slice.call(arguments, 1),
+    query          = arguments[0],
+    methodInvoked  = (typeof query == 'string'),
+    queryArguments = [].slice.call(arguments, 1),
 
     returnedValue
   ;
@@ -6912,13 +9516,9 @@ $.fn.popup = function(parameters) {
           : $module,
 
         $window         = $(window),
-
-        $offsetParent   = (settings.inline)
-          ? $target.offsetParent()
-          : $window,
-        $popup          = (settings.inline)
-          ? $target.next(settings.selector.popup)
-          : $window.children(settings.selector.popup).last(),
+        $body           = $('body'),
+        $popup,
+        $offsetParent,
 
         searchDepth     = 0,
 
@@ -6932,12 +9532,13 @@ $.fn.popup = function(parameters) {
         // binds events
         initialize: function() {
           module.debug('Initializing module', $module);
+          module.refresh();
           if(settings.on == 'click') {
             $module
-              .on('click', module.toggle)
+              .on('click' + eventNamespace, module.toggle)
             ;
           }
-          else {
+          else if( module.get.startEvent() ) {
             $module
               .on(module.get.startEvent() + eventNamespace, module.event.start)
               .on(module.get.endEvent() + eventNamespace, module.event.end)
@@ -6949,6 +9550,12 @@ $.fn.popup = function(parameters) {
           $window
             .on('resize' + eventNamespace, module.event.resize)
           ;
+          if( !module.exists() ) {
+            module.create();
+          }
+          else if(settings.hoverable) {
+            module.bind.popup();
+          }
           module.instantiate();
         },
 
@@ -6961,23 +9568,25 @@ $.fn.popup = function(parameters) {
         },
 
         refresh: function() {
-          if(settings.inline) {
-            $popup = $target.next(selector.popup);
-            $offsetParent = $target.offsetParent();
-          }
-          else {
-            $popup = $window.children(selector.popup).last();
-          }
+          $popup = (settings.popup)
+            ? $(settings.popup)
+            : (settings.inline)
+              ? $target.next(settings.selector.popup)
+              : false
+          ;
+          $offsetParent   = (settings.popup)
+            ? $popup.offsetParent()
+            : (settings.inline)
+              ? $target.offsetParent()
+              : $body
+          ;
         },
 
         destroy: function() {
           module.debug('Destroying previous module');
-          $window
-            .off(eventNamespace)
-          ;
-          $popup
-            .remove()
-          ;
+          if($popup && !settings.preserve) {
+            module.remove();
+          }
           $module
             .off(eventNamespace)
             .removeData(moduleNamespace)
@@ -6986,17 +9595,30 @@ $.fn.popup = function(parameters) {
 
         event: {
           start:  function(event) {
-            module.timer = setTimeout(function() {
-              if( module.is.hidden() ) {
+            var
+              delay = ($.isPlainObject(settings.delay))
+                ? settings.delay.show
+                : settings.delay
+            ;
+            clearTimeout(module.hideTimer);
+            module.showTimer = setTimeout(function() {
+              if( module.is.hidden() && !( module.is.active() && module.is.dropdown()) ) {
                 module.show();
               }
-            }, settings.delay);
+            }, delay);
           },
           end:  function() {
-            clearTimeout(module.timer);
-            if( module.is.visible() ) {
-              module.hide();
-            }
+            var
+              delay = ($.isPlainObject(settings.delay))
+                ? settings.delay.hide
+                : settings.delay
+            ;
+            clearTimeout(module.showTimer);
+            module.hideTimer = setTimeout(function() {
+              if( module.is.visible() ) {
+                module.hide();
+              }
+            }, delay);
           },
           resize: function() {
             if( module.is.visible() ) {
@@ -7007,7 +9629,6 @@ $.fn.popup = function(parameters) {
 
         // generates popup html from metadata
         create: function() {
-          module.debug('Creating pop-up html');
           var
             html      = $module.data(metadata.html)      || settings.html,
             variation = $module.data(metadata.variation) || settings.variation,
@@ -7015,8 +9636,9 @@ $.fn.popup = function(parameters) {
             content   = $module.data(metadata.content)   || $module.attr('title') || settings.content
           ;
           if(html || content || title) {
+            module.debug('Creating pop-up html');
             if(!html) {
-              html = settings.template({
+              html = settings.templates.popup({
                 title   : title,
                 content : content
               });
@@ -7026,24 +9648,35 @@ $.fn.popup = function(parameters) {
               .addClass(variation)
               .html(html)
             ;
+            if(variation) {
+              $popup
+                .addClass(variation)
+              ;
+            }
             if(settings.inline) {
               module.verbose('Inserting popup element inline', $popup);
               $popup
-                .data(moduleNamespace, instance)
                 .insertAfter($module)
               ;
             }
             else {
               module.verbose('Appending popup element to body', $popup);
               $popup
-                .data(moduleNamespace, instance)
                 .appendTo( $context )
               ;
             }
+            if(settings.hoverable && module.cache === undefined ) {
+              module.bind.popup();
+            }
             $.proxy(settings.onCreate, $popup)();
           }
+          else if($target.next(settings.selector.popup).size() !== 0) {
+            module.verbose('Pre-existing popup found, reverting to inline');
+            settings.inline = true;
+            module.refresh();
+          }
           else {
-            module.error(error.content);
+            module.debug('No content specified skipping display', element);
           }
         },
 
@@ -7065,15 +9698,16 @@ $.fn.popup = function(parameters) {
         show: function(callback) {
           callback = callback || function(){};
           module.debug('Showing pop-up', settings.transition);
-          if(!settings.preserve) {
+          if(!settings.preserve && !settings.popup) {
             module.refresh();
           }
           if( !module.exists() ) {
             module.create();
           }
-          module.save.conditions();
-          module.set.position();
-          module.animate.show(callback);
+          if( $popup && module.set.position() ) {
+            module.save.conditions();
+            module.animate.show(callback);
+          }
         },
 
 
@@ -7082,9 +9716,9 @@ $.fn.popup = function(parameters) {
           $module
             .removeClass(className.visible)
           ;
-          module.restore.conditions();
           module.unbind.close();
           if( module.is.visible() ) {
+            module.restore.conditions();
             module.animate.hide(callback);
           }
         },
@@ -7108,11 +9742,14 @@ $.fn.popup = function(parameters) {
         },
 
         exists: function() {
-          if(settings.inline) {
+          if(!$popup) {
+            return false;
+          }
+          if(settings.inline || settings.popup) {
             return ( $popup.size() !== 0 );
           }
           else {
-            return ( $popup.parent($context).size() );
+            return ( $popup.closest($context).size() );
           }
         },
 
@@ -7121,7 +9758,6 @@ $.fn.popup = function(parameters) {
           $popup
             .remove()
           ;
-          $.proxy(settings.onRemove, $popup)();
         },
 
         save: {
@@ -7152,9 +9788,13 @@ $.fn.popup = function(parameters) {
             ;
             if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported')) {
               $popup
-                .transition(settings.transition + ' in', settings.duration, function() {
-                  module.bind.close();
-                  $.proxy(callback, element)();
+                .transition({
+                  animation : settings.transition + ' in',
+                  duration  : settings.duration,
+                  complete  : function() {
+                    module.bind.close();
+                    $.proxy(callback, element)();
+                  }
                 })
               ;
             }
@@ -7174,9 +9814,13 @@ $.fn.popup = function(parameters) {
             module.debug('Hiding pop-up');
             if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported')) {
               $popup
-                .transition(settings.transition + ' out', settings.duration, function() {
-                  module.reset();
-                  callback();
+                .transition({
+                  animation : settings.transition + ' out',
+                  duration  : settings.duration,
+                  complete  : function() {
+                    module.reset();
+                    callback();
+                  }
                 })
               ;
             }
@@ -7201,6 +9845,7 @@ $.fn.popup = function(parameters) {
             else if(settings.on == 'focus') {
               return 'focus';
             }
+            return false;
           },
           endEvent: function() {
             if(settings.on == 'hover') {
@@ -7209,6 +9854,7 @@ $.fn.popup = function(parameters) {
             else if(settings.on == 'focus') {
               return 'blur';
             }
+            return false;
           },
           offstagePosition: function() {
             var
@@ -7219,22 +9865,22 @@ $.fn.popup = function(parameters) {
                 right  : $(window).width()
               },
               popup     = {
-                width    : $popup.width(),
-                height   : $popup.outerHeight(),
-                position : $popup.offset()
+                width  : $popup.width(),
+                height : $popup.outerHeight(),
+                offset : $popup.offset()
               },
               offstage  = {},
               offstagePositions = []
             ;
-            if(popup.position) {
+            if(popup.offset) {
               offstage = {
-                top    : (popup.position.top < boundary.top),
-                bottom : (popup.position.top + popup.height > boundary.bottom),
-                right  : (popup.position.left + popup.width > boundary.right),
-                left   : (popup.position.left < boundary.left)
+                top    : (popup.offset.top < boundary.top),
+                bottom : (popup.offset.top + popup.height > boundary.bottom),
+                right  : (popup.offset.left + popup.width > boundary.right),
+                left   : (popup.offset.left < boundary.left)
               };
             }
-            module.verbose('Checking if outside viewable area', popup.position);
+            module.verbose('Checking if outside viewable area', popup.offset);
             // return only boundaries that have been surpassed
             $.each(offstage, function(direction, isOffstage) {
               if(isOffstage) {
@@ -7280,21 +9926,30 @@ $.fn.popup = function(parameters) {
         set: {
           position: function(position, arrowOffset) {
             var
-              windowWidth  = $(window).width(),
-              windowHeight = $(window).height(),
+              windowWidth   = $(window).width(),
+              windowHeight  = $(window).height(),
 
-              width        = $target.outerWidth(),
-              height       = $target.outerHeight(),
+              targetWidth   = $target.outerWidth(),
+              targetHeight  = $target.outerHeight(),
 
-              popupWidth   = $popup.width(),
-              popupHeight  = $popup.outerHeight(),
+              popupWidth    = $popup.outerWidth(),
+              popupHeight   = $popup.outerHeight(),
 
-              parentWidth  = $offsetParent.outerWidth(),
-              parentHeight = $offsetParent.outerHeight(),
+              parentWidth   = $offsetParent.outerWidth(),
+              parentHeight  = $offsetParent.outerHeight(),
 
-              distanceAway = settings.distanceAway,
+              distanceAway  = settings.distanceAway,
 
-              offset       = (settings.inline)
+              targetElement = $target[0],
+
+              marginTop = (settings.inline)
+                ? parseInt( window.getComputedStyle(targetElement).getPropertyValue('margin-top'), 10)
+                : 0,
+              marginLeft = (settings.inline)
+                ? parseInt( window.getComputedStyle(targetElement).getPropertyValue('margin-left'), 10)
+                : 0,
+
+              target        = (settings.inline || settings.popup)
                 ? $target.position()
                 : $target.offset(),
 
@@ -7303,83 +9958,91 @@ $.fn.popup = function(parameters) {
             ;
             position    = position    || $module.data(metadata.position)    || settings.position;
             arrowOffset = arrowOffset || $module.data(metadata.offset)      || settings.offset;
-            // adjust for margin when inline
+
             if(settings.inline) {
+              module.debug('Adding targets margin to calculation');
               if(position == 'left center' || position == 'right center') {
-                arrowOffset  += parseInt( window.getComputedStyle(element).getPropertyValue('margin-top'), 10);
-                distanceAway += -parseInt( window.getComputedStyle(element).getPropertyValue('margin-left'), 10);
+                arrowOffset  += marginTop;
+                distanceAway += -marginLeft;
+              }
+              else if (position == 'top left' || position == 'top center' || position == 'top right') {
+                arrowOffset  += marginLeft;
+                distanceAway -= marginTop;
               }
               else {
-                arrowOffset  += parseInt( window.getComputedStyle(element).getPropertyValue('margin-left'), 10);
-                distanceAway += parseInt( window.getComputedStyle(element).getPropertyValue('margin-top'), 10);
+                arrowOffset  += marginLeft;
+                distanceAway += marginTop;
               }
             }
-            module.debug('Calculating offset for position', position);
+            module.debug('Calculating popup positioning', position);
             switch(position) {
               case 'top left':
                 positioning = {
-                  bottom :  parentHeight - offset.top + distanceAway,
-                  right  :  parentWidth - offset.left - arrowOffset,
                   top    : 'auto',
-                  left   : 'auto'
+                  bottom : parentHeight - target.top + distanceAway,
+                  left   : target.left + arrowOffset,
+                  right  : 'auto'
                 };
               break;
               case 'top center':
                 positioning = {
-                  bottom :  parentHeight - offset.top + distanceAway,
-                  left   : offset.left + (width / 2) - (popupWidth / 2) + arrowOffset,
+                  bottom : parentHeight - target.top + distanceAway,
+                  left   : target.left + (targetWidth / 2) - (popupWidth / 2) + arrowOffset,
                   top    : 'auto',
                   right  : 'auto'
                 };
               break;
               case 'top right':
                 positioning = {
+                  bottom :  parentHeight - target.top + distanceAway,
+                  right  :  parentWidth - target.left - targetWidth - arrowOffset,
                   top    : 'auto',
-                  bottom :  parentHeight - offset.top + distanceAway,
-                  left   : offset.left + width + arrowOffset,
-                  right  : 'auto'
+                  left   : 'auto'
                 };
               break;
               case 'left center':
                 positioning = {
-                  top    :  offset.top + (height / 2) - (popupHeight / 2) + arrowOffset,
-                  right  : parentWidth - offset.left + distanceAway,
+                  top    : target.top + (targetHeight / 2) - (popupHeight / 2) + arrowOffset,
+                  right  : parentWidth - target.left + distanceAway,
                   left   : 'auto',
                   bottom : 'auto'
                 };
               break;
               case 'right center':
                 positioning = {
-                  top    :  offset.top + (height / 2) - (popupHeight / 2) + arrowOffset,
-                  left   : offset.left + width + distanceAway,
+                  top    : target.top + (targetHeight / 2) - (popupHeight / 2) + arrowOffset,
+                  left   : target.left + targetWidth + distanceAway,
                   bottom : 'auto',
                   right  : 'auto'
                 };
               break;
               case 'bottom left':
                 positioning = {
-                  top    :  offset.top + height + distanceAway,
-                  right  : parentWidth - offset.left - arrowOffset,
-                  left   : 'auto',
-                  bottom : 'auto'
+                  top    : target.top + targetHeight + distanceAway,
+                  left   : target.left + arrowOffset,
+                  bottom : 'auto',
+                  right  : 'auto'
                 };
               break;
               case 'bottom center':
                 positioning = {
-                  top    :  offset.top + height + distanceAway,
-                  left   : offset.left + (width / 2) - (popupWidth / 2) + arrowOffset,
+                  top    : target.top + targetHeight + distanceAway,
+                  left   : target.left + (targetWidth / 2) - (popupWidth / 2) + arrowOffset,
                   bottom : 'auto',
                   right  : 'auto'
                 };
               break;
               case 'bottom right':
                 positioning = {
-                  top    :  offset.top + height + distanceAway,
-                  left   : offset.left + width + arrowOffset,
-                  bottom : 'auto',
-                  right  : 'auto'
+                  top    : target.top + targetHeight + distanceAway,
+                  right  : parentWidth - target.left  - targetWidth - arrowOffset,
+                  left   : 'auto',
+                  bottom : 'auto'
                 };
               break;
+            }
+            if(positioning === undefined) {
+              module.error(error.invalidPosition);
             }
             // tentatively place on stage
             $popup
@@ -7390,7 +10053,6 @@ $.fn.popup = function(parameters) {
             ;
             // check if is offstage
             offstagePosition = module.get.offstagePosition();
-
             // recursively find new positioning
             if(offstagePosition) {
               module.debug('Element is outside boundaries', offstagePosition);
@@ -7398,7 +10060,10 @@ $.fn.popup = function(parameters) {
                 position = module.get.nextPosition(position);
                 searchDepth++;
                 module.debug('Trying new position', position);
-                return module.set.position(position);
+                return ($popup)
+                  ? module.set.position(position)
+                  : false
+                ;
               }
               else {
                 module.error(error.recursion);
@@ -7419,13 +10084,22 @@ $.fn.popup = function(parameters) {
         },
 
         bind: {
+          popup: function() {
+            if(settings.hoverable) {
+              module.verbose('Allowing hover events on popup to prevent closing');
+              $popup
+                .on('mouseenter', module.event.start)
+                .on('mouseleave', module.event.end)
+              ;
+            }
+          },
           close:function() {
             if(settings.on == 'click' && settings.closable) {
               module.verbose('Binding popup close event to document');
               $document
                 .on('click' + eventNamespace, function(event) {
                   module.verbose('Pop-up clickaway intent detected');
-                  $.proxy(module.hideGracefully, this)(event);
+                  $.proxy(module.hideGracefully, element)(event);
                 })
               ;
             }
@@ -7444,11 +10118,17 @@ $.fn.popup = function(parameters) {
         },
 
         is: {
+          active: function() {
+            return $module.hasClass(className.active);
+          },
           animating: function() {
-            return ( $popup.is(':animated') || $popup.hasClass(className.animating) );
+            return ( $popup && $popup.is(':animated') || $popup.hasClass(className.animating) );
           },
           visible: function() {
-            return $popup.is(':visible');
+            return $popup && $popup.is(':visible');
+          },
+          dropdown: function() {
+            return $module.hasClass(className.dropdown);
           },
           hidden: function() {
             return !module.is.visible();
@@ -7457,10 +10137,16 @@ $.fn.popup = function(parameters) {
 
         reset: function() {
           $popup
-            .attr('style', '')
-            .removeAttr('style')
+            .removeClass(className.visible)
           ;
-          if(!settings.preserve) {
+          if(settings.preserve || settings.popup) {
+            if($.fn.transition !== undefined) {
+              $popup
+                .transition('remove transition')
+              ;
+            }
+          }
+          else {
             module.remove();
           }
         },
@@ -7526,9 +10212,9 @@ $.fn.popup = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -7643,9 +10329,10 @@ $.fn.popup = function(parameters) {
 $.fn.popup.settings = {
 
   name           : 'Popup',
+
   debug          : false,
-  verbose        : true,
-  performance    : true,
+  verbose        : false,
+  performance    : false,
   namespace      : 'popup',
 
   onCreate       : function(){},
@@ -7659,17 +10346,23 @@ $.fn.popup.settings = {
   title          : false,
 
   on             : 'hover',
-  target         : false,
   closable       : true,
 
   context        : 'body',
-  position       : 'top center',
-  delay          : 150,
-  inline         : false,
-  preserve       : false,
+  position       : 'top left',
+  delay          : {
+    show : 50,
+    hide : 0
+  },
 
-  duration       : 250,
-  easing         : 'easeOutQuad',
+  target         : false,
+  popup          : false,
+  inline         : false,
+  preserve       : true,
+  hoverable      : false,
+
+  duration       : 200,
+  easing         : 'easeOutQuint',
   transition     : 'scale',
 
   distanceAway   : 0,
@@ -7677,9 +10370,9 @@ $.fn.popup.settings = {
   maxSearchDepth : 10,
 
   error: {
-    content   : 'Your popup has no content specified',
-    method    : 'The method you called is not defined.',
-    recursion : 'Popup attempted to reposition element to fit, but could not find an adequate position.'
+    invalidPosition : 'The position you specified is not a valid position',
+    method          : 'The method you called is not defined.',
+    recursion       : 'Popup attempted to reposition element to fit, but could not find an adequate position.'
   },
 
   metadata: {
@@ -7692,28 +10385,58 @@ $.fn.popup.settings = {
   },
 
   className   : {
-    animating   : 'animating',
-    loading     : 'loading',
-    popup       : 'ui popup',
-    position    : 'top left center bottom right',
-    visible     : 'visible'
+    active    : 'active',
+    animating : 'animating',
+    dropdown  : 'dropdown',
+    loading   : 'loading',
+    popup     : 'ui popup',
+    position  : 'top left center bottom right',
+    visible   : 'visible'
   },
 
   selector    : {
     popup    : '.ui.popup'
   },
 
-  template: function(text) {
-    var html = '';
-    if(typeof text !== undefined) {
-      if(typeof text.title !== undefined && text.title) {
-        html += '<div class="header">' + text.title + '</div>';
+  templates: {
+    escape: function(string) {
+      var
+        badChars     = /[&<>"'`]/g,
+        shouldEscape = /[&<>"'`]/,
+        escape       = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#x27;",
+          "`": "&#x60;"
+        },
+        escapedChar  = function(chr) {
+          return escape[chr];
+        }
+      ;
+      if(shouldEscape.test(string)) {
+        return string.replace(badChars, escapedChar);
       }
-      if(typeof text.content !== undefined && text.content) {
-        html += '<div class="content">' + text.content + '</div>';
+      return string;
+    },
+    popup: function(text) {
+      var
+        html   = '',
+        escape = $.fn.popup.settings.templates.escape
+      ;
+      if(typeof text !== undefined) {
+        if(typeof text.title !== undefined && text.title) {
+          text.title = escape(text.title);
+          html += '<div class="header">' + text.title + '</div>';
+        }
+        if(typeof text.content !== undefined && text.content) {
+          text.content = escape(text.content);
+          html += '<div class="content">' + text.content + '</div>';
+        }
       }
+      return html;
     }
-    return html;
   }
 
 };
@@ -7729,81 +10452,73 @@ $.extend( $.easing, {
 })( jQuery, window , document );
 
 /*
- * # Semantic - Rating
- * http://github.com/jlukic/semantic-ui/
+ * # Semantic - Progress
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
 
-;(function ($, window, document, undefined) {
+;(function ( $, window, document, undefined ) {
 
-$.fn.rating = function(parameters) {
+"use strict";
+
+$.fn.progress = function(parameters) {
   var
-    $allModules     = $(this),
-    moduleSelector  = $allModules.selector || '',
+    $allModules    = $(this),
 
-    time            = new Date().getTime(),
-    performance     = [],
+    moduleSelector = $allModules.selector || '',
 
-    query           = arguments[0],
-    methodInvoked   = (typeof query == 'string'),
-    queryArguments  = [].slice.call(arguments, 1),
+    hasTouch       = ('ontouchstart' in document.documentElement),
+    time           = new Date().getTime(),
+    performance    = [],
+
+    query          = arguments[0],
+    methodInvoked  = (typeof query == 'string'),
+    queryArguments = [].slice.call(arguments, 1),
     returnedValue
   ;
+
   $allModules
     .each(function() {
       var
-        settings        = ( $.isPlainObject(parameters) )
-          ? $.extend(true, {}, $.fn.rating.settings, parameters)
-          : $.extend({}, $.fn.rating.settings),
+        settings          = ( $.isPlainObject(parameters) )
+          ? $.extend(true, {}, $.fn.progress.settings, parameters)
+          : $.extend({}, $.fn.progress.settings),
 
-        namespace       = settings.namespace,
         className       = settings.className,
         metadata        = settings.metadata,
+        namespace       = settings.namespace,
         selector        = settings.selector,
         error           = settings.error,
 
         eventNamespace  = '.' + namespace,
         moduleNamespace = 'module-' + namespace,
 
-        element         = this,
-        instance        = $(this).data(moduleNamespace),
-
         $module         = $(this),
-        $icon           = $module.find(selector.icon),
+        $bar            = $(this).find(selector.bar),
+        $progress       = $(this).find(selector.progress),
+        $label          = $(this).find(selector.label),
 
+        element         = this,
+        instance        = $module.data(moduleNamespace),
         module
       ;
 
       module = {
 
         initialize: function() {
-          module.verbose('Initializing rating module', settings);
-
-          if(settings.interactive) {
-            module.enable();
-          }
-          else {
-            module.disable();
-          }
-
-          if(settings.initialRating) {
-            module.debug('Setting initial rating');
-            module.setRating(settings.initialRating);
-          }
-          if( $module.data(metadata.rating) ) {
-            module.debug('Rating found in metadata');
-            module.setRating( $module.data(metadata.rating) );
-          }
+          module.debug('Initializing progress', settings);
+          module.read.metadata();
+          module.set.initials();
           module.instantiate();
         },
 
         instantiate: function() {
-          module.verbose('Instantiating module', settings);
+          module.verbose('Storing instance of progress', module);
           instance = module;
           $module
             .data(moduleNamespace, module)
@@ -7811,117 +10526,333 @@ $.fn.rating = function(parameters) {
         },
 
         destroy: function() {
-          module.verbose('Destroying previous instance', instance);
+          module.verbose('Destroying previous dropdown for', $module);
           $module
             .removeData(moduleNamespace)
           ;
-          $icon
-            .off(eventNamespace)
-          ;
+          instance = undefined;
         },
 
-        event: {
-          mouseenter: function() {
+        reset: function() {
+          module.set.percent(0);
+        },
+
+        complete: function() {
+          if(module.percent === undefined || module.percent < 100) {
+            module.set.percent(100);
+          }
+        },
+
+        read: {
+          metadata: function() {
+            if( $module.data(metadata.percent) ) {
+              module.verbose('Current percent value set from metadata');
+              module.percent = $module.data(metadata.percent);
+            }
+            if( $module.data(metadata.total) ) {
+              module.verbose('Total value set from metadata');
+              module.total = $module.data(metadata.total);
+            }
+            if( $module.data(metadata.value) ) {
+              module.verbose('Current value set from metadata');
+              module.value = $module.data(metadata.value);
+            }
+          },
+          currentValue: function() {
+            return (module.value !== undefined)
+              ? module.value
+              : false
+            ;
+          }
+        },
+
+        increment: function(incrementValue) {
+          var
+            total          = module.total || false,
+            edgeValue,
+            startValue,
+            newValue
+          ;
+          if(total) {
+            startValue     = module.value || 0;
+            incrementValue = incrementValue || 1;
+            newValue       = startValue + incrementValue;
+            edgeValue      = module.total;
+            module.debug('Incrementing value by', incrementValue, startValue, edgeValue);
+            if(newValue > edgeValue ) {
+              module.debug('Value cannot increment above total', edgeValue);
+              newValue = edgeValue;
+            }
+            module.set.progress(newValue);
+          }
+          else {
+            startValue     = module.percent || 0;
+            incrementValue = incrementValue || module.get.randomValue();
+            newValue       = startValue + incrementValue;
+            edgeValue      = 100;
+            module.debug('Incrementing percentage by', incrementValue, startValue);
+            if(newValue > edgeValue ) {
+              module.debug('Value cannot increment above 100 percent');
+              newValue = edgeValue;
+            }
+            module.set.progress(newValue);
+          }
+        },
+        decrement: function(decrementValue) {
+          var
+            total     = module.total || false,
+            edgeValue = 0,
+            startValue,
+            newValue
+          ;
+          if(total) {
+            startValue     =  module.value   || 0;
+            decrementValue =  decrementValue || 1;
+            newValue       =  startValue - decrementValue;
+            module.debug('Decrementing value by', decrementValue, startValue);
+          }
+          else {
+            startValue     =  module.percent || 0;
+            decrementValue =  decrementValue || module.get.randomValue();
+            newValue       =  startValue - decrementValue;
+            module.debug('Decrementing percentage by', decrementValue, startValue);
+          }
+
+          if(newValue < edgeValue) {
+            module.debug('Value cannot decrement below 0');
+            newValue = 0;
+          }
+          module.set.progress(newValue);
+        },
+
+        get: {
+          text: function(templateText) {
             var
-              $activeIcon = $(this)
+              value   = module.value || 0,
+              total   = module.total || 0,
+              percent = module.percent || 0
             ;
-            $activeIcon
-              .nextAll()
-                .removeClass(className.hover)
+            templateText = templateText || '';
+            templateText = templateText
+              .replace('{value}', value)
+              .replace('{total}', total)
+              .replace('{percent}', percent)
             ;
-            $module
-              .addClass(className.hover)
-            ;
-            $activeIcon
-              .addClass(className.hover)
-                .prevAll()
-                .addClass(className.hover)
+            module.debug('Adding variables to progress bar text', templateText);
+            return templateText;
+          },
+          randomValue: function() {
+            module.debug('Generating random increment percentage');
+            return Math.floor((Math.random() * settings.random.max) + settings.random.min);
+          },
+          percent: function() {
+            return module.percent || 0;
+          },
+          value: function() {
+            return module.value || false;
+          },
+          total: function() {
+            return module.total || false;
+          }
+        },
+
+        is: {
+          success: function() {
+            return $module.hasClass(className.success);
+          },
+          warning: function() {
+            return $module.hasClass(className.warning);
+          },
+          error: function() {
+            return $module.hasClass(className.error);
+          }
+        },
+
+        remove: {
+          active: function() {
+            module.verbose('Removing active state');
+            $module.removeClass(className.active);
+          },
+          success: function() {
+            module.verbose('Removing success state');
+            $module.removeClass(className.success);
+          },
+          warning: function() {
+            module.verbose('Removing warning state');
+            $module.removeClass(className.warning);
+          },
+          error: function() {
+            module.verbose('Removing error state');
+            $module.removeClass(className.error);
+          }
+        },
+
+        set: {
+          barWidth: function(value) {
+            if(value > 100) {
+              module.error(error.tooHigh, value);
+            }
+            $bar
+              .css('width', value + '%')
             ;
           },
-          mouseleave: function() {
-            $module
-              .removeClass(className.hover)
-            ;
-            $icon
-              .removeClass(className.hover)
-            ;
+          initials: function() {
+            if(settings.value) {
+              module.verbose('Current value set in settings', settings.value);
+              module.value = settings.value;
+            }
+            if(settings.total) {
+              module.verbose('Current total set in settings', settings.total);
+              module.total = settings.total;
+            }
+            if(settings.percent) {
+              module.verbose('Current percent set in settings', settings.percent);
+              module.percent = settings.percent;
+            }
+            if(module.percent) {
+              module.set.percent(module.percent);
+            }
+            else if(module.value) {
+              module.set.progress(module.value);
+            }
           },
-          click: function() {
-            var
-              $activeIcon   = $(this),
-              currentRating = module.getRating(),
-              rating        = $icon.index($activeIcon) + 1
+          percent: function(percent) {
+            percent = (typeof percent == 'string')
+              ? +(percent.replace('%', ''))
+              : percent
             ;
-            if(settings.clearable && currentRating == rating) {
-              module.clearRating();
+            if(percent > 0 && percent < 1) {
+              module.verbose('Module percentage passed as decimal, converting');
+              percent = percent * 100;
+            }
+            // round percentage
+            if(settings.precision === 0) {
+              percent = Math.round(percent);
             }
             else {
-              module.setRating( rating );
+              percent = Math.round(percent * (10 * settings.precision) / (10 * settings.precision) );
+            }
+            module.percent = percent;
+            if(module.total) {
+              module.value = Math.round( (percent / 100) * module.total);
+            }
+            module.set.barWidth(percent);
+            module.set.barLabel();
+            if(percent === 100) {
+              if(settings.autoSuccess && !(module.is.warning() || module.is.error())) {
+                module.set.success();
+                module.debug('Automatically triggering success at 100%');
+              }
+              else {
+                module.remove.active();
+              }
+            }
+            else {
+              module.set.active();
+            }
+            $.proxy(settings.onChange, element)(percent, module.value, module.total);
+          },
+          label: function(text) {
+            text = text || '';
+            if(text) {
+              text = module.get.text(text);
+              module.debug('Setting label to text', text);
+              $label.text(text);
+            }
+          },
+          barLabel: function(text) {
+            if(text !== undefined) {
+              $progress.text( module.get.text(text) );
+            }
+            else if(settings.label == 'ratio' && module.total) {
+              module.debug('Adding ratio to bar label');
+              $progress.text( module.get.text(settings.text.ratio) );
+            }
+            else if(settings.label == 'percent') {
+              module.debug('Adding percentage to bar label');
+              $progress.text( module.get.text(settings.text.percent) );
+            }
+          },
+          active: function(text) {
+            text = text || settings.text.active;
+            module.debug('Setting active state');
+            if(settings.showActivity) {
+              $module.addClass(className.active);
+            }
+            module.remove.warning();
+            module.remove.error();
+            module.remove.success();
+            if(text) {
+              module.set.label(text);
+            }
+          },
+          success : function(text) {
+            text = text || settings.text.success;
+            module.debug('Setting success state');
+            $module.addClass(className.success);
+            module.remove.active();
+            module.remove.warning();
+            module.remove.error();
+            module.complete();
+            if(text) {
+              module.set.label(text);
+            }
+          },
+          warning : function(text) {
+            text = text || settings.text.warning;
+            module.debug('Setting warning state');
+            $module.addClass(className.warning);
+            module.remove.active();
+            module.remove.success();
+            module.remove.error();
+            module.complete();
+            if(text) {
+              module.set.label(text);
+            }
+          },
+          error : function(text) {
+            text = text || settings.text.error;
+            module.debug('Setting error state');
+            $module.addClass(className.error);
+            module.remove.active();
+            module.remove.success();
+            module.remove.warning();
+            module.complete();
+            if(text) {
+              module.set.label(text);
+            }
+          },
+          total: function(totalValue) {
+            module.total = totalValue;
+          },
+          progress: function(value) {
+            var
+              numericValue = (typeof value === 'string')
+                ? (value.replace(/[^\d.]/g, '') !== '')
+                  ? +(value.replace(/[^\d.]/g, ''))
+                  : false
+                : value,
+              percentComplete
+            ;
+            if(!numericValue) {
+              module.error(error.nonNumeric);
+            }
+            if(module.total) {
+              module.value    = numericValue;
+              percentComplete = (numericValue / module.total) * 100;
+              module.debug('Calculating percent complete from total', percentComplete);
+              module.set.percent( percentComplete );
+            }
+            else {
+              percentComplete = numericValue;
+              module.debug('Setting value to exact percentage value', percentComplete);
+              module.set.percent( percentComplete );
             }
           }
-        },
-
-        clearRating: function() {
-          module.debug('Clearing current rating');
-          module.setRating(0);
-        },
-
-        getRating: function() {
-          var
-            currentRating = $icon.filter('.' + className.active).size()
-          ;
-          module.verbose('Current rating retrieved', currentRating);
-          return currentRating;
-        },
-
-        enable: function() {
-          module.debug('Setting rating to interactive mode');
-          $icon
-            .on('mouseenter' + eventNamespace, module.event.mouseenter)
-            .on('mouseleave' + eventNamespace, module.event.mouseleave)
-            .on('click' + eventNamespace, module.event.click)
-          ;
-          $module
-            .removeClass(className.disabled)
-          ;
-        },
-
-        disable: function() {
-          module.debug('Setting rating to read-only mode');
-          $icon
-            .off(eventNamespace)
-          ;
-          $module
-            .addClass(className.disabled)
-          ;
-        },
-
-        setRating: function(rating) {
-          var
-            ratingIndex = (rating - 1 >= 0)
-              ? (rating - 1)
-              : 0,
-            $activeIcon = $icon.eq(ratingIndex)
-          ;
-          $module
-            .removeClass(className.hover)
-          ;
-          $icon
-            .removeClass(className.hover)
-            .removeClass(className.active)
-          ;
-          if(rating > 0) {
-            module.verbose('Setting current rating to', rating);
-            $activeIcon
-              .addClass(className.active)
-                .prevAll()
-                .addClass(className.active)
-            ;
-          }
-          $.proxy(settings.onRate, element)(rating);
         },
 
         setting: function(name, value) {
+          module.debug('Changing setting', name, value);
           if( $.isPlainObject(name) ) {
             $.extend(true, settings, name);
           }
@@ -7982,9 +10913,472 @@ $.fn.rating = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
+                'Execution Time' : executionTime
+              });
+            }
+            clearTimeout(module.performance.timer);
+            module.performance.timer = setTimeout(module.performance.display, 100);
+          },
+          display: function() {
+            var
+              title = settings.name + ':',
+              totalTime = 0
+            ;
+            time = false;
+            clearTimeout(module.performance.timer);
+            $.each(performance, function(index, data) {
+              totalTime += data['Execution Time'];
+            });
+            title += ' ' + totalTime + 'ms';
+            if(moduleSelector) {
+              title += ' \'' + moduleSelector + '\'';
+            }
+            if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
+              console.groupCollapsed(title);
+              if(console.table) {
+                console.table(performance);
+              }
+              else {
+                $.each(performance, function(index, data) {
+                  console.log(data['Name'] + ': ' + data['Execution Time']+'ms');
+                });
+              }
+              console.groupEnd();
+            }
+            performance = [];
+          }
+        },
+        invoke: function(query, passedArguments, context) {
+          var
+            object = instance,
+            maxDepth,
+            found,
+            response
+          ;
+          passedArguments = passedArguments || queryArguments;
+          context         = element         || context;
+          if(typeof query == 'string' && object !== undefined) {
+            query    = query.split(/[\. ]/);
+            maxDepth = query.length - 1;
+            $.each(query, function(depth, value) {
+              var camelCaseValue = (depth != maxDepth)
+                ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
+                : query
+              ;
+              if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
+                object = object[camelCaseValue];
+              }
+              else if( object[camelCaseValue] !== undefined ) {
+                found = object[camelCaseValue];
+                return false;
+              }
+              else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
+                object = object[value];
+              }
+              else if( object[value] !== undefined ) {
+                found = object[value];
+                return false;
+              }
+              else {
+                module.error(error.method, query);
+                return false;
+              }
+            });
+          }
+          if ( $.isFunction( found ) ) {
+            response = found.apply(context, passedArguments);
+          }
+          else if(found !== undefined) {
+            response = found;
+          }
+          if($.isArray(returnedValue)) {
+            returnedValue.push(response);
+          }
+          else if(returnedValue !== undefined) {
+            returnedValue = [returnedValue, response];
+          }
+          else if(response !== undefined) {
+            returnedValue = response;
+          }
+          return found;
+        }
+      };
+
+      if(methodInvoked) {
+        if(instance === undefined) {
+          module.initialize();
+        }
+        module.invoke(query);
+      }
+      else {
+        if(instance !== undefined) {
+          module.destroy();
+        }
+        module.initialize();
+      }
+    })
+  ;
+
+  return (returnedValue !== undefined)
+    ? returnedValue
+    : this
+  ;
+};
+
+$.fn.progress.settings = {
+
+  name        : 'Progress',
+  namespace   : 'progress',
+
+  debug       : false,
+  verbose     : true,
+  performance : true,
+
+  random      : {
+    min : 2,
+    max : 5
+  },
+
+  autoSuccess  : true,
+  showActivity : true,
+
+  label        : 'percent',
+  precision    : 1,
+
+  percent      : false,
+  total        : false,
+  value        : false,
+
+  onChange     : function(percent, value, total){},
+
+  error    : {
+    method     : 'The method you called is not defined.',
+    nonNumeric : 'Progress value is non numeric'
+  },
+
+  regExp: {
+    variable: /\{\$*[A-z0-9]+\}/g
+  },
+
+  metadata: {
+    percent : 'percent',
+    total   : 'total',
+    value   : 'value'
+  },
+
+
+  selector : {
+    bar      : '> .bar',
+    label    : '> .label',
+    progress : '.bar > .progress'
+  },
+
+  text : {
+    active  : false,
+    error   : false,
+    success : false,
+    warning : false,
+    percent : '{percent}%',
+    ratio   : '{value} of {total}'
+  },
+
+  className : {
+    active  : 'active',
+    error   : 'error',
+    success : 'success',
+    warning : 'warning'
+  }
+
+};
+
+
+})( jQuery, window , document );
+/*
+ * # Semantic - Rating
+ * http://github.com/semantic-org/semantic-ui/
+ *
+ *
+ * Copyright 2014 Contributor
+ * Released under the MIT license
+ * http://opensource.org/licenses/MIT
+ *
+ */
+
+;(function ($, window, document, undefined) {
+
+"use strict";
+
+$.fn.rating = function(parameters) {
+  var
+    $allModules     = $(this),
+    moduleSelector  = $allModules.selector || '',
+
+    time            = new Date().getTime(),
+    performance     = [],
+
+    query           = arguments[0],
+    methodInvoked   = (typeof query == 'string'),
+    queryArguments  = [].slice.call(arguments, 1),
+    returnedValue
+  ;
+  $allModules
+    .each(function() {
+      var
+        settings        = ( $.isPlainObject(parameters) )
+          ? $.extend(true, {}, $.fn.rating.settings, parameters)
+          : $.extend({}, $.fn.rating.settings),
+
+        namespace       = settings.namespace,
+        className       = settings.className,
+        metadata        = settings.metadata,
+        selector        = settings.selector,
+        error           = settings.error,
+
+        eventNamespace  = '.' + namespace,
+        moduleNamespace = 'module-' + namespace,
+
+        element         = this,
+        instance        = $(this).data(moduleNamespace),
+
+        $module         = $(this),
+        $icon           = $module.find(selector.icon),
+
+        module
+      ;
+
+      module = {
+
+        initialize: function() {
+          module.verbose('Initializing rating module', settings);
+
+          if($icon.size() === 0) {
+            module.setup.layout();
+          }
+
+          if(settings.interactive) {
+            module.enable();
+          }
+          else {
+            module.disable();
+          }
+          if(settings.initialRating) {
+            module.debug('Setting initial rating');
+            module.setRating(settings.initialRating);
+          }
+          if( $module.data(metadata.rating) ) {
+            module.debug('Rating found in metadata');
+            module.setRating( $module.data(metadata.rating) );
+          }
+          module.instantiate();
+        },
+
+        instantiate: function() {
+          module.verbose('Instantiating module', settings);
+          instance = module;
+          $module
+            .data(moduleNamespace, module)
+          ;
+        },
+
+        destroy: function() {
+          module.verbose('Destroying previous instance', instance);
+          $module
+            .removeData(moduleNamespace)
+          ;
+          $icon
+            .off(eventNamespace)
+          ;
+        },
+
+        refresh: function() {
+          $icon   = $module.find(selector.icon);
+        },
+
+        setup: {
+          layout: function() {
+            var
+              maxRating = $module.data(metadata.maxRating) || settings.maxRating
+            ;
+            module.debug('Generating icon html dynamically');
+            $module
+              .html($.fn.rating.settings.templates.icon(maxRating))
+            ;
+            module.refresh();
+          }
+        },
+
+        event: {
+          mouseenter: function() {
+            var
+              $activeIcon = $(this)
+            ;
+            $activeIcon
+              .nextAll()
+                .removeClass(className.selected)
+            ;
+            $module
+              .addClass(className.selected)
+            ;
+            $activeIcon
+              .addClass(className.selected)
+                .prevAll()
+                .addClass(className.selected)
+            ;
+          },
+          mouseleave: function() {
+            $module
+              .removeClass(className.selected)
+            ;
+            $icon
+              .removeClass(className.selected)
+            ;
+          },
+          click: function() {
+            var
+              $activeIcon   = $(this),
+              currentRating = module.getRating(),
+              rating        = $icon.index($activeIcon) + 1,
+              canClear      = (settings.clearable == 'auto')
+               ? ($icon.size() === 1)
+               : settings.clearable
+            ;
+            if(canClear && currentRating == rating) {
+              module.clearRating();
+            }
+            else {
+              module.setRating( rating );
+            }
+          }
+        },
+
+        clearRating: function() {
+          module.debug('Clearing current rating');
+          module.setRating(0);
+        },
+
+        getRating: function() {
+          var
+            currentRating = $icon.filter('.' + className.active).size()
+          ;
+          module.verbose('Current rating retrieved', currentRating);
+          return currentRating;
+        },
+
+        enable: function() {
+          module.debug('Setting rating to interactive mode');
+          $icon
+            .on('mouseenter' + eventNamespace, module.event.mouseenter)
+            .on('mouseleave' + eventNamespace, module.event.mouseleave)
+            .on('click' + eventNamespace, module.event.click)
+          ;
+          $module
+            .removeClass(className.disabled)
+          ;
+        },
+
+        disable: function() {
+          module.debug('Setting rating to read-only mode');
+          $icon
+            .off(eventNamespace)
+          ;
+          $module
+            .addClass(className.disabled)
+          ;
+        },
+
+        setRating: function(rating) {
+          var
+            ratingIndex = (rating - 1 >= 0)
+              ? (rating - 1)
+              : 0,
+            $activeIcon = $icon.eq(ratingIndex)
+          ;
+          $module
+            .removeClass(className.selected)
+          ;
+          $icon
+            .removeClass(className.selected)
+            .removeClass(className.active)
+          ;
+          if(rating > 0) {
+            module.verbose('Setting current rating to', rating);
+            $activeIcon
+              .prevAll()
+              .andSelf()
+                .addClass(className.active)
+            ;
+          }
+          $.proxy(settings.onRate, element)(rating);
+        },
+
+        setting: function(name, value) {
+          module.debug('Changing setting', name, value);
+          if( $.isPlainObject(name) ) {
+            $.extend(true, settings, name);
+          }
+          else if(value !== undefined) {
+            settings[name] = value;
+          }
+          else {
+            return settings[name];
+          }
+        },
+        internal: function(name, value) {
+          if( $.isPlainObject(name) ) {
+            $.extend(true, module, name);
+          }
+          else if(value !== undefined) {
+            module[name] = value;
+          }
+          else {
+            return module[name];
+          }
+        },
+        debug: function() {
+          if(settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.debug = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.debug.apply(console, arguments);
+            }
+          }
+        },
+        verbose: function() {
+          if(settings.verbose && settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.verbose = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.verbose.apply(console, arguments);
+            }
+          }
+        },
+        error: function() {
+          module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
+          module.error.apply(console, arguments);
+        },
+        performance: {
+          log: function(message) {
+            var
+              currentTime,
+              executionTime,
+              previousTime
+            ;
+            if(settings.performance) {
+              currentTime   = new Date().getTime();
+              previousTime  = time || currentTime;
+              executionTime = currentTime - previousTime;
+              time          = currentTime;
+              performance.push({
+                'Name'           : message[0],
+                'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -8103,33 +11497,51 @@ $.fn.rating.settings = {
   name          : 'Rating',
   namespace     : 'rating',
 
-  verbose       : true,
   debug         : false,
+  verbose       : true,
   performance   : true,
 
   initialRating : 0,
   interactive   : true,
-  clearable     : false,
+  maxRating     : 4,
+  clearable     : 'auto',
 
   onRate        : function(rating){},
 
-  error       : {
-    method : 'The method you called is not defined'
+  error         : {
+    method    : 'The method you called is not defined',
+    noMaximum : 'No maximum rating specified. Cannot generate HTML automatically'
   },
 
+
   metadata: {
-    rating: 'rating'
+    rating    : 'rating',
+    maxRating : 'maxRating'
   },
 
   className : {
     active   : 'active',
     disabled : 'disabled',
-    hover    : 'hover',
+    selected : 'selected',
     loading  : 'loading'
   },
 
   selector  : {
     icon : '.icon'
+  },
+
+  templates: {
+    icon: function(maxRating) {
+      var
+        icon = 1,
+        html = ''
+      ;
+      while(icon <= maxRating) {
+        html += '<i class="icon"></i>';
+        icon++;
+      }
+      return html;
+    }
   }
 
 };
@@ -8138,10 +11550,10 @@ $.fn.rating.settings = {
 
 /*
  * # Semantic - Search
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -8149,7 +11561,9 @@ $.fn.rating.settings = {
 
 ;(function ($, window, document, undefined) {
 
-$.fn.search = function(source, parameters) {
+"use strict";
+
+$.fn.search = function(parameters) {
   var
     $allModules     = $(this),
     moduleSelector  = $allModules.selector || '',
@@ -8193,9 +11607,9 @@ $.fn.search = function(source, parameters) {
           module.verbose('Initializing module');
           var
             prompt = $prompt[0],
-            inputEvent   = (prompt.oninput !== undefined)
+            inputEvent   = (prompt !== undefined && prompt.oninput !== undefined)
               ? 'input'
-              : (prompt.onpropertychange !== undefined)
+              : (prompt !== undefined && prompt.onpropertychange !== undefined)
                 ? 'propertychange'
                 : 'keyup'
           ;
@@ -8230,12 +11644,23 @@ $.fn.search = function(source, parameters) {
           $module
             .removeData(moduleNamespace)
           ;
+          $prompt
+            .off(eventNamespace)
+          ;
+          $searchButton
+            .off(eventNamespace)
+          ;
+          $results
+            .off(eventNamespace)
+          ;
         },
         event: {
           focus: function() {
             $module
               .addClass(className.focus)
             ;
+            clearTimeout(module.timer);
+            module.search.throttle();
             module.results.show();
           },
           blur: function() {
@@ -8243,7 +11668,7 @@ $.fn.search = function(source, parameters) {
             $module
               .removeClass(className.focus)
             ;
-            module.results.hide();
+            module.timer = setTimeout(module.results.hide, settings.hideDelay);
           }
         },
         handleKeyboard: function(event) {
@@ -8276,7 +11701,7 @@ $.fn.search = function(source, parameters) {
             if(keyCode == keys.enter) {
               module.verbose('Enter key pressed, selecting active result');
               if( $result.filter('.' + activeClass).size() > 0 ) {
-                $.proxy(module.results.select, $result.filter('.' + activeClass) )();
+                $.proxy(module.results.select, $result.filter('.' + activeClass) )(event);
                 event.preventDefault();
                 return false;
               }
@@ -8370,11 +11795,21 @@ $.fn.search = function(source, parameters) {
             }
             else {
               module.debug("Querying for '" + searchTerm + "'");
-              if(typeof source == 'object') {
+              if($.isPlainObject(settings.source) || $.isArray(settings.source)) {
                 module.search.local(searchTerm);
               }
-              else {
+              else if(settings.apiSettings) {
                 module.search.remote(searchTerm);
+              }
+              else if($.api !== undefined && $.api.settings.api.search !== undefined) {
+                module.debug('Searching with default search API endpoint');
+                settings.apiSettings = {
+                  action: 'search'
+                };
+                module.search.remote(searchTerm);
+              }
+              else {
+                module.error(error.source);
               }
               $.proxy(settings.onSearchQuery, $module)(searchTerm);
             }
@@ -8386,7 +11821,6 @@ $.fn.search = function(source, parameters) {
               searchFields    = $.isArray(settings.searchFields)
                 ? settings.searchFields
                 : [settings.searchFields],
-
               searchRegExp   = new RegExp('(?:\s|^)' + searchTerm, 'i'),
               fullTextRegExp = new RegExp(searchTerm, 'i'),
               searchHTML
@@ -8396,13 +11830,17 @@ $.fn.search = function(source, parameters) {
             ;
             // iterate through search fields in array order
             $.each(searchFields, function(index, field) {
-              $.each(source, function(label, thing) {
-                if(typeof thing[field] == 'string' && ($.inArray(thing, results) == -1) && ($.inArray(thing, fullTextResults) == -1) ) {
-                  if( searchRegExp.test( thing[field] ) ) {
-                    results.push(thing);
+              $.each(settings.source, function(label, content) {
+                var
+                  fieldExists = (typeof content[field] == 'string'),
+                  notAlreadyResult = ($.inArray(content, results) == -1 && $.inArray(content, fullTextResults) == -1)
+                ;
+                if(fieldExists && notAlreadyResult) {
+                  if( searchRegExp.test( content[field] ) ) {
+                    results.push(content);
                   }
-                  else if( fullTextRegExp.test( thing[field] ) ) {
-                    fullTextResults.push(thing);
+                  else if( fullTextRegExp.test( content[field] ) ) {
+                    fullTextResults.push(content);
                   }
                 }
               });
@@ -8420,9 +11858,10 @@ $.fn.search = function(source, parameters) {
             var
               apiSettings = {
                 stateContext  : $module,
-                url           : source,
-                urlData: { query: searchTerm },
-                success       : function(response) {
+                urlData: {
+                  query: searchTerm
+                },
+                onSuccess : function(response) {
                   searchHTML = module.results.generate(response);
                   module.search.cache.write(searchTerm, searchHTML);
                   module.results.add(searchHTML);
@@ -8472,14 +11911,12 @@ $.fn.search = function(source, parameters) {
               if(settings.maxResults > 0) {
                 response.results = $.makeArray(response.results).slice(0, settings.maxResults);
               }
-              if(response.results.length > 0) {
                 if($.isFunction(template)) {
                   html = template(response);
                 }
                 else {
                   module.error(error.noTemplate, false);
                 }
-              }
             }
             else {
               html = module.message(error.noResults, 'empty');
@@ -8497,19 +11934,37 @@ $.fn.search = function(source, parameters) {
           },
           show: function() {
             if( ($results.filter(':visible').size() === 0) && ($prompt.filter(':focus').size() > 0) && $results.html() !== '') {
-              $results
-                .stop()
-                .fadeIn(200)
-              ;
+              if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported')) {
+                module.debug('Showing results with css animations');
+                $results
+                  .transition(settings.transition + ' in', settings.duration)
+                ;
+              }
+              else {
+                module.debug('Showing results with javascript');
+                $results
+                  .stop()
+                  .fadeIn(settings.duration, settings.easing)
+                ;
+              }
               $.proxy(settings.onResultsOpen, $results)();
             }
           },
           hide: function() {
             if($results.filter(':visible').size() > 0) {
-              $results
-                .stop()
-                .fadeOut(200)
-              ;
+              if(settings.transition && $.fn.transition !== undefined && $module.transition('is supported')) {
+                module.debug('Hiding results with css animations');
+                $results
+                  .transition(settings.transition + ' out', settings.duration)
+                ;
+              }
+              else {
+                module.debug('Hiding results with javascript');
+                $results
+                  .stop()
+                  .fadeIn(settings.duration, settings.easing)
+                ;
+              }
               $.proxy(settings.onResultsClose, $results)();
             }
           },
@@ -8527,9 +11982,6 @@ $.fn.search = function(source, parameters) {
                 target = $link.attr('target') || false
               ;
               module.results.hide();
-              $prompt
-                .val(title)
-              ;
               if(href) {
                 if(target == '_blank' || event.ctrlKey) {
                   window.open(href);
@@ -8540,6 +11992,13 @@ $.fn.search = function(source, parameters) {
               }
             }
           }
+        },
+
+        // displays mesage visibly in search results
+        message: function(text, type) {
+          type = type || 'standard';
+          module.results.add( settings.templates.message(text, type) );
+          return settings.templates.message(text, type);
         },
 
         setting: function(name, value) {
@@ -8603,9 +12062,9 @@ $.fn.search = function(source, parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -8739,8 +12198,11 @@ $.fn.search.settings = {
   onResultsOpen  : function(){},
   onResultsClose : function(){},
 
+  source         : false,
+
   automatic      : 'true',
   type           : 'simple',
+  hideDelay      : 300,
   minCharacters  : 3,
   searchThrottle : 300,
   maxResults     : 7,
@@ -8751,10 +12213,12 @@ $.fn.search.settings = {
     'description'
   ],
 
-  // api config
-  apiSettings: {
+  transition : 'scale',
+  duration   : 300,
+  easing     : 'easeOutExpo',
 
-  },
+  // api config
+  apiSettings: false,
 
   className: {
     active  : 'active',
@@ -8765,6 +12229,7 @@ $.fn.search.settings = {
   },
 
   error : {
+    source      : 'No source or api action specified',
     noResults   : 'Your search returned no results',
     logging     : 'Error in debug logging, exiting.',
     noTemplate  : 'A valid template name was not specified.',
@@ -8781,13 +12246,34 @@ $.fn.search.settings = {
   },
 
   templates: {
+    escape: function(string) {
+      var
+        badChars     = /[&<>"'`]/g,
+        shouldEscape = /[&<>"'`]/,
+        escape       = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#x27;",
+          "`": "&#x60;"
+        },
+        escapedChar  = function(chr) {
+          return escape[chr];
+        }
+      ;
+      if(shouldEscape.test(string)) {
+        return string.replace(badChars, escapedChar);
+      }
+      return string;
+    },
     message: function(message, type) {
       var
         html = ''
       ;
       if(message !== undefined && type !== undefined) {
         html +=  ''
-          + '<div class="message ' + type +'">'
+          + '<div class="message ' + type + '">'
         ;
         // message type
         if(type == 'empty') {
@@ -8805,7 +12291,8 @@ $.fn.search.settings = {
     },
     categories: function(response) {
       var
-        html = ''
+        html = '',
+        escape = $.fn.search.settings.templates.escape
       ;
       if(response.results !== undefined) {
         // each category
@@ -8820,21 +12307,24 @@ $.fn.search.settings = {
               html  += '<div class="result">';
               html  += '<a href="' + result.url + '"></a>';
               if(result.image !== undefined) {
-                html+= ''
+                result.image = escape(result.image);
+                html += ''
                   + '<div class="image">'
-                  + ' <img src="' + result.image + '">'
+                  + ' <img src="' + result.image + '" alt="">'
                   + '</div>'
                 ;
               }
-              html += '<div class="info">';
+              html += '<div class="content">';
               if(result.price !== undefined) {
-                html+= '<div class="price">' + result.price + '</div>';
+                result.price = escape(result.price);
+                html += '<div class="price">' + result.price + '</div>';
               }
               if(result.title !== undefined) {
-                html+= '<div class="title">' + result.title + '</div>';
+                result.title = escape(result.title);
+                html += '<div class="title">' + result.title + '</div>';
               }
               if(result.description !== undefined) {
-                html+= '<div class="description">' + result.description + '</div>';
+                html += '<div class="description">' + result.description + '</div>';
               }
               html  += ''
                 + '</div>'
@@ -8866,21 +12356,21 @@ $.fn.search.settings = {
         $.each(response.results, function(index, result) {
           html  += '<a class="result" href="' + result.url + '">';
           if(result.image !== undefined) {
-            html+= ''
+            html += ''
               + '<div class="image">'
               + ' <img src="' + result.image + '">'
               + '</div>'
             ;
           }
-          html += '<div class="info">';
+          html += '<div class="content">';
           if(result.price !== undefined) {
-            html+= '<div class="price">' + result.price + '</div>';
+            html += '<div class="price">' + result.price + '</div>';
           }
           if(result.title !== undefined) {
-            html+= '<div class="title">' + result.title + '</div>';
+            html += '<div class="title">' + result.title + '</div>';
           }
           if(result.description !== undefined) {
-            html+= '<div class="description">' + result.description + '</div>';
+            html += '<div class="description">' + result.description + '</div>';
           }
           html  += ''
             + '</div>'
@@ -8902,18 +12392,21 @@ $.fn.search.settings = {
 };
 
 })( jQuery, window , document );
+
 /*
  * # Semantic - Shape
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
 
 ;(function ( $, window, document, undefined ) {
+
+"use strict";
 
 $.fn.shape = function(parameters) {
   var
@@ -8926,6 +12419,13 @@ $.fn.shape = function(parameters) {
     query           = arguments[0],
     methodInvoked   = (typeof query == 'string'),
     queryArguments  = [].slice.call(arguments, 1),
+
+    requestAnimationFrame = window.requestAnimationFrame
+      || window.mozRequestAnimationFrame
+      || window.webkitRequestAnimationFrame
+      || window.msRequestAnimationFrame
+      || function(callback) { setTimeout(callback, 0); },
+
     returnedValue
   ;
 
@@ -9016,18 +12516,19 @@ $.fn.shape = function(parameters) {
             $module
               .addClass(className.animating)
             ;
-            module.repaint();
-            $module
-              .addClass(className.animating)
-            ;
-            $activeSide
-              .addClass(className.hidden)
-            ;
             $sides
               .css(propertyObject)
               .one(module.get.transitionEvent(), callback)
             ;
             module.set.duration(settings.duration);
+            requestAnimationFrame(function() {
+              $module
+                .addClass(className.animating)
+              ;
+              $activeSide
+                .addClass(className.hidden)
+              ;
+            });
           }
           else {
             callback();
@@ -9464,6 +12965,7 @@ $.fn.shape = function(parameters) {
           }
         },
         setting: function(name, value) {
+          module.debug('Changing setting', name, value);
           if( $.isPlainObject(name) ) {
             $.extend(true, settings, name);
           }
@@ -9524,9 +13026,9 @@ $.fn.shape = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -9691,10 +13193,10 @@ $.fn.shape.settings = {
 })( jQuery, window , document );
 /*
  * # Semantic - Sidebar
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributors
+ * Copyright 2014 Contributor
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -9702,10 +13204,11 @@ $.fn.shape.settings = {
 
 ;(function ( $, window, document, undefined ) {
 
+"use strict";
+
 $.fn.sidebar = function(parameters) {
   var
     $allModules    = $(this),
-    $body          = $('body'),
     $head          = $('head'),
 
     moduleSelector = $allModules.selector || '',
@@ -9716,6 +13219,13 @@ $.fn.sidebar = function(parameters) {
     query          = arguments[0],
     methodInvoked  = (typeof query == 'string'),
     queryArguments = [].slice.call(arguments, 1),
+
+    requestAnimationFrame = window.requestAnimationFrame
+      || window.mozRequestAnimationFrame
+      || window.webkitRequestAnimationFrame
+      || window.msRequestAnimationFrame
+      || function(callback) { setTimeout(callback, 0); },
+
     returnedValue
   ;
 
@@ -9735,10 +13245,20 @@ $.fn.sidebar = function(parameters) {
         moduleNamespace = 'module-' + namespace,
 
         $module         = $(this),
+        $context        = $(settings.context),
         $style          = $('style[title=' + namespace + ']'),
+
+        $sidebars       = $context.children(selector.sidebar),
+        $pusher         = $context.children(selector.pusher),
+        $page           = $pusher.children(selector.page),
+        $fixed          = $pusher.find(selector.fixed),
 
         element         = this,
         instance        = $module.data(moduleNamespace),
+
+        currentScroll,
+        transitionEnd,
+
         module
       ;
 
@@ -9746,6 +13266,19 @@ $.fn.sidebar = function(parameters) {
 
         initialize: function() {
           module.debug('Initializing sidebar', $module);
+
+          transitionEnd = module.get.transitionEvent();
+
+          // cache on initialize
+          if( module.is.legacy() ) {
+            settings.useLegacy = true;
+          }
+
+          module.setup.context();
+
+          // avoid locking rendering to change layout if included in onReady
+          requestAnimationFrame(module.setup.layout);
+
           module.instantiate();
         },
 
@@ -9765,9 +13298,83 @@ $.fn.sidebar = function(parameters) {
           ;
         },
 
+        event: {
+          clickaway: function(event) {
+            if( $module.find(event.target).size() === 0 && $(event.target).filter($module).size() === 0 ) {
+              module.verbose('User clicked on dimmed page');
+              module.hide();
+            }
+          },
+          scroll: function(event) {
+            if( $module.find(event.target).size() === 0 && $(event.target).filter($module).size() === 0 ) {
+              event.preventDefault();
+            }
+          }
+        },
+
+        bind: {
+          clickaway: function() {
+            if(settings.scrollLock) {
+              $(window)
+                .on('DOMMouseScroll' + eventNamespace, module.event.scroll)
+              ;
+            }
+            $context
+              .on('click' + eventNamespace, module.event.clickaway)
+              .on('touchend' + eventNamespace, module.event.clickaway)
+            ;
+          }
+        },
+        unbind: {
+          clickaway: function() {
+            $context
+              .off(eventNamespace)
+            ;
+            if(settings.scrollLock) {
+              $(window).off('DOMMouseScroll' + eventNamespace);
+            }
+          }
+        },
+
         refresh: function() {
           module.verbose('Refreshing selector cache');
-          $style  = $('style[title=' + namespace + ']');
+          $context  = $(settings.context);
+          $style    = $('style[title=' + namespace + ']');
+          $sidebars = $context.children(selector.sidebar);
+          $pusher   = $context.children(selector.pusher);
+          $page     = $pusher.children(selector.page);
+          $fixed    = $pusher.find(selector.fixed);
+        },
+
+        repaint: function() {
+          module.verbose('Forcing repaint event');
+          var fakeAssignment = $context[0].offsetWidth;
+        },
+
+        setup: {
+          layout: function() {
+            if( $context.find(selector.pusher).size() === 0 ) {
+              module.debug('Adding wrapper element for sidebar');
+              $pusher = $('<div class="pusher" />');
+              $page   = $('<div class="page" />');
+              $pusher.append($page);
+              $context
+                .children()
+                  .not(selector.omitted)
+                  .not($sidebars)
+                  .wrapAll($pusher)
+              ;
+            }
+            if($module.prevAll($page)[0] !== $page[0]) {
+              module.debug('Moved sidebar to correct parent element');
+              $module.detach().prependTo($context);
+            }
+            module.refresh();
+          },
+          context: function() {
+            module.verbose('Adding pusshable class to wrapper');
+            $context.addClass(className.pushable);
+          }
         },
 
         attachEvents: function(selector, event) {
@@ -9781,7 +13388,6 @@ $.fn.sidebar = function(parameters) {
           if($toggle.size() > 0) {
             module.debug('Attaching sidebar events to element', selector, event);
             $toggle
-              .off(eventNamespace)
               .on('click' + eventNamespace, event)
             ;
           }
@@ -9791,22 +13397,29 @@ $.fn.sidebar = function(parameters) {
         },
 
         show: function(callback) {
+          var
+            animateMethod = (settings.useLegacy)
+              ? module.legacyPushPage
+              : module.pushPage
+          ;
           callback = $.isFunction(callback)
             ? callback
             : function(){}
           ;
-          module.debug('Showing sidebar', callback);
-          if(module.is.closed()) {
-            if(!settings.overlay) {
-              if(settings.exclusive) {
-                module.hideAll();
-              }
-              module.pushPage();
+          if(module.is.closed() || module.is.outward()) {
+            if(settings.overlay)  {
+              module.error(error.overlay);
+              settings.transition = 'overlay';
             }
-            module.set.active();
-            callback();
+            if(settings.transition !== 'overlay') {
+              module.hideAll();
+            }
+            animateMethod(function() {
+              $.proxy(callback, element)();
+              $.proxy(settings.onShow, element)();
+            });
             $.proxy(settings.onChange, element)();
-            $.proxy(settings.onShow, element)();
+            $.proxy(settings.onVisible, element)();
           }
           else {
             module.debug('Sidebar is already visible');
@@ -9814,32 +13427,38 @@ $.fn.sidebar = function(parameters) {
         },
 
         hide: function(callback) {
+          var
+            animateMethod = (settings.useLegacy)
+              ? module.legacyPullPage
+              : module.pullPage
+          ;
           callback = $.isFunction(callback)
             ? callback
             : function(){}
           ;
-          module.debug('Hiding sidebar', callback);
-          if(module.is.open()) {
-            if(!settings.overlay) {
-              module.pullPage();
-              module.remove.pushed();
-            }
-            module.remove.active();
-            callback();
+          if(module.is.visible() || module.is.inward()) {
+            module.debug('Hiding sidebar', callback);
+            animateMethod(function() {
+              $.proxy(callback, element)();
+              $.proxy(settings.onHidden, element)();
+            });
             $.proxy(settings.onChange, element)();
             $.proxy(settings.onHide, element)();
           }
         },
 
         hideAll: function() {
-          $(selector.sidebar)
-            .filter(':visible')
-              .sidebar('hide')
+          var
+            $visibleSidebars = $sidebars.find('.' + className.visible)
+          ;
+          $visibleSidebars
+            .sidebar('hide')
           ;
         },
 
         toggle: function() {
-          if(module.is.closed()) {
+          module.verbose('Determining toggled direction');
+          if(module.is.closed() || module.is.outward()) {
             module.show();
           }
           else {
@@ -9847,97 +13466,212 @@ $.fn.sidebar = function(parameters) {
           }
         },
 
-        pushPage: function() {
+        pushPage: function(callback) {
           var
-            direction = module.get.direction(),
-            distance  = (module.is.vertical())
-              ? $module.outerHeight()
-              : $module.outerWidth()
+            transition = module.get.transition(),
+            $transition = (transition == 'safe')
+              ? $context
+              : (transition == 'overlay')
+                ? $module
+                : $pusher,
+            animate
           ;
-          if(settings.useCSS) {
-            module.debug('Using CSS to animate body');
-            module.add.bodyCSS(direction, distance);
-            module.set.pushed();
+          callback = $.isFunction(callback)
+            ? callback
+            : function(){}
+          ;
+          animate = function() {
+            module.remove.outward();
+            module.set.visible();
+            module.set.transition();
+            module.set.direction();
+            requestAnimationFrame(function() {
+              module.set.inward();
+              module.set.pushed();
+            });
+          };
+          $transition
+            .off(transitionEnd + eventNamespace)
+            .on(transitionEnd + eventNamespace, function(event) {
+              if( event.target == $transition[0] ) {
+                $transition.off(transitionEnd + eventNamespace);
+                module.remove.inward();
+                module.bind.clickaway();
+                module.set.active();
+                $.proxy(callback, element)();
+              }
+            })
+          ;
+          module.verbose('Adding context push state', $context);
+          if(transition === 'overlay') {
+            requestAnimationFrame(animate);
           }
           else {
-            module.animatePage(direction, distance, module.set.pushed);
-          }
-        },
-
-        pullPage: function() {
-          var
-            direction = module.get.direction()
-          ;
-          if(settings.useCSS) {
-            module.debug('Resetting body position css');
-            module.remove.bodyCSS();
-          }
-          else {
-            module.debug('Resetting body position using javascript');
-            module.animatePage(direction, 0);
-          }
-          module.remove.pushed();
-        },
-
-        animatePage: function(direction, distance) {
-          var
-            animateSettings = {}
-          ;
-          animateSettings['padding-' + direction] = distance;
-          module.debug('Using javascript to animate body', animateSettings);
-          $body
-            .animate(animateSettings, settings.duration, module.set.pushed)
-          ;
-        },
-
-        add: {
-          bodyCSS: function(direction, distance) {
-            var
-              style
-            ;
-            if(direction !== className.bottom) {
-              style = ''
-                + '<style title="' + namespace + '">'
-                + 'body.pushed {'
-                + '  margin-' + direction + ': ' + distance + 'px !important;'
-                + '}'
-                + '</style>'
-              ;
+            if(settings.transition == 'scale down' || module.is.mobile()) {
+              $module.scrollTop(0);
+              currentScroll = $(window).scrollTop();
+              window.scrollTo(0, 0);
             }
-            $head.append(style);
-            module.debug('Adding body css to head', $style);
+            module.remove.allVisible();
+            requestAnimationFrame(animate);
           }
         },
 
+        pullPage: function(callback) {
+          var
+            transition = module.get.transition(),
+            $transition = (transition == 'safe')
+              ? $context
+              : (transition == 'overlay')
+                ? $module
+                : $pusher
+          ;
+          callback = $.isFunction(callback)
+            ? callback
+            : function(){}
+          ;
+          module.verbose('Removing context push state', module.get.direction());
+          module.unbind.clickaway();
 
-        remove: {
-          bodyCSS: function() {
-            module.debug('Removing body css styles', $style);
-            module.refresh();
-            $style.remove();
-          },
-          active: function() {
-            $module.removeClass(className.active);
-          },
-          pushed: function() {
-            module.verbose('Removing body push state', module.get.direction());
-            $body
-              .removeClass(className[ module.get.direction() ])
-              .removeClass(className.pushed)
-            ;
-          }
+          $transition
+            .off(transitionEnd + eventNamespace)
+            .on(transitionEnd + eventNamespace, function(event) {
+              if( event.target == $transition[0] ) {
+                $transition.off(transitionEnd + eventNamespace);
+                module.remove.transition();
+                module.remove.direction();
+                module.remove.outward();
+                module.remove.visible();
+                if(transition == 'scale down' || (settings.returnScroll && transition !== 'overlay' && module.is.mobile()) ) {
+                  window.scrollTo(0, currentScroll);
+                }
+                $.proxy(callback, element)();
+              }
+            })
+          ;
+          requestAnimationFrame(function() {
+            module.remove.inward();
+            module.set.outward();
+            module.remove.active();
+            module.remove.pushed();
+          });
+        },
+
+        legacyPushPage: function(callback) {
+          var
+            distance   = $module.width(),
+            direction  = module.get.direction(),
+            properties = {}
+          ;
+          distance  = distance || $module.width();
+          callback  = $.isFunction(callback)
+            ? callback
+            : function(){}
+          ;
+          properties[direction] = distance;
+          module.debug('Using javascript to push context', properties);
+          module.set.visible();
+          module.set.transition();
+          module.set.direction();
+          module.set.inward();
+          module.set.pushed();
+          $context
+            .animate(properties, settings.duration, settings.easing, function() {
+              module.remove.inward();
+              module.bind.clickaway();
+              module.set.active();
+              $.proxy(callback, module)();
+            })
+          ;
+        },
+        legacyPullPage: function(callback) {
+          var
+            distance   = 0,
+            direction  = module.get.direction(),
+            properties = {}
+          ;
+          distance  = distance || $module.width();
+          callback  = $.isFunction(callback)
+            ? callback
+            : function(){}
+          ;
+          properties[direction] = '0px';
+          module.debug('Using javascript to pull context', properties);
+          module.unbind.clickaway();
+          module.set.outward();
+          module.remove.active();
+          module.remove.pushed();
+          $context
+            .animate(properties, settings.duration, settings.easing, function() {
+              module.remove.transition();
+              module.remove.direction();
+              module.remove.outward();
+              module.remove.visible();
+              $.proxy(callback, module)();
+            })
+          ;
         },
 
         set: {
           active: function() {
-            $module.addClass(className.active);
+            $context.addClass(className.active);
+          },
+          direction: function(direction) {
+            direction = direction || module.get.direction();
+            $context.addClass(className[direction]);
+          },
+          visible: function() {
+            $module.addClass(className.visible);
+          },
+          transition: function(transition) {
+            transition = transition || module.get.transition();
+            $context.addClass(transition);
+          },
+          inward: function() {
+            $context.addClass(className.inward);
+          },
+          outward: function() {
+            $context.addClass(className.outward);
           },
           pushed: function() {
-            module.verbose('Adding body push state', module.get.direction());
-            $body
-              .addClass(className[ module.get.direction() ])
-              .addClass(className.pushed)
-            ;
+            if(settings.dimPage) {
+              $page.addClass(className.dimmed);
+            }
+            $context.addClass(className.pushed);
+          }
+        },
+        remove: {
+          active: function() {
+            $context.removeClass(className.active);
+          },
+          visible: function() {
+            $module.removeClass(className.visible);
+          },
+          allVisible: function() {
+            if($sidebars.hasClass(className.visible)) {
+              module.debug('Other sidebars visible, hiding');
+              $sidebars.removeClass(className.visible);
+            }
+          },
+          transition: function(transition) {
+            transition = transition || module.get.transition();
+            $context.removeClass(transition);
+          },
+          pushed: function() {
+            if(settings.dimPage) {
+              $page.removeClass(className.dimmed);
+            }
+            $context.removeClass(className.pushed);
+          },
+          inward: function() {
+            $context.removeClass(className.inward);
+          },
+          outward: function() {
+            $context.removeClass(className.outward);
+          },
+          direction: function(direction) {
+            direction = direction || module.get.direction();
+            $context.removeClass(className[direction]);
           }
         },
 
@@ -9952,9 +13686,21 @@ $.fn.sidebar = function(parameters) {
             else if($module.hasClass(className.bottom)) {
               return className.bottom;
             }
-            else {
-              return className.left;
-            }
+            return className.left;
+          },
+          transition: function() {
+            var
+              direction = module.get.direction(),
+              transition
+            ;
+            return ( module.is.mobile() )
+              ? (settings.mobileTransition == 'auto')
+                ? settings.defaultTransition.mobile[direction]
+                : settings.mobileTransition
+              : (settings.transition == 'auto')
+                ? settings.defaultTransition.computer[direction]
+                : settings.transition
+            ;
           },
           transitionEvent: function() {
             var
@@ -9976,15 +13722,879 @@ $.fn.sidebar = function(parameters) {
         },
 
         is: {
-          open: function() {
-            return $module.is(':animated') || $module.hasClass(className.active);
+          legacy: function() {
+            var
+              element    = document.createElement('div'),
+              transforms = {
+                'webkitTransform' :'-webkit-transform',
+                'OTransform'      :'-o-transform',
+                'msTransform'     :'-ms-transform',
+                'MozTransform'    :'-moz-transform',
+                'transform'       :'transform'
+              },
+              has3D
+            ;
+
+            // Add it to the body to get the computed style.
+            document.body.insertBefore(element, null);
+            for (var transform in transforms) {
+              if (element.style[transform] !== undefined) {
+                element.style[transform] = "translate3d(1px,1px,1px)";
+                has3D = window.getComputedStyle(element).getPropertyValue(transforms[transform]);
+              }
+            }
+            document.body.removeChild(element);
+            return !(has3D !== undefined && has3D.length > 0 && has3D !== 'none');
+          },
+          mobile: function() {
+            var
+              userAgent    = navigator.userAgent,
+              mobileRegExp = /Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile|Kindle|NetFront|Silk-Accelerated|(hpw|web)OS|Fennec|Minimo|Opera M(obi|ini)|Blazer|Dolfin|Dolphin|Skyfire|Zune/,
+              isMobile     = mobileRegExp.test(userAgent)
+            ;
+            if(isMobile) {
+              module.verbose('Browser was found to be mobile', userAgent);
+              return true;
+            }
+            else {
+              module.verbose('Browser is not mobile, using regular transition', userAgent);
+              return false;
+            }
           },
           closed: function() {
-            return !module.is.open();
+            return !module.is.visible();
+          },
+          visible: function() {
+            return $module.hasClass(className.visible);
           },
           vertical: function() {
             return $module.hasClass(className.top);
+          },
+          inward: function() {
+            return $context.hasClass(className.inward);
+          },
+          outward: function() {
+            return $context.hasClass(className.outward);
+          },
+          animating: function() {
+            return module.is.inward() || module.is.outward();
           }
+        },
+
+        setting: function(name, value) {
+          module.debug('Changing setting', name, value);
+          if( $.isPlainObject(name) ) {
+            $.extend(true, settings, name);
+          }
+          else if(value !== undefined) {
+            settings[name] = value;
+          }
+          else {
+            return settings[name];
+          }
+        },
+        internal: function(name, value) {
+          if( $.isPlainObject(name) ) {
+            $.extend(true, module, name);
+          }
+          else if(value !== undefined) {
+            module[name] = value;
+          }
+          else {
+            return module[name];
+          }
+        },
+        debug: function() {
+          if(settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.debug = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.debug.apply(console, arguments);
+            }
+          }
+        },
+        verbose: function() {
+          if(settings.verbose && settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.verbose = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.verbose.apply(console, arguments);
+            }
+          }
+        },
+        error: function() {
+          module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
+          module.error.apply(console, arguments);
+        },
+        performance: {
+          log: function(message) {
+            var
+              currentTime,
+              executionTime,
+              previousTime
+            ;
+            if(settings.performance) {
+              currentTime   = new Date().getTime();
+              previousTime  = time || currentTime;
+              executionTime = currentTime - previousTime;
+              time          = currentTime;
+              performance.push({
+                'Name'           : message[0],
+                'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
+                'Execution Time' : executionTime
+              });
+            }
+            clearTimeout(module.performance.timer);
+            module.performance.timer = setTimeout(module.performance.display, 100);
+          },
+          display: function() {
+            var
+              title = settings.name + ':',
+              totalTime = 0
+            ;
+            time = false;
+            clearTimeout(module.performance.timer);
+            $.each(performance, function(index, data) {
+              totalTime += data['Execution Time'];
+            });
+            title += ' ' + totalTime + 'ms';
+            if(moduleSelector) {
+              title += ' \'' + moduleSelector + '\'';
+            }
+            if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
+              console.groupCollapsed(title);
+              if(console.table) {
+                console.table(performance);
+              }
+              else {
+                $.each(performance, function(index, data) {
+                  console.log(data['Name'] + ': ' + data['Execution Time']+'ms');
+                });
+              }
+              console.groupEnd();
+            }
+            performance = [];
+          }
+        },
+        invoke: function(query, passedArguments, context) {
+          var
+            object = instance,
+            maxDepth,
+            found,
+            response
+          ;
+          passedArguments = passedArguments || queryArguments;
+          context         = element         || context;
+          if(typeof query == 'string' && object !== undefined) {
+            query    = query.split(/[\. ]/);
+            maxDepth = query.length - 1;
+            $.each(query, function(depth, value) {
+              var camelCaseValue = (depth != maxDepth)
+                ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
+                : query
+              ;
+              if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
+                object = object[camelCaseValue];
+              }
+              else if( object[camelCaseValue] !== undefined ) {
+                found = object[camelCaseValue];
+                return false;
+              }
+              else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
+                object = object[value];
+              }
+              else if( object[value] !== undefined ) {
+                found = object[value];
+                return false;
+              }
+              else {
+                module.error(error.method, query);
+                return false;
+              }
+            });
+          }
+          if ( $.isFunction( found ) ) {
+            response = found.apply(context, passedArguments);
+          }
+          else if(found !== undefined) {
+            response = found;
+          }
+          if($.isArray(returnedValue)) {
+            returnedValue.push(response);
+          }
+          else if(returnedValue !== undefined) {
+            returnedValue = [returnedValue, response];
+          }
+          else if(response !== undefined) {
+            returnedValue = response;
+          }
+          return found;
+        }
+      }
+    ;
+
+    if(methodInvoked) {
+      if(instance === undefined) {
+        module.initialize();
+      }
+      module.invoke(query);
+    }
+    else {
+      if(instance !== undefined) {
+        module.destroy();
+      }
+      module.initialize();
+    }
+  });
+
+  return (returnedValue !== undefined)
+    ? returnedValue
+    : this
+  ;
+};
+
+$.fn.sidebar.settings = {
+
+  name              : 'Sidebar',
+  namespace         : 'sidebar',
+
+  debug             : false,
+  verbose           : false,
+  performance       : false,
+
+  workaround        : false,
+  transition        : 'auto',
+  mobileTransition  : 'auto',
+
+  defaultTransition : {
+    computer: {
+      left   : 'uncover',
+      right  : 'uncover',
+      top    : 'overlay',
+      bottom : 'overlay'
+    },
+    mobile: {
+      left   : 'overlay',
+      right  : 'overlay',
+      top    : 'overlay',
+      bottom : 'overlay'
+    }
+  },
+
+  context           : 'body',
+  exclusive         : true,
+
+  dimPage           : true,
+  scrollLock        : false,
+  returnScroll      : true,
+
+  useLegacy         : false,
+  duration          : 500,
+  easing            : 'easeInOutQuint',
+
+  onChange          : function(){},
+  onShow            : function(){},
+  onHide            : function(){},
+
+  onHidden          : function(){},
+  onVisible         : function(){},
+
+  className         : {
+    active   : 'active',
+    bottom   : 'bottom',
+    dimmed   : 'dimmed',
+    inward   : 'show',
+    left     : 'left',
+    outward  : 'hide',
+    pushable : 'pushable',
+    pushed   : 'pushed',
+    right    : 'right',
+    top      : 'top',
+    visible  : 'visible'
+  },
+
+  selector: {
+    fixed   : '.ui.fixed',
+    omitted : 'script, link, style, .ui.modal, .ui.dimmer, .ui.nag, .ui.fixed',
+    page    : '.page',
+    pusher  : '.pusher',
+    sidebar : '.ui.sidebar'
+  },
+
+  error   : {
+    method   : 'The method you called is not defined.',
+    overlay  : 'The overlay setting is no longer supported, use animation: overlay',
+    notFound : 'There were no elements that matched the specified selector'
+  }
+
+};
+
+// Adds easing
+$.extend( $.easing, {
+  easeInOutQuint: function (x, t, b, c, d) {
+    if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
+    return c/2*((t-=2)*t*t*t*t + 2) + b;
+  }
+});
+
+
+})( jQuery, window , document );
+
+ /*
+ * # Semantic - Sticky
+ * http://github.com/semantic-org/semantic-ui/
+ *
+ *
+ * Copyright 2014 Contributors
+ * Released under the MIT license
+ * http://opensource.org/licenses/MIT
+ *
+ */
+
+;(function ( $, window, document, undefined ) {
+
+"use strict";
+
+$.fn.sticky = function(parameters) {
+  var
+    $allModules    = $(this),
+    moduleSelector = $allModules.selector || '',
+
+    time           = new Date().getTime(),
+    performance    = [],
+
+    query          = arguments[0],
+    methodInvoked  = (typeof query == 'string'),
+    queryArguments = [].slice.call(arguments, 1),
+    returnedValue
+  ;
+
+  $allModules
+    .each(function() {
+      var
+        settings              = $.extend(true, {}, $.fn.sticky.settings, parameters),
+
+        className             = settings.className,
+        namespace             = settings.namespace,
+        error                 = settings.error,
+
+        eventNamespace        = '.' + namespace,
+        moduleNamespace       = 'module-' + namespace,
+
+        $module               = $(this),
+        $window               = $(window),
+        $container            = $module.offsetParent(),
+        $scroll               = $(settings.scrollContext),
+        $context,
+
+        selector              = $module.selector || '',
+        instance              = $module.data(moduleNamespace),
+
+        requestAnimationFrame = window.requestAnimationFrame
+          || window.mozRequestAnimationFrame
+          || window.webkitRequestAnimationFrame
+          || window.msRequestAnimationFrame
+          || function(callback) { setTimeout(callback, 0); },
+
+        element         = this,
+        observer,
+        module
+      ;
+
+      module      = {
+
+        initialize: function() {
+          if(settings.context) {
+            $context = $(settings.context);
+          }
+          else {
+            $context = $container;
+          }
+          if($context.size() === 0) {
+            module.error(error.invalidContext, settings.context, $module);
+            return;
+          }
+          module.verbose('Initializing sticky', settings, $container);
+          module.save.positions();
+
+          // error conditions
+          if( module.is.hidden() ) {
+            module.error(error.visible, $module);
+          }
+          if(module.cache.element.height > module.cache.context.height) {
+            module.reset();
+            module.error(error.elementSize, $module);
+            return;
+          }
+
+          $window
+            .on('resize' + eventNamespace, module.event.resize)
+          ;
+          $scroll
+            .on('scroll' + eventNamespace, module.event.scroll)
+          ;
+
+          module.observeChanges();
+          module.instantiate();
+        },
+
+        instantiate: function() {
+          module.verbose('Storing instance of module', module);
+          instance = module;
+          $module
+            .data(moduleNamespace, module)
+          ;
+        },
+
+        destroy: function() {
+          module.verbose('Destroying previous module');
+          module.reset();
+          $window
+            .off('resize' + eventNamespace, module.event.resize)
+          ;
+          $scroll
+            .off('scroll' + eventNamespace, module.event.scroll)
+          ;
+          $module
+            .removeData(moduleNamespace)
+          ;
+        },
+
+        observeChanges: function() {
+          var
+            context = $context[0]
+          ;
+          if(MutationObserver !== undefined) {
+            observer = new MutationObserver(function(mutations) {
+              clearTimeout(module.timer);
+              module.timer = setTimeout(function() {
+                module.verbose('DOM tree modified, updating sticky menu');
+                module.refresh();
+              }, 200);
+            });
+            observer.observe(element, {
+              childList : true,
+              subtree   : true
+            });
+            observer.observe(context, {
+              childList : true,
+              subtree   : true
+            });
+            module.debug('Setting up mutation observer', observer);
+          }
+        },
+
+        event: {
+          resize: function() {
+            requestAnimationFrame(function() {
+              module.refresh();
+              module.stick();
+            });
+          },
+          scroll: function() {
+            requestAnimationFrame(function() {
+              module.stick();
+              $.proxy(settings.onScroll, element)();
+            });
+          }
+        },
+
+        refresh: function(hardRefresh) {
+          module.reset();
+          if(hardRefresh) {
+            $container = $module.offsetParent();
+          }
+          module.save.positions();
+          module.stick();
+          $.proxy(settings.onReposition, element)();
+        },
+
+        supports: {
+          sticky: function() {
+            var
+              $element = $('<div/>'),
+              element = $element.get()
+            ;
+            $element
+              .addClass(className.supported)
+            ;
+            return($element.css('position').match('sticky'));
+          }
+        },
+
+        save: {
+          scroll: function(scroll) {
+            module.lastScroll = scroll;
+          },
+          positions: function() {
+            var
+              window = {
+                height: $window.height()
+              },
+              element = {
+                margin: {
+                  top    : parseInt($module.css('margin-top'), 10),
+                  bottom : parseInt($module.css('margin-bottom'), 10),
+                },
+                offset : $module.offset(),
+                width  : $module.outerWidth(),
+                height : $module.outerHeight()
+              },
+              context = {
+                offset: $context.offset(),
+                height: $context.outerHeight()
+              }
+            ;
+            module.cache = {
+              fits : ( element.height < window.height ),
+              window: {
+                height: window.height
+              },
+              element: {
+                margin : element.margin,
+                top    : element.offset.top - element.margin.top,
+                left   : element.offset.left,
+                width  : element.width,
+                height : element.height,
+                bottom : element.offset.top + element.height
+              },
+              context: {
+                top    : context.offset.top,
+                height : context.height,
+                bottom : context.offset.top + context.height
+              }
+            };
+            module.set.containerSize();
+            module.set.size();
+            module.stick();
+            module.debug('Caching element positions', module.cache);
+          }
+        },
+
+        get: {
+          direction: function(scroll) {
+            var
+              direction = 'down'
+            ;
+            scroll = scroll || $scroll.scrollTop();
+            if(module.lastScroll !== undefined) {
+              if(module.lastScroll < scroll) {
+                direction = 'down';
+              }
+              else if(module.lastScroll > scroll) {
+                direction = 'up';
+              }
+            }
+            return direction;
+          },
+          scrollChange: function(scroll) {
+            scroll = scroll || $scroll.scrollTop();
+            return (module.lastScroll)
+              ? (scroll - module.lastScroll)
+              : 0
+            ;
+          },
+          currentElementScroll: function() {
+            return ( module.is.top() )
+              ? Math.abs(parseInt($module.css('top'), 10))    || 0
+              : Math.abs(parseInt($module.css('bottom'), 10)) || 0
+            ;
+          },
+          elementScroll: function(scroll) {
+            scroll = scroll || $scroll.scrollTop();
+            var
+              element        = module.cache.element,
+              window         = module.cache.window,
+              delta          = module.get.scrollChange(scroll),
+              maxScroll      = (element.height - window.height + settings.offset),
+              currentScroll  = module.get.currentElementScroll(),
+              possibleScroll = (currentScroll + delta),
+              elementScroll
+            ;
+            if(module.cache.fits || possibleScroll < 0) {
+              elementScroll = 0;
+            }
+            else if (possibleScroll > maxScroll ) {
+              elementScroll = maxScroll;
+            }
+            else {
+              elementScroll = possibleScroll;
+            }
+            return elementScroll;
+          }
+        },
+
+        remove: {
+          offset: function() {
+            $module.css('margin-top', '');
+          }
+        },
+
+        set: {
+          offset: function() {
+            module.verbose('Setting offset on element', settings.offset);
+            $module.css('margin-top', settings.offset);
+          },
+          containerSize: function() {
+            var
+              tagName = $container.get(0).tagName
+            ;
+            if(tagName === 'HTML' || tagName == 'body') {
+              // this can trigger for too many reasons
+              //module.error(error.container, tagName, $module);
+              $container = $module.offsetParent();
+            }
+            else {
+              module.debug('Settings container size', module.cache.context.height);
+              $container.height(module.cache.context.height);
+            }
+          },
+          scroll: function(scroll) {
+            module.debug('Setting scroll on element', scroll);
+            if( module.is.top() ) {
+              $module
+                .css('bottom', '')
+                .css('top', -scroll)
+              ;
+            }
+            if( module.is.bottom() ) {
+              $module
+                .css('top', '')
+                .css('bottom', scroll)
+              ;
+            }
+          },
+          size: function() {
+            if(module.cache.element.height !== 0 && module.cache.element.width !== 0) {
+              $module
+                .css({
+                  width  : module.cache.element.width,
+                  height : module.cache.element.height
+                })
+              ;
+            }
+          }
+        },
+
+        is: {
+          top: function() {
+            return $module.hasClass(className.top);
+          },
+          bottom: function() {
+            return $module.hasClass(className.bottom);
+          },
+          initialPosition: function() {
+            return (!module.is.fixed() && !module.is.bound());
+          },
+          hidden: function() {
+            return (!$module.is(':visible'));
+          },
+          bound: function() {
+            return $module.hasClass(className.bound);
+          },
+          fixed: function() {
+            return $module.hasClass(className.fixed);
+          }
+        },
+
+        stick: function() {
+          var
+            cache          = module.cache,
+            fits           = cache.fits,
+            element        = cache.element,
+            window         = cache.window,
+            context        = cache.context,
+            scroll         = {
+              top    : $scroll.scrollTop() + settings.offset,
+              bottom : $scroll.scrollTop() + settings.offset + window.height
+            },
+            direction      = module.get.direction(scroll.top),
+            elementScroll  = module.get.elementScroll(scroll.top),
+
+            // shorthand
+            doesntFit      = !fits,
+            elementVisible = (element.height !== 0)
+          ;
+
+          // save current scroll for next run
+          module.save.scroll(scroll.top);
+
+          if(elementVisible) {
+
+            if( module.is.initialPosition() ) {
+              if(scroll.top >= element.top) {
+                module.debug('Element passed, fixing element to page');
+                module.fixTop();
+              }
+            }
+            else if( module.is.fixed() ) {
+
+              // currently fixed top
+              if( module.is.top() ) {
+                if( scroll.top < element.top ) {
+                  module.debug('Fixed element reached top of container');
+                  module.setInitialPosition();
+                }
+                else if( (element.height + scroll.top - elementScroll) > context.bottom ) {
+                  module.debug('Fixed element reached bottom of container');
+                  module.bindBottom();
+                }
+                // scroll element if larger than screen
+                else if(doesntFit) {
+                  module.set.scroll(elementScroll);
+                }
+              }
+
+              // currently fixed bottom
+              else if(module.is.bottom() ) {
+
+                // top edge
+                if( (scroll.bottom - element.height) < element.top) {
+                  module.debug('Bottom fixed rail has reached top of container');
+                  module.setInitialPosition();
+                }
+                // bottom edge
+                else if(scroll.bottom > context.bottom) {
+                  module.debug('Bottom fixed rail has reached bottom of container');
+                  module.bindBottom();
+                }
+                // scroll element if larger than screen
+                else if(doesntFit) {
+                  module.set.scroll(elementScroll);
+                }
+
+              }
+            }
+            else if( module.is.bottom() ) {
+              // fix to bottom of screen on way back up
+              if( module.is.bottom() ) {
+                if(settings.pushing) {
+                  if(module.is.bound() && scroll.bottom < context.bottom ) {
+                    module.debug('Fixing bottom attached element to bottom of browser.');
+                    module.fixBottom();
+                  }
+                }
+                else {
+                  if(module.is.bound() && (scroll.top < context.bottom - element.height) ) {
+                    module.debug('Fixing bottom attached element to top of browser.');
+                    module.fixTop();
+                  }
+                }
+              }
+            }
+          }
+        },
+
+        bindTop: function() {
+          module.debug('Binding element to top of parent container');
+          module.remove.offset();
+          $module
+            .css('left' , '')
+            .css('top' , '')
+            .css('bottom' , '')
+            .removeClass(className.fixed)
+            .removeClass(className.bottom)
+            .addClass(className.bound)
+            .addClass(className.top)
+          ;
+          $.proxy(settings.onTop, element)();
+          $.proxy(settings.onUnstick, element)();
+        },
+        bindBottom: function() {
+          module.debug('Binding element to bottom of parent container');
+          module.remove.offset();
+          $module
+            .css('left' , '')
+            .css('top' , '')
+            .css('bottom' , '')
+            .removeClass(className.fixed)
+            .removeClass(className.top)
+            .addClass(className.bound)
+            .addClass(className.bottom)
+          ;
+          $.proxy(settings.onBottom, element)();
+          $.proxy(settings.onUnstick, element)();
+        },
+
+        setInitialPosition: function() {
+          module.unfix();
+          module.unbind();
+        },
+
+
+        fixTop: function() {
+          module.debug('Fixing element to top of page');
+          module.set.offset();
+          $module
+            .css('left', module.cache.element.left)
+            .removeClass(className.bound)
+            .removeClass(className.bottom)
+            .addClass(className.fixed)
+            .addClass(className.top)
+          ;
+          $.proxy(settings.onStick, element)();
+        },
+
+        fixBottom: function() {
+          module.debug('Sticking element to bottom of page');
+          module.set.offset();
+          $module
+            .css('left', module.cache.element.left)
+            .removeClass(className.bound)
+            .removeClass(className.top)
+            .addClass(className.fixed)
+            .addClass(className.bottom)
+          ;
+          $.proxy(settings.onStick, element)();
+        },
+
+        unbind: function() {
+          module.debug('Removing absolute position on element');
+          module.remove.offset();
+          $module
+            .removeClass(className.bound)
+            .removeClass(className.top)
+            .removeClass(className.bottom)
+          ;
+        },
+
+        unfix: function() {
+          module.debug('Removing fixed position on element');
+          module.remove.offset();
+          $module
+            .removeClass(className.fixed)
+            .removeClass(className.top)
+            .removeClass(className.bottom)
+          ;
+          $.proxy(settings.onUnstick, this)();
+        },
+
+        reset: function() {
+          module.debug('Reseting elements position');
+          module.unbind();
+          module.unfix();
+          module.resetCSS();
+        },
+
+        resetCSS: function() {
+          $module
+            .css({
+              top    : '',
+              bottom : '',
+              width  : '',
+              height : ''
+            })
+          ;
+          $container
+            .css({
+              height: ''
+            })
+          ;
         },
 
         setting: function(name, value) {
@@ -10048,14 +14658,14 @@ $.fn.sidebar = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
             clearTimeout(module.performance.timer);
-            module.performance.timer = setTimeout(module.performance.display, 100);
+            module.performance.timer = setTimeout(module.performance.display, 0);
           },
           display: function() {
             var
@@ -10070,9 +14680,6 @@ $.fn.sidebar = function(parameters) {
             title += ' ' + totalTime + 'ms';
             if(moduleSelector) {
               title += ' \'' + moduleSelector + '\'';
-            }
-            if($allModules.size() > 1) {
-              title += ' ' + '(' + $allModules.size() + ')';
             }
             if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
               console.groupCollapsed(title);
@@ -10143,6 +14750,7 @@ $.fn.sidebar = function(parameters) {
           return found;
         }
       };
+
       if(methodInvoked) {
         if(instance === undefined) {
           module.initialize();
@@ -10164,1348 +14772,588 @@ $.fn.sidebar = function(parameters) {
   ;
 };
 
-$.fn.sidebar.settings = {
+$.fn.sticky.settings = {
 
-  name        : 'Sidebar',
-  namespace   : 'sidebar',
+  name          : 'Sticky',
+  namespace     : 'sticky',
 
-  debug       : false,
-  verbose     : true,
-  performance : true,
+  debug         : false,
+  verbose       : false,
+  performance   : false,
 
-  useCSS      : true,
-  exclusive   : true,
-  overlay     : false,
-  duration    : 300,
+  pushing       : false,
 
-  onChange     : function(){},
-  onShow       : function(){},
-  onHide       : function(){},
+  context       : false,
+  scrollContext : window,
+  offset        : 0,
 
-  className: {
-    active : 'active',
-    pushed : 'pushed',
-    top    : 'top',
-    left   : 'left',
-    right  : 'right',
-    bottom : 'bottom'
+  onReposition  : function(){},
+  onScroll      : function(){},
+  onStick       : function(){},
+  onUnstick     : function(){},
+  onTop         : function(){},
+  onBottom      : function(){},
+
+  error         : {
+    container      : 'Sticky element must be inside a relative container',
+    visible        : 'Element is hidden, you must call refresh after element becomes visible',
+    method         : 'The method you called is not defined.',
+    invalidContext : 'Context specified does not exist',
+    elementSize    : 'Sticky element is larger than its container, cannot create sticky.'
   },
 
-  selector: {
-    sidebar: '.ui.sidebar'
-  },
-
-  error   : {
-    method   : 'The method you called is not defined.',
-    notFound : 'There were no elements that matched the specified selector'
+  className : {
+    bound     : 'bound',
+    fixed     : 'fixed',
+    supported : 'native',
+    top       : 'top',
+    bottom    : 'bottom'
   }
 
 };
 
 })( jQuery, window , document );
 
-/*
+ /*
  * # Semantic - Tab
- * http://github.com/jlukic/semantic-ui/
+ * http://github.com/semantic-org/semantic-ui/
+ *
  *
  * Copyright 2014 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
-
 
 ;(function ($, window, document, undefined) {
 
-  $.fn.tab = function(parameters) {
+"use strict";
 
-    var
-      settings        = $.extend(true, {}, $.fn.tab.settings, parameters),
+$.tab = $.fn.tab = function(parameters) {
 
-      $module         = $(this),
-      $tabs           = $(settings.context).find(settings.selector.tabs),
-
-      moduleSelector  = $module.selector || '',
-
-      cache           = {},
-      firstLoad       = true,
-      recursionDepth  = 0,
-
-      activeTabPath,
-      parameterArray,
-      historyEvent,
-
-      element         = this,
-      time            = new Date().getTime(),
-      performance     = [],
-
-      className       = settings.className,
-      metadata        = settings.metadata,
-      error           = settings.error,
-
-      eventNamespace  = '.' + settings.namespace,
-      moduleNamespace = 'module-' + settings.namespace,
-
-      instance        = $module.data(moduleNamespace),
-
-      query           = arguments[0],
-      methodInvoked   = (instance !== undefined && typeof query == 'string'),
-      queryArguments  = [].slice.call(arguments, 1),
-
-      module,
-      returnedValue
-    ;
-
-    module = {
-
-      initialize: function() {
-        module.debug('Initializing Tabs', $module);
-
-        // set up automatic routing
-        if(settings.auto) {
-          module.verbose('Setting up automatic tab retrieval from server');
-          settings.apiSettings = {
-            url: settings.path + '/{$tab}'
-          };
-        }
-
-        // attach history events
-        if(settings.history) {
-          module.debug('Initializing page state');
-          if( $.address === undefined ) {
-            module.error(error.state);
-            return false;
-          }
-          else {
-            if(settings.historyType == 'hash') {
-              module.debug('Using hash state change to manage state');
-            }
-            if(settings.historyType == 'html5') {
-              module.debug('Using HTML5 to manage state');
-              if(settings.path !== false) {
-                $.address
-                  .history(true)
-                  .state(settings.path)
-                ;
-              }
-              else {
-                module.error(error.path);
-                return false;
-              }
-            }
-            $.address
-              .unbind('change')
-              .bind('change', module.event.history.change)
-            ;
-          }
-        }
-
-        // attach events if navigation wasn't set to window
-        if( !$.isWindow( element ) ) {
-          module.debug('Attaching tab activation events to element', $module);
-          $module
-            .on('click' + eventNamespace, module.event.click)
-          ;
-        }
-        module.instantiate();
-      },
-
-      instantiate: function () {
-        module.verbose('Storing instance of module', module);
-        $module
-          .data(moduleNamespace, module)
-        ;
-      },
-
-      destroy: function() {
-        module.debug('Destroying tabs', $module);
-        $module
-          .removeData(moduleNamespace)
-          .off(eventNamespace)
-        ;
-      },
-
-      event: {
-        click: function(event) {
-          var
-            tabPath = $(this).data(metadata.tab)
-          ;
-          if(tabPath !== undefined) {
-            if(settings.history) {
-              module.verbose('Updating page state', event);
-              $.address.value(tabPath);
-            }
-            else {
-              module.verbose('Changing tab without state management', event);
-              module.changeTab(tabPath);
-            }
-            event.preventDefault();
-          }
-          else {
-            module.debug('No tab specified');
-          }
-        },
-        history: {
-          change: function(event) {
-            var
-              tabPath   = event.pathNames.join('/') || module.get.initialPath(),
-              pageTitle = settings.templates.determineTitle(tabPath) || false
-            ;
-            module.debug('History change event', tabPath, event);
-            historyEvent = event;
-            if(tabPath !== undefined) {
-              module.changeTab(tabPath);
-            }
-            if(pageTitle) {
-              $.address.title(pageTitle);
-            }
-          }
-        }
-      },
-
-      refresh: function() {
-        if(activeTabPath) {
-          module.debug('Refreshing tab', activeTabPath);
-          module.changeTab(activeTabPath);
-        }
-      },
-
-      cache: {
-
-        read: function(cacheKey) {
-          return (cacheKey !== undefined)
-            ? cache[cacheKey]
-            : false
-          ;
-        },
-        add: function(cacheKey, content) {
-          cacheKey = cacheKey || activeTabPath;
-          module.debug('Adding cached content for', cacheKey);
-          cache[cacheKey] = content;
-        },
-        remove: function(cacheKey) {
-          cacheKey = cacheKey || activeTabPath;
-          module.debug('Removing cached content for', cacheKey);
-          delete cache[cacheKey];
-        }
-      },
-
-      set: {
-        state: function(url) {
-          $.address.value(url);
-        }
-      },
-
-      changeTab: function(tabPath) {
-        var
-          pushStateAvailable = (window.history && window.history.pushState),
-          shouldIgnoreLoad   = (pushStateAvailable && settings.ignoreFirstLoad && firstLoad),
-          remoteContent      = (settings.auto || $.isPlainObject(settings.apiSettings) ),
-          // only get default path if not remote content
-          pathArray = (remoteContent && !shouldIgnoreLoad)
-            ? module.utilities.pathToArray(tabPath)
-            : module.get.defaultPathArray(tabPath)
-        ;
-        tabPath = module.utilities.arrayToPath(pathArray);
-        module.deactivate.all();
-        $.each(pathArray, function(index, tab) {
-          var
-            currentPathArray   = pathArray.slice(0, index + 1),
-            currentPath        = module.utilities.arrayToPath(currentPathArray),
-
-            isTab              = module.is.tab(currentPath),
-            isLastIndex        = (index + 1 == pathArray.length),
-
-            $tab               = module.get.tabElement(currentPath),
-            nextPathArray,
-            nextPath,
-            isLastTab
-          ;
-          module.verbose('Looking for tab', tab);
-          if(isTab) {
-            module.verbose('Tab was found', tab);
-
-            // scope up
-            activeTabPath = currentPath;
-            parameterArray = module.utilities.filterArray(pathArray, currentPathArray);
-
-            if(isLastIndex) {
-              isLastTab = true;
-            }
-            else {
-              nextPathArray = pathArray.slice(0, index + 2);
-              nextPath      = module.utilities.arrayToPath(nextPathArray);
-              isLastTab     = ( !module.is.tab(nextPath) );
-              if(isLastTab) {
-                module.verbose('Tab parameters found', nextPathArray);
-              }
-            }
-            if(isLastTab && remoteContent) {
-              if(!shouldIgnoreLoad) {
-                module.activate.navigation(currentPath);
-                module.content.fetch(currentPath, tabPath);
-              }
-              else {
-                module.debug('Ignoring remote content on first tab load', currentPath);
-                firstLoad = false;
-                module.cache.add(tabPath, $tab.html());
-                module.activate.all(currentPath);
-                $.proxy(settings.onTabInit, $tab)(currentPath, parameterArray, historyEvent);
-                $.proxy(settings.onTabLoad, $tab)(currentPath, parameterArray, historyEvent);
-              }
-              return false;
-            }
-            else {
-              module.debug('Opened local tab', currentPath);
-              module.activate.all(currentPath);
-              if( !module.cache.read(currentPath) ) {
-                module.cache.add(currentPath, true);
-                module.debug('First time tab loaded calling tab init');
-                $.proxy(settings.onTabInit, $tab)(currentPath, parameterArray, historyEvent);
-              }
-              $.proxy(settings.onTabLoad, $tab)(currentPath, parameterArray, historyEvent);
-            }
-          }
-          else {
-            module.error(error.missingTab, tab);
-            return false;
-          }
-        });
-      },
-
-      content: {
-
-        fetch: function(tabPath, fullTabPath) {
-          var
-            $tab             = module.get.tabElement(tabPath),
-            apiSettings      = {
-              dataType     : 'html',
-              stateContext : $tab,
-              success      : function(response) {
-                module.cache.add(fullTabPath, response);
-                module.content.update(tabPath, response);
-                if(tabPath == activeTabPath) {
-                  module.debug('Content loaded', tabPath);
-                  module.activate.tab(tabPath);
-                }
-                else {
-                  module.debug('Content loaded in background', tabPath);
-                }
-                $.proxy(settings.onTabInit, $tab)(tabPath, parameterArray, historyEvent);
-                $.proxy(settings.onTabLoad, $tab)(tabPath, parameterArray, historyEvent);
-              },
-              urlData: { tab: fullTabPath }
-            },
-            request         = $tab.data(metadata.promise) || false,
-            existingRequest = ( request && request.state() === 'pending' ),
-            requestSettings,
-            cachedContent
-          ;
-
-          fullTabPath   = fullTabPath || tabPath;
-          cachedContent = module.cache.read(fullTabPath);
-
-          if(settings.cache && cachedContent) {
-            module.debug('Showing existing content', fullTabPath);
-            module.content.update(tabPath, cachedContent);
-            module.activate.tab(tabPath);
-            $.proxy(settings.onTabLoad, $tab)(tabPath, parameterArray, historyEvent);
-          }
-          else if(existingRequest) {
-            module.debug('Content is already loading', fullTabPath);
-            $tab
-              .addClass(className.loading)
-            ;
-          }
-          else if($.api !== undefined) {
-            console.log(settings.apiSettings);
-            requestSettings = $.extend(true, { headers: { 'X-Remote': true } }, settings.apiSettings, apiSettings);
-            module.debug('Retrieving remote content', fullTabPath, requestSettings);
-            $.api( requestSettings );
-          }
-          else {
-            module.error(error.api);
-          }
-        },
-
-        update: function(tabPath, html) {
-          module.debug('Updating html for', tabPath);
-          var
-            $tab = module.get.tabElement(tabPath)
-          ;
-          $tab
-            .html(html)
-          ;
-        }
-      },
-
-      activate: {
-        all: function(tabPath) {
-          module.activate.tab(tabPath);
-          module.activate.navigation(tabPath);
-        },
-        tab: function(tabPath) {
-          var
-            $tab = module.get.tabElement(tabPath)
-          ;
-          module.verbose('Showing tab content for', $tab);
-          $tab.addClass(className.active);
-        },
-        navigation: function(tabPath) {
-          var
-            $navigation = module.get.navElement(tabPath)
-          ;
-          module.verbose('Activating tab navigation for', $navigation, tabPath);
-          $navigation.addClass(className.active);
-        }
-      },
-
-      deactivate: {
-        all: function() {
-          module.deactivate.navigation();
-          module.deactivate.tabs();
-        },
-        navigation: function() {
-          $module
-            .removeClass(className.active)
-          ;
-        },
-        tabs: function() {
-          $tabs
-            .removeClass(className.active + ' ' + className.loading)
-          ;
-        }
-      },
-
-      is: {
-        tab: function(tabName) {
-          return (tabName !== undefined)
-            ? ( module.get.tabElement(tabName).size() > 0 )
-            : false
-          ;
-        }
-      },
-
-      get: {
-        initialPath: function() {
-          return $module.eq(0).data(metadata.tab) || $tabs.eq(0).data(metadata.tab);
-        },
-        path: function() {
-          return $.address.value();
-        },
-        // adds default tabs to tab path
-        defaultPathArray: function(tabPath) {
-          return module.utilities.pathToArray( module.get.defaultPath(tabPath) );
-        },
-        defaultPath: function(tabPath) {
-          var
-            $defaultNav = $module.filter('[data-' + metadata.tab + '^="' + tabPath + '/"]').eq(0),
-            defaultTab  = $defaultNav.data(metadata.tab) || false
-          ;
-          if( defaultTab ) {
-            module.debug('Found default tab', defaultTab);
-            if(recursionDepth < settings.maxDepth) {
-              recursionDepth++;
-              return module.get.defaultPath(defaultTab);
-            }
-            module.error(error.recursion);
-          }
-          else {
-            module.debug('No default tabs found for', tabPath, $tabs);
-          }
-          recursionDepth = 0;
-          return tabPath;
-        },
-        navElement: function(tabPath) {
-          tabPath = tabPath || activeTabPath;
-          return $module.filter('[data-' + metadata.tab + '="' + tabPath + '"]');
-        },
-        tabElement: function(tabPath) {
-          var
-            $fullPathTab,
-            $simplePathTab,
-            tabPathArray,
-            lastTab
-          ;
-          tabPath        = tabPath || activeTabPath;
-          tabPathArray   = module.utilities.pathToArray(tabPath);
-          lastTab        = module.utilities.last(tabPathArray);
-          $fullPathTab   = $tabs.filter('[data-' + metadata.tab + '="' + lastTab + '"]');
-          $simplePathTab = $tabs.filter('[data-' + metadata.tab + '="' + tabPath + '"]');
-          return ($fullPathTab.size() > 0)
-            ? $fullPathTab
-            : $simplePathTab
-          ;
-        },
-        tab: function() {
-          return activeTabPath;
-        }
-      },
-
-      utilities: {
-        filterArray: function(keepArray, removeArray) {
-          return $.grep(keepArray, function(keepValue) {
-            return ( $.inArray(keepValue, removeArray) == -1);
-          });
-        },
-        last: function(array) {
-          return $.isArray(array)
-            ? array[ array.length - 1]
-            : false
-          ;
-        },
-        pathToArray: function(pathName) {
-          if(pathName === undefined) {
-            pathName = activeTabPath;
-          }
-          return typeof pathName == 'string'
-            ? pathName.split('/')
-            : [pathName]
-          ;
-        },
-        arrayToPath: function(pathArray) {
-          return $.isArray(pathArray)
-            ? pathArray.join('/')
-            : false
-          ;
-        }
-      },
-
-      setting: function(name, value) {
-        if( $.isPlainObject(name) ) {
-          $.extend(true, settings, name);
-        }
-        else if(value !== undefined) {
-          settings[name] = value;
-        }
-        else {
-          return settings[name];
-        }
-      },
-      internal: function(name, value) {
-        if( $.isPlainObject(name) ) {
-          $.extend(true, module, name);
-        }
-        else if(value !== undefined) {
-          module[name] = value;
-        }
-        else {
-          return module[name];
-        }
-      },
-      debug: function() {
-        if(settings.debug) {
-          if(settings.performance) {
-            module.performance.log(arguments);
-          }
-          else {
-            module.debug = Function.prototype.bind.call(console.info, console, settings.name + ':');
-            module.debug.apply(console, arguments);
-          }
-        }
-      },
-      verbose: function() {
-        if(settings.verbose && settings.debug) {
-          if(settings.performance) {
-            module.performance.log(arguments);
-          }
-          else {
-            module.verbose = Function.prototype.bind.call(console.info, console, settings.name + ':');
-            module.verbose.apply(console, arguments);
-          }
-        }
-      },
-      error: function() {
-        module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
-        module.error.apply(console, arguments);
-      },
-      performance: {
-        log: function(message) {
-          var
-            currentTime,
-            executionTime,
-            previousTime
-          ;
-          if(settings.performance) {
-            currentTime   = new Date().getTime();
-            previousTime  = time || currentTime;
-            executionTime = currentTime - previousTime;
-            time          = currentTime;
-            performance.push({
-              'Element'        : element,
-              'Name'           : message[0],
-              'Arguments'      : [].slice.call(message, 1) || '',
-              'Execution Time' : executionTime
-            });
-          }
-          clearTimeout(module.performance.timer);
-          module.performance.timer = setTimeout(module.performance.display, 100);
-        },
-        display: function() {
-          var
-            title = settings.name + ':',
-            totalTime = 0
-          ;
-          time = false;
-          clearTimeout(module.performance.timer);
-          $.each(performance, function(index, data) {
-            totalTime += data['Execution Time'];
-          });
-          title += ' ' + totalTime + 'ms';
-          if(moduleSelector) {
-            title += ' \'' + moduleSelector + '\'';
-          }
-          if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
-            console.groupCollapsed(title);
-            if(console.table) {
-              console.table(performance);
-            }
-            else {
-              $.each(performance, function(index, data) {
-                console.log(data['Name'] + ': ' + data['Execution Time']+'ms');
-              });
-            }
-            console.groupEnd();
-          }
-          performance = [];
-        }
-      },
-      invoke: function(query, passedArguments, context) {
-        var
-          object = instance,
-          maxDepth,
-          found,
-          response
-        ;
-        passedArguments = passedArguments || queryArguments;
-        context         = element         || context;
-        if(typeof query == 'string' && object !== undefined) {
-          query    = query.split(/[\. ]/);
-          maxDepth = query.length - 1;
-          $.each(query, function(depth, value) {
-            var camelCaseValue = (depth != maxDepth)
-              ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
-              : query
-            ;
-            if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
-              object = object[camelCaseValue];
-            }
-            else if( object[camelCaseValue] !== undefined ) {
-              found = object[camelCaseValue];
-              return false;
-            }
-            else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
-              object = object[value];
-            }
-            else if( object[value] !== undefined ) {
-              found = object[value];
-              return false;
-            }
-            else {
-              return false;
-            }
-          });
-        }
-        if ( $.isFunction( found ) ) {
-          response = found.apply(context, passedArguments);
-        }
-        else if(found !== undefined) {
-          response = found;
-        }
-        if($.isArray(returnedValue)) {
-          returnedValue.push(response);
-        }
-        else if(returnedValue !== undefined) {
-          returnedValue = [returnedValue, response];
-        }
-        else if(response !== undefined) {
-          returnedValue = response;
-        }
-        return found;
-      }
-    };
-
-    if(methodInvoked) {
-      if(instance === undefined) {
-        module.initialize();
-      }
-      module.invoke(query);
-    }
-    else {
-      if(instance !== undefined) {
-        module.destroy();
-      }
-      module.initialize();
-    }
-
-    return (returnedValue !== undefined)
-      ? returnedValue
-      : this
-    ;
-
-  };
-
-  // shortcut for tabbed content with no defined navigation
-  $.tab = function(settings) {
-    $(window).tab(settings);
-  };
-
-  $.fn.tab.settings = {
-
-    name        : 'Tab',
-    debug       : false,
-    verbose     : true,
-    performance : true,
-    namespace   : 'tab',
-
-    // only called first time a tab's content is loaded (when remote source)
-    onTabInit   : function(tabPath, parameterArray, historyEvent) {},
-    // called on every load
-    onTabLoad   : function(tabPath, parameterArray, historyEvent) {},
-
-    templates   : {
-      determineTitle: function(tabArray) {}
-    },
-
-    // uses pjax style endpoints fetching content from same url with remote-content headers
-    auto            : false,
-    history         : true,
-    historyType     : 'hash',
-    path            : false,
-
-    context         : 'body',
-
-    // max depth a tab can be nested
-    maxDepth        : 25,
-    // dont load content on first load
-    ignoreFirstLoad : false,
-    // load tab content new every tab click
-    alwaysRefresh   : false,
-    // cache the content requests to pull locally
-    cache           : true,
-    // settings for api call
-    apiSettings     : false,
-
-    error: {
-      api        : 'You attempted to load content without API module',
-      method     : 'The method you called is not defined',
-      missingTab : 'Tab cannot be found',
-      noContent  : 'The tab you specified is missing a content url.',
-      path       : 'History enabled, but no path was specified',
-      recursion  : 'Max recursive depth reached',
-      state      : 'The state library has not been initialized'
-    },
-
-    metadata : {
-      tab    : 'tab',
-      loaded : 'loaded',
-      promise: 'promise'
-    },
-
-    className   : {
-      loading : 'loading',
-      active  : 'active'
-    },
-
-    selector    : {
-      tabs : '.ui.tab'
-    }
-
-  };
-
-})( jQuery, window , document );
-
-/*
- * # Semantic - Transition
- * http://github.com/jlukic/semantic-ui/
- *
- *
- * Copyright 2014 Contributors
- * Released under the MIT license
- * http://opensource.org/licenses/MIT
- *
- */
-
-;(function ( $, window, document, undefined ) {
-
-$.fn.transition = function() {
   var
-    $allModules     = $(this),
-    moduleSelector  = $allModules.selector || '',
+    // use window context if none specified
+    $allModules     = $.isFunction(this)
+        ? $(window)
+        : $(this),
 
+    settings        = ( $.isPlainObject(parameters) )
+      ? $.extend(true, {}, $.fn.tab.settings, parameters)
+      : $.extend({}, $.fn.tab.settings),
+
+    moduleSelector  = $allModules.selector || '',
     time            = new Date().getTime(),
     performance     = [],
 
-    moduleArguments = arguments,
-    query           = moduleArguments[0],
+    query           = arguments[0],
+    methodInvoked   = (typeof query == 'string'),
     queryArguments  = [].slice.call(arguments, 1),
-    methodInvoked   = (typeof query === 'string'),
 
-    requestAnimationFrame = window.requestAnimationFrame
-      || window.mozRequestAnimationFrame
-      || window.webkitRequestAnimationFrame
-      || window.msRequestAnimationFrame
-      || function(callback) { setTimeout(callback, 0); },
-
+    module,
     returnedValue
   ;
+
+
   $allModules
     .each(function() {
       var
-        $module  = $(this),
-        element  = this,
 
-        // set at run time
-        settings,
-        instance,
+        className          = settings.className,
+        metadata           = settings.metadata,
+        selector           = settings.selector,
+        error              = settings.error,
 
-        error,
-        className,
-        metadata,
-        animationEnd,
-        animationName,
+        eventNamespace     = '.' + settings.namespace,
+        moduleNamespace    = 'module-' + settings.namespace,
 
-        namespace,
-        moduleNamespace,
-        module
+        $module            = $(this),
+        $tabs              = $(selector.tabs),
+
+        cache              = {},
+        firstLoad          = true,
+        recursionDepth     = 0,
+
+        $context,
+        activeTabPath,
+        parameterArray,
+        historyEvent,
+
+        element         = this,
+        instance        = $module.data(moduleNamespace)
       ;
 
       module = {
 
         initialize: function() {
-          // get settings
-          settings        = module.get.settings.apply(element, moduleArguments);
-          module.verbose('Converted arguments into settings object', settings);
+          module.debug('Initializing tab menu item', $module);
 
-          // set shortcuts
-          error           = settings.error;
-          className       = settings.className;
-          namespace       = settings.namespace;
-          metadata        = settings.metadata;
-          moduleNamespace = 'module-' + namespace;
-
-          animationEnd    = module.get.animationEvent();
-          animationName   = module.get.animationName();
-
-          instance        = $module.data(moduleNamespace) || module;
-
-          if(methodInvoked) {
-            methodInvoked = module.invoke(query);
+          if(settings.context) {
+            module.determineTabs();
+            module.debug('Using only tabs inside context', settings.context, $tabs);
           }
-          // no internal method was found matching query or query not made
-          if(methodInvoked === false) {
-            module.animate();
+
+          // set up automatic routing
+          if(settings.auto) {
+            module.verbose('Setting up automatic tab retrieval from server');
+            settings.apiSettings = {
+              url: settings.path + '/{$tab}'
+            };
+          }
+
+          // attach events if navigation wasn't set to window
+          if( !$.isWindow( element ) ) {
+            module.debug('Attaching tab activation events to element', $module);
+            $module
+              .on('click' + eventNamespace, module.event.click)
+            ;
           }
           module.instantiate();
         },
 
-        instantiate: function() {
+        determineTabs: function() {
+          var
+            $reference
+          ;
+          if(settings.context === 'parent') {
+            if($module.closest('.' + className.ui).size() > 0) {
+              $reference = $module.closest('.' + className.ui);
+              module.verbose('Using closest UI element for determining parent', $reference);
+            }
+            else {
+              $reference = $module;
+            }
+            $context = $reference.parent();
+            module.verbose('Determining parent element for creating context', $context);
+          }
+          else {
+            $context = $(settings.context);
+            module.verbose('Using selector for tab context', settings.context, $context);
+          }
+          if(settings.childrenOnly) {
+            $tabs = $context.children(selector.tabs);
+            module.debug('Searching tab context children for tabs', $context, $tabs);
+          }
+          else {
+            $tabs = $context.find(selector.tabs);
+            module.debug('Searching tab context for tabs', $context, $tabs);
+          }
+        },
+
+        initializeHistory: function() {
+          if(settings.history) {
+            module.debug('Initializing page state');
+            if( $.address === undefined ) {
+              module.error(error.state);
+              return false;
+            }
+            else {
+              if(settings.historyType == 'state') {
+                module.debug('Using HTML5 to manage state');
+                if(settings.path !== false) {
+                  $.address
+                    .history(true)
+                    .state(settings.path)
+                  ;
+                }
+                else {
+                  module.error(error.path);
+                  return false;
+                }
+              }
+              $.address
+                .bind('change', module.event.history.change)
+              ;
+            }
+          }
+        },
+
+        instantiate: function () {
           module.verbose('Storing instance of module', module);
           $module
-            .data(moduleNamespace, instance)
+            .data(moduleNamespace, module)
           ;
         },
 
         destroy: function() {
-          module.verbose('Destroying previous module for', element);
+          module.debug('Destroying tabs', $module);
           $module
             .removeData(moduleNamespace)
+            .off(eventNamespace)
           ;
+        },
+
+        event: {
+          click: function(event) {
+            var
+              tabPath = $(this).data(metadata.tab)
+            ;
+            if(tabPath !== undefined) {
+              if(settings.history) {
+                module.verbose('Updating page state', event);
+                $.address.value(tabPath);
+              }
+              else {
+                module.verbose('Changing tab', event);
+                module.changeTab(tabPath);
+              }
+              event.preventDefault();
+            }
+            else {
+              module.debug('No tab specified');
+            }
+          },
+          history: {
+            change: function(event) {
+              var
+                tabPath   = event.pathNames.join('/') || module.get.initialPath(),
+                pageTitle = settings.templates.determineTitle(tabPath) || false
+              ;
+              module.performance.display();
+              module.debug('History change event', tabPath, event);
+              historyEvent = event;
+              if(tabPath !== undefined) {
+                module.changeTab(tabPath);
+              }
+              if(pageTitle) {
+                $.address.title(pageTitle);
+              }
+            }
+          }
         },
 
         refresh: function() {
-          module.verbose('Refreshing display type on next animation');
-          delete instance.displayType;
-        },
-
-        forceRepaint: function() {
-          module.verbose('Forcing element repaint');
-          var
-            $parentElement = $module.parent(),
-            $nextElement = $module.next()
-          ;
-          if($nextElement.size() === 0) {
-            $module.detach().appendTo($parentElement);
-          }
-          else {
-            $module.detach().insertBefore($nextElement);
+          if(activeTabPath) {
+            module.debug('Refreshing tab', activeTabPath);
+            module.changeTab(activeTabPath);
           }
         },
 
-        repaint: function() {
-          module.verbose('Repainting element');
-          var
-            fakeAssignment = element.offsetWidth
-          ;
-        },
+        cache: {
 
-        animate: function(overrideSettings) {
-          settings = overrideSettings || settings;
-          if(!module.is.supported()) {
-            module.error(error.support);
-            return false;
-          }
-          module.debug('Preparing animation', settings.animation);
-          if(module.is.animating() && settings.queue) {
-            if(!settings.allowRepeats && module.has.direction() && module.is.occuring() && instance.queuing !== true) {
-              module.error(error.repeated);
-            }
-            else {
-              module.queue(settings.animation);
-            }
-            return false;
-          }
-          if(module.can.animate) {
-            module.set.animating(settings.animation);
-          }
-          else {
-            module.error(error.noAnimation, settings.animation);
-          }
-        },
-
-        reset: function() {
-          module.debug('Resetting animation to beginning conditions');
-          $module.off(animationEnd);
-          module.restore.conditions();
-          module.hide();
-          module.remove.animating();
-        },
-
-        queue: function(animation) {
-          module.debug('Queueing animation of', animation);
-          instance.queuing = true;
-          $module
-            .one(animationEnd, function() {
-              instance.queuing = false;
-              module.repaint();
-              module.animate.apply(this, settings);
-            })
-          ;
-        },
-
-        complete: function () {
-          module.verbose('CSS animation complete', settings.animation);
-          if(!module.is.looping()) {
-            if( module.is.outward() ) {
-              module.verbose('Animation is outward, hiding element');
-              module.restore.conditions();
-              module.remove.display();
-              module.hide();
-              $.proxy(settings.onHide, this)();
-            }
-            else if( module.is.inward() ) {
-              module.verbose('Animation is outward, showing element');
-              module.restore.conditions();
-              module.show();
-              $.proxy(settings.onShow, this)();
-            }
-            else {
-              module.restore.conditions();
-            }
-            module.remove.duration();
-            module.remove.animating();
-          }
-          $.proxy(settings.complete, this)();
-        },
-
-        has: {
-          direction: function(animation) {
-            animation = animation || settings.animation;
-            if( animation.search(className.inward) !== -1 || animation.search(className.outward) !== -1) {
-              module.debug('Direction already set in animation');
-              return true;
-            }
-            return false;
+          read: function(cacheKey) {
+            return (cacheKey !== undefined)
+              ? cache[cacheKey]
+              : false
+            ;
+          },
+          add: function(cacheKey, content) {
+            cacheKey = cacheKey || activeTabPath;
+            module.debug('Adding cached content for', cacheKey);
+            cache[cacheKey] = content;
+          },
+          remove: function(cacheKey) {
+            cacheKey = cacheKey || activeTabPath;
+            module.debug('Removing cached content for', cacheKey);
+            delete cache[cacheKey];
           }
         },
 
         set: {
+          state: function(state) {
+            $.address.value(state);
+          }
+        },
 
-          animating: function(animation) {
-            animation = animation || settings.animation;
-            module.save.conditions();
-            if(module.can.transition() && !module.has.direction()) {
-              module.set.direction();
-            }
-            module.remove.hidden();
-            module.set.display();
-            $module
-              .addClass(className.animating)
-              .addClass(className.transition)
-              .addClass(animation)
-              .one(animationEnd, module.complete)
-            ;
-            module.set.duration(settings.duration);
-            module.debug('Starting tween', settings.animation, $module.attr('class'));
-          },
-
-          display: function() {
+        changeTab: function(tabPath) {
+          var
+            pushStateAvailable = (window.history && window.history.pushState),
+            shouldIgnoreLoad   = (pushStateAvailable && settings.ignoreFirstLoad && firstLoad),
+            remoteContent      = (settings.auto || $.isPlainObject(settings.apiSettings) ),
+            // only get default path if not remote content
+            pathArray = (remoteContent && !shouldIgnoreLoad)
+              ? module.utilities.pathToArray(tabPath)
+              : module.get.defaultPathArray(tabPath)
+          ;
+          tabPath = module.utilities.arrayToPath(pathArray);
+          $.each(pathArray, function(index, tab) {
             var
-              displayType = module.get.displayType()
+              currentPathArray   = pathArray.slice(0, index + 1),
+              currentPath        = module.utilities.arrayToPath(currentPathArray),
+
+              isTab              = module.is.tab(currentPath),
+              isLastIndex        = (index + 1 == pathArray.length),
+
+              $tab               = module.get.tabElement(currentPath),
+              $anchor,
+              nextPathArray,
+              nextPath,
+              isLastTab
             ;
-            if(displayType !== 'block' && displayType !== 'none') {
-              module.verbose('Setting final visibility to', displayType);
-              $module
-                .css({
-                  display: displayType
-                })
-              ;
-            }
-          },
+            module.verbose('Looking for tab', tab);
+            if(isTab) {
+              module.verbose('Tab was found', tab);
 
-          direction: function() {
-            if($module.is(':visible')) {
-              module.debug('Automatically determining the direction of animation', 'Outward');
-              $module
-                .removeClass(className.inward)
-                .addClass(className.outward)
-              ;
-            }
-            else {
-              module.debug('Automatically determining the direction of animation', 'Inward');
-              $module
-                .removeClass(className.outward)
-                .addClass(className.inward)
-              ;
-            }
-          },
+              // scope up
+              activeTabPath = currentPath;
+              parameterArray = module.utilities.filterArray(pathArray, currentPathArray);
 
-          looping: function() {
-            module.debug('Transition set to loop');
-            $module
-              .addClass(className.looping)
-            ;
-          },
-
-          duration: function(duration) {
-            duration = duration || settings.duration;
-            duration = (typeof duration == 'number')
-              ? duration + 'ms'
-              : duration
-            ;
-            module.verbose('Setting animation duration', duration);
-            $module
-              .css({
-                '-webkit-animation-duration': duration,
-                '-moz-animation-duration': duration,
-                '-ms-animation-duration': duration,
-                '-o-animation-duration': duration,
-                'animation-duration': duration
-              })
-            ;
-          },
-
-          hidden: function() {
-            $module
-              .addClass(className.transition)
-              .addClass(className.hidden)
-            ;
-          },
-
-          visible: function() {
-            $module
-              .addClass(className.transition)
-              .addClass(className.visible)
-            ;
-          }
-        },
-
-        save: {
-          displayType: function(displayType) {
-            instance.displayType = displayType;
-          },
-          transitionExists: function(animation, exists) {
-            $.fn.transition.exists[animation] = exists;
-            module.verbose('Saving existence of transition', animation, exists);
-          },
-          conditions: function() {
-            instance.cache = {
-              className : $module.attr('class'),
-              style     : $module.attr('style')
-            };
-            module.verbose('Saving original attributes', instance.cache);
-          }
-        },
-
-        restore: {
-          conditions: function() {
-            if(instance.cache === undefined) {
-              return false;
-            }
-            if(instance.cache.className) {
-              $module.attr('class', instance.cache.className);
-            }
-            else {
-              $module.removeAttr('class');
-            }
-            if(instance.cache.style) {
-              $module.attr('style', instance.cache.style);
-            }
-            else {
-              if(module.get.displayType() === 'block') {
-                $module.removeAttr('style');
-              }
-            }
-            if(module.is.looping()) {
-              module.remove.looping();
-            }
-            module.verbose('Restoring original attributes', instance.cache);
-          }
-        },
-
-        remove: {
-
-          animating: function() {
-            $module.removeClass(className.animating);
-          },
-
-          display: function() {
-            if(instance.displayType !== undefined) {
-              $module.css('display', '');
-            }
-          },
-
-          duration: function() {
-            $module
-              .css({
-                '-webkit-animation-duration' : '',
-                '-moz-animation-duration'    : '',
-                '-ms-animation-duration'     : '',
-                '-o-animation-duration'      : '',
-                'animation-duration'         : ''
-              })
-            ;
-          },
-
-          hidden: function() {
-            $module.removeClass(className.hidden);
-          },
-
-          visible: function() {
-            $module.removeClass(className.visible);
-          },
-
-          looping: function() {
-            module.debug('Transitions are no longer looping');
-            $module
-              .removeClass(className.looping)
-            ;
-            module.forceRepaint();
-          }
-
-        },
-
-        get: {
-
-          settings: function(animation, duration, complete) {
-            // single settings object
-            if(typeof animation == 'object') {
-              return $.extend(true, {}, $.fn.transition.settings, animation);
-            }
-            // all arguments provided
-            else if(typeof complete == 'function') {
-              return $.extend({}, $.fn.transition.settings, {
-                animation : animation,
-                complete  : complete,
-                duration  : duration
-              });
-            }
-            // only duration provided
-            else if(typeof duration == 'string' || typeof duration == 'number') {
-              return $.extend({}, $.fn.transition.settings, {
-                animation : animation,
-                duration  : duration
-              });
-            }
-            // duration is actually settings object
-            else if(typeof duration == 'object') {
-              return $.extend({}, $.fn.transition.settings, duration, {
-                animation : animation
-              });
-            }
-            // duration is actually callback
-            else if(typeof duration == 'function') {
-              return $.extend({}, $.fn.transition.settings, {
-                animation : animation,
-                complete  : duration
-              });
-            }
-            // only animation provided
-            else {
-              return $.extend({}, $.fn.transition.settings, {
-                animation : animation
-              });
-            }
-            return $.fn.transition.settings;
-          },
-
-          displayType: function() {
-            if(instance.displayType === undefined) {
-              // create fake element to determine display state
-              module.can.transition();
-            }
-            return instance.displayType;
-          },
-
-          transitionExists: function(animation) {
-            return $.fn.transition.exists[animation];
-          },
-
-          animationName: function() {
-            var
-              element     = document.createElement('div'),
-              animations  = {
-                'animation'       :'animationName',
-                'OAnimation'      :'oAnimationName',
-                'MozAnimation'    :'mozAnimationName',
-                'WebkitAnimation' :'webkitAnimationName'
-              },
-              animation
-            ;
-            for(animation in animations){
-              if( element.style[animation] !== undefined ){
-                module.verbose('Determined animation vendor name property', animations[animation]);
-                return animations[animation];
-              }
-            }
-            return false;
-          },
-
-          animationEvent: function() {
-            var
-              element     = document.createElement('div'),
-              animations  = {
-                'animation'       :'animationend',
-                'OAnimation'      :'oAnimationEnd',
-                'MozAnimation'    :'animationend',
-                'WebkitAnimation' :'webkitAnimationEnd'
-              },
-              animation
-            ;
-            for(animation in animations){
-              if( element.style[animation] !== undefined ){
-                module.verbose('Determined animation vendor end event', animations[animation]);
-                return animations[animation];
-              }
-            }
-            return false;
-          }
-
-        },
-
-        can: {
-          animate: function() {
-            if($module.css(settings.animation) !== 'none') {
-              module.debug('CSS definition found',  $module.css(settings.animation));
-              return true;
-            }
-            else {
-              module.debug('Unable to find css definition', $module.attr('class'));
-              return false;
-            }
-          },
-          transition: function() {
-            var
-              elementClass     = $module.attr('class'),
-              animation        = settings.animation,
-              transitionExists = module.get.transitionExists(settings.animation),
-              $clone,
-              currentAnimation,
-              inAnimation,
-              displayType
-            ;
-            if( transitionExists === undefined || instance.displayType === undefined) {
-              module.verbose('Determining whether animation exists');
-              $clone = $('<div>').addClass( elementClass ).appendTo($('body'));
-              currentAnimation = $clone
-                .removeClass(className.inward)
-                .removeClass(className.outward)
-                .addClass(className.animating)
-                .addClass(className.transition)
-                .addClass(animation)
-                .css(animationName)
-              ;
-              inAnimation = $clone
-                .addClass(className.inward)
-                .css(animationName)
-              ;
-              displayType = $clone
-                .attr('class', elementClass)
-                .show()
-                .css('display')
-              ;
-              module.verbose('Determining final display state', displayType);
-              if(currentAnimation != inAnimation) {
-                module.debug('Transition exists for animation', animation);
-                transitionExists = true;
+              if(isLastIndex) {
+                isLastTab = true;
               }
               else {
-                module.debug('Static animation found', animation, displayType);
-                transitionExists = false;
+                nextPathArray = pathArray.slice(0, index + 2);
+                nextPath      = module.utilities.arrayToPath(nextPathArray);
+                isLastTab     = ( !module.is.tab(nextPath) );
+                if(isLastTab) {
+                  module.verbose('Tab parameters found', nextPathArray);
+                }
               }
-              $clone.remove();
-              module.save.displayType(displayType);
-              module.save.transitionExists(animation, transitionExists);
+              if(isLastTab && remoteContent) {
+                if(!shouldIgnoreLoad) {
+                  module.activate.navigation(currentPath);
+                  module.content.fetch(currentPath, tabPath);
+                }
+                else {
+                  module.debug('Ignoring remote content on first tab load', currentPath);
+                  firstLoad = false;
+                  module.cache.add(tabPath, $tab.html());
+                  module.activate.all(currentPath);
+                  $.proxy(settings.onTabInit, $tab)(currentPath, parameterArray, historyEvent);
+                  $.proxy(settings.onTabLoad, $tab)(currentPath, parameterArray, historyEvent);
+                }
+                return false;
+              }
+              else {
+                module.debug('Opened local tab', currentPath);
+                module.activate.all(currentPath);
+                if( !module.cache.read(currentPath) ) {
+                  module.cache.add(currentPath, true);
+                  module.debug('First time tab loaded calling tab init');
+                  $.proxy(settings.onTabInit, $tab)(currentPath, parameterArray, historyEvent);
+                }
+                $.proxy(settings.onTabLoad, $tab)(currentPath, parameterArray, historyEvent);
+              }
             }
-            return transitionExists;
+            else {
+              // look for in page anchor
+              $anchor     = $('#' + tabPath + ', a[name="' + tabPath + '"]');
+              currentPath = $anchor.closest('[data-tab]').data('tab');
+              $tab        = module.get.tabElement(currentPath);
+              // if anchor exists use parent tab
+              if($anchor.size() > 0 && currentPath) {
+                module.debug('No tab found, but deep anchor link present, opening parent tab');
+                module.activate.all(currentPath);
+                if( !module.cache.read(currentPath) ) {
+                  module.cache.add(currentPath, true);
+                  module.debug('First time tab loaded calling tab init');
+                  $.proxy(settings.onTabInit, $tab)(currentPath, parameterArray, historyEvent);
+                }
+              }
+              else {
+                module.error(error.missingTab, $module, currentPath);
+              }
+              return false;
+            }
+          });
+        },
+
+        content: {
+
+          fetch: function(tabPath, fullTabPath) {
+            var
+              $tab             = module.get.tabElement(tabPath),
+              apiSettings      = {
+                dataType     : 'html',
+                stateContext : $tab,
+                onSuccess      : function(response) {
+                  module.cache.add(fullTabPath, response);
+                  module.content.update(tabPath, response);
+                  if(tabPath == activeTabPath) {
+                    module.debug('Content loaded', tabPath);
+                    module.activate.tab(tabPath);
+                  }
+                  else {
+                    module.debug('Content loaded in background', tabPath);
+                  }
+                  $.proxy(settings.onTabInit, $tab)(tabPath, parameterArray, historyEvent);
+                  $.proxy(settings.onTabLoad, $tab)(tabPath, parameterArray, historyEvent);
+                },
+                urlData: { tab: fullTabPath }
+              },
+              request         = $tab.data(metadata.promise) || false,
+              existingRequest = ( request && request.state() === 'pending' ),
+              requestSettings,
+              cachedContent
+            ;
+
+            fullTabPath   = fullTabPath || tabPath;
+            cachedContent = module.cache.read(fullTabPath);
+
+            if(settings.cache && cachedContent) {
+              module.debug('Showing existing content', fullTabPath);
+              module.content.update(tabPath, cachedContent);
+              module.activate.tab(tabPath);
+              $.proxy(settings.onTabLoad, $tab)(tabPath, parameterArray, historyEvent);
+            }
+            else if(existingRequest) {
+              module.debug('Content is already loading', fullTabPath);
+              $tab
+                .addClass(className.loading)
+              ;
+            }
+            else if($.api !== undefined) {
+              requestSettings = $.extend(true, { headers: { 'X-Remote': true } }, settings.apiSettings, apiSettings);
+              module.debug('Retrieving remote content', fullTabPath, requestSettings);
+              $.api( requestSettings );
+            }
+            else {
+              module.error(error.api);
+            }
+          },
+
+          update: function(tabPath, html) {
+            module.debug('Updating html for', tabPath);
+            var
+              $tab = module.get.tabElement(tabPath)
+            ;
+            $tab
+              .html(html)
+            ;
+          }
+        },
+
+        activate: {
+          all: function(tabPath) {
+            module.activate.tab(tabPath);
+            module.activate.navigation(tabPath);
+          },
+          tab: function(tabPath) {
+            var
+              $tab = module.get.tabElement(tabPath)
+            ;
+            module.verbose('Showing tab content for', $tab);
+            $tab
+              .addClass(className.active)
+              .siblings($tabs)
+                .removeClass(className.active + ' ' + className.loading)
+            ;
+          },
+          navigation: function(tabPath) {
+            var
+              $navigation = module.get.navElement(tabPath)
+            ;
+            module.verbose('Activating tab navigation for', $navigation, tabPath);
+            $navigation
+              .addClass(className.active)
+              .siblings($allModules)
+                .removeClass(className.active + ' ' + className.loading)
+            ;
+          }
+        },
+
+        deactivate: {
+          all: function() {
+            module.deactivate.navigation();
+            module.deactivate.tabs();
+          },
+          navigation: function() {
+            $allModules
+              .removeClass(className.active)
+            ;
+          },
+          tabs: function() {
+            $tabs
+              .removeClass(className.active + ' ' + className.loading)
+            ;
           }
         },
 
         is: {
-          animating: function() {
-            return $module.hasClass(className.animating);
-          },
-          inward: function() {
-            return $module.hasClass(className.inward);
-          },
-          outward: function() {
-            return $module.hasClass(className.outward);
-          },
-          looping: function() {
-            return $module.hasClass(className.looping);
-          },
-          occuring: function(animation) {
-            animation = animation || settings.animation;
-            return ( $module.hasClass(animation) );
-          },
-          visible: function() {
-            return $module.is(':visible');
-          },
-          supported: function() {
-            return(animationName !== false && animationEnd !== false);
+          tab: function(tabName) {
+            return (tabName !== undefined)
+              ? ( module.get.tabElement(tabName).size() > 0 )
+              : false
+            ;
           }
         },
 
-        hide: function() {
-          module.verbose('Hiding element');
-          module.remove.visible();
-          module.set.hidden();
-          module.repaint();
+        get: {
+          initialPath: function() {
+            return $allModules.eq(0).data(metadata.tab) || $tabs.eq(0).data(metadata.tab);
+          },
+          path: function() {
+            return $.address.value();
+          },
+          // adds default tabs to tab path
+          defaultPathArray: function(tabPath) {
+            return module.utilities.pathToArray( module.get.defaultPath(tabPath) );
+          },
+          defaultPath: function(tabPath) {
+            var
+              $defaultNav = $allModules.filter('[data-' + metadata.tab + '^="' + tabPath + '/"]').eq(0),
+              defaultTab  = $defaultNav.data(metadata.tab) || false
+            ;
+            if( defaultTab ) {
+              module.debug('Found default tab', defaultTab);
+              if(recursionDepth < settings.maxDepth) {
+                recursionDepth++;
+                return module.get.defaultPath(defaultTab);
+              }
+              module.error(error.recursion);
+            }
+            else {
+              module.debug('No default tabs found for', tabPath, $tabs);
+            }
+            recursionDepth = 0;
+            return tabPath;
+          },
+          navElement: function(tabPath) {
+            tabPath = tabPath || activeTabPath;
+            return $allModules.filter('[data-' + metadata.tab + '="' + tabPath + '"]');
+          },
+          tabElement: function(tabPath) {
+            var
+              $fullPathTab,
+              $simplePathTab,
+              tabPathArray,
+              lastTab
+            ;
+            tabPath        = tabPath || activeTabPath;
+            tabPathArray   = module.utilities.pathToArray(tabPath);
+            lastTab        = module.utilities.last(tabPathArray);
+            $fullPathTab   = $tabs.filter('[data-' + metadata.tab + '="' + lastTab + '"]');
+            $simplePathTab = $tabs.filter('[data-' + metadata.tab + '="' + tabPath + '"]');
+            return ($fullPathTab.size() > 0)
+              ? $fullPathTab
+              : $simplePathTab
+            ;
+          },
+          tab: function() {
+            return activeTabPath;
+          }
         },
 
-        show: function(display) {
-          module.verbose('Showing element', display);
-          module.remove.hidden();
-          module.set.visible();
-          module.repaint();
-        },
-
-        start: function() {
-          module.verbose('Starting animation');
-          $module.removeClass(className.disabled);
-        },
-
-        stop: function() {
-          module.debug('Stopping animation');
-          $module.addClass(className.disabled);
-        },
-
-        toggle: function() {
-          module.debug('Toggling play status');
-          $module.toggleClass(className.disabled);
+        utilities: {
+          filterArray: function(keepArray, removeArray) {
+            return $.grep(keepArray, function(keepValue) {
+              return ( $.inArray(keepValue, removeArray) == -1);
+            });
+          },
+          last: function(array) {
+            return $.isArray(array)
+              ? array[ array.length - 1]
+              : false
+            ;
+          },
+          pathToArray: function(pathName) {
+            if(pathName === undefined) {
+              pathName = activeTabPath;
+            }
+            return typeof pathName == 'string'
+              ? pathName.split('/')
+              : [pathName]
+            ;
+          },
+          arrayToPath: function(pathArray) {
+            return $.isArray(pathArray)
+              ? pathArray.join('/')
+              : false
+            ;
+          }
         },
 
         setting: function(name, value) {
+          module.debug('Changing setting', name, value);
           if( $.isPlainObject(name) ) {
             $.extend(true, settings, name);
           }
@@ -11566,9 +15414,9 @@ $.fn.transition = function() {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -11588,9 +15436,6 @@ $.fn.transition = function() {
             title += ' ' + totalTime + 'ms';
             if(moduleSelector) {
               title += ' \'' + moduleSelector + '\'';
-            }
-            if($allModules.size() > 1) {
-              title += ' ' + '(' + $allModules.size() + ')';
             }
             if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
               console.groupCollapsed(title);
@@ -11639,6 +15484,7 @@ $.fn.transition = function() {
                 return false;
               }
               else {
+                module.error(error.method, query);
                 return false;
               }
             });
@@ -11658,310 +15504,708 @@ $.fn.transition = function() {
           else if(response !== undefined) {
             returnedValue = response;
           }
-          return found || false;
+          return found;
         }
       };
-      module.initialize();
+
+      if(methodInvoked) {
+        if(instance === undefined) {
+          module.initialize();
+        }
+        module.invoke(query);
+      }
+      else {
+        if(instance !== undefined) {
+          module.destroy();
+        }
+        module.initialize();
+      }
     })
   ;
+  if(module && !methodInvoked) {
+    module.initializeHistory();
+  }
   return (returnedValue !== undefined)
     ? returnedValue
     : this
   ;
+
 };
 
-$.fn.transition.exists = {};
+// shortcut for tabbed content with no defined navigation
+$.tab = function(settings) {
+  $(window).tab(settings);
+};
 
-$.fn.transition.settings = {
+$.fn.tab.settings = {
 
-  // module info
-  name        : 'Transition',
+  name        : 'Tab',
+  namespace   : 'tab',
 
-  // debug content outputted to console
   debug       : false,
+  verbose     : false,
+  performance : false,
 
-  // verbose debug output
-  verbose     : true,
+  // only called first time a tab's content is loaded (when remote source)
+  onTabInit   : function(tabPath, parameterArray, historyEvent) {},
 
-  // performance data output
-  performance : true,
+  // called on every load
+  onTabLoad   : function(tabPath, parameterArray, historyEvent) {},
 
-  // event namespace
-  namespace   : 'transition',
-
-  // animation complete event
-  complete    : function() {},
-  onShow      : function() {},
-  onHide      : function() {},
-
-  // whether animation can occur twice in a row
-  allowRepeats : false,
-
-  // animation duration
-  animation  : 'fade',
-  duration   : '700ms',
-
-  // new animations will occur after previous ones
-  queue       : true,
-
-  className   : {
-    animating  : 'animating',
-    disabled   : 'disabled',
-    hidden     : 'hidden',
-    inward     : 'in',
-    loading    : 'loading',
-    looping    : 'looping',
-    outward    : 'out',
-    transition : 'ui transition',
-    visible    : 'visible'
+  templates   : {
+    determineTitle: function(tabArray) {}
   },
 
-  // possible errors
+  // uses pjax style endpoints fetching content from same url with remote-content headers
+  auto            : false,
+  history         : false,
+  historyType     : 'hash',
+  path            : false,
+
+  context         : false,
+  childrenOnly    : false,
+
+  // max depth a tab can be nested
+  maxDepth        : 25,
+
+  // dont load content on first load
+  ignoreFirstLoad : false,
+
+  // load tab content new every tab click
+  alwaysRefresh   : false,
+
+  // cache the content requests to pull locally
+  cache           : true,
+
+  // settings for api call
+  apiSettings     : false,
+
   error: {
-    noAnimation : 'There is no css animation matching the one you specified.',
-    repeated    : 'That animation is already occurring, cancelling repeated animation',
-    method      : 'The method you called is not defined',
-    support     : 'This browser does not support CSS animations'
+    api        : 'You attempted to load content without API module',
+    method     : 'The method you called is not defined',
+    missingTab : 'Activated tab cannot be found for this context.',
+    noContent  : 'The tab you specified is missing a content url.',
+    path       : 'History enabled, but no path was specified',
+    recursion  : 'Max recursive depth reached',
+    state      : 'The state library has not been initialized'
+  },
+
+  metadata : {
+    tab    : 'tab',
+    loaded : 'loaded',
+    promise: 'promise'
+  },
+
+  className   : {
+    loading : 'loading',
+    active  : 'active',
+    ui      : 'ui'
+  },
+
+  selector    : {
+    tabs : '.ui.tab'
   }
 
 };
 
-
 })( jQuery, window , document );
+/*
+ * # Semantic - Transition
+ * http://github.com/semantic-org/semantic-ui/
+ *
+ *
+ * Copyright 2014 Contributor
+ * Released under the MIT license
+ * http://opensource.org/licenses/MIT
+ *
+ */
 
-/*  ******************************
-  Module - Video
-  Author: Jack Lukic
+;(function ( $, window, document, undefined ) {
 
-  This is a video playlist and video embed plugin which helps
-  provide helpers for adding embed code for vimeo and youtube and
-  abstracting event handlers for each library
+"use strict";
 
-******************************  */
-
-;(function ($, window, document, undefined) {
-
-$.fn.video = function(parameters) {
-
+$.fn.transition = function() {
   var
     $allModules     = $(this),
-
     moduleSelector  = $allModules.selector || '',
 
     time            = new Date().getTime(),
     performance     = [],
 
-    query           = arguments[0],
-    methodInvoked   = (typeof query == 'string'),
+    moduleArguments = arguments,
+    query           = moduleArguments[0],
     queryArguments  = [].slice.call(arguments, 1),
+    methodInvoked   = (typeof query === 'string'),
+
+    requestAnimationFrame = window.requestAnimationFrame
+      || window.mozRequestAnimationFrame
+      || window.webkitRequestAnimationFrame
+      || window.msRequestAnimationFrame
+      || function(callback) { setTimeout(callback, 0); },
 
     returnedValue
   ;
-
   $allModules
     .each(function() {
       var
-        settings        = ( $.isPlainObject(parameters) )
-          ? $.extend(true, {}, $.fn.video.settings, parameters)
-          : $.extend({}, $.fn.video.settings),
+        $module  = $(this),
+        element  = this,
 
-        selector        = settings.selector,
-        className       = settings.className,
-        error           = settings.error,
-        metadata        = settings.metadata,
-        namespace       = settings.namespace,
+        // set at run time
+        settings,
+        instance,
 
-        eventNamespace  = '.' + namespace,
-        moduleNamespace = 'module-' + namespace,
+        error,
+        className,
+        metadata,
+        animationEnd,
+        animationName,
 
-        $module         = $(this),
-        $placeholder    = $module.find(selector.placeholder),
-        $playButton     = $module.find(selector.playButton),
-        $embed          = $module.find(selector.embed),
-
-        element         = this,
-        instance        = $module.data(moduleNamespace),
+        namespace,
+        moduleNamespace,
+        eventNamespace,
         module
       ;
 
       module = {
 
         initialize: function() {
-          module.debug('Initializing video');
-          $placeholder
-            .on('click' + eventNamespace, module.play)
-          ;
-          $playButton
-            .on('click' + eventNamespace, module.play)
-          ;
-          module.instantiate();
+
+          // get full settings
+          moduleNamespace = 'module-' + namespace;
+          settings        = module.get.settings.apply(element, moduleArguments);
+          className       = settings.className;
+          metadata        = settings.metadata;
+
+          animationEnd    = module.get.animationEvent();
+          animationName   = module.get.animationName();
+          error           = settings.error;
+          namespace       = settings.namespace;
+          eventNamespace  = '.' + settings.namespace;
+          instance        = $module.data(moduleNamespace) || module;
+
+          if(methodInvoked) {
+            methodInvoked = module.invoke(query);
+          }
+          // no internal method was found matching query or query not made
+          if(methodInvoked === false) {
+            module.verbose('Converted arguments into settings object', settings);
+            module.animate();
+            module.instantiate();
+          }
         },
 
         instantiate: function() {
           module.verbose('Storing instance of module', module);
-          instance = module;
           $module
-            .data(moduleNamespace, module)
+            .data(moduleNamespace, instance)
           ;
         },
 
         destroy: function() {
-          module.verbose('Destroying previous instance of video');
+          module.verbose('Destroying previous module for', element);
           $module
             .removeData(moduleNamespace)
-            .off(eventNamespace)
-          ;
-          $placeholder
-            .off(eventNamespace)
-          ;
-          $playButton
-            .off(eventNamespace)
           ;
         },
 
-        // sets new video
-        change: function(source, id, url) {
-          module.debug('Changing video to ', source, id, url);
-          $module
-            .data(metadata.source, source)
-            .data(metadata.id, id)
-            .data(metadata.url, url)
-          ;
-          settings.onChange();
+        refresh: function() {
+          module.verbose('Refreshing display type on next animation');
+          delete module.displayType;
         },
 
-        // clears video embed
-        reset: function() {
-          module.debug('Clearing video embed and showing placeholder');
-          $module
-            .removeClass(className.active)
-          ;
-          $embed
-            .html(' ')
-          ;
-          $placeholder
-            .show()
-          ;
-          settings.onReset();
-        },
-
-        // plays current video
-        play: function() {
-          module.debug('Playing video');
+        forceRepaint: function() {
+          module.verbose('Forcing element repaint');
           var
-            source = $module.data(metadata.source) || false,
-            url    = $module.data(metadata.url)    || false,
-            id     = $module.data(metadata.id)     || false
+            $parentElement = $module.parent(),
+            $nextElement = $module.next()
           ;
-          $embed
-            .html( module.generate.html(source, id, url) )
-          ;
-          $module
-            .addClass(className.active)
-          ;
-          settings.onPlay();
-        },
-
-        generate: {
-          // generates iframe html
-          html: function(source, id, url) {
-            module.debug('Generating embed html');
-            var
-              width = (settings.width == 'auto')
-                ? $module.width()
-                : settings.width,
-              height = (settings.height == 'auto')
-                ? $module.height()
-                : settings.height,
-              html
-            ;
-            if(source && id) {
-              if(source == 'vimeo') {
-                html = ''
-                  + '<iframe src="http://player.vimeo.com/video/' + id + '?=' + module.generate.url(source) + '"'
-                  + ' width="' + width + '" height="' + height + '"'
-                  + ' frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>'
-                ;
-              }
-              else if(source == 'youtube') {
-                html = ''
-                  + '<iframe src="http://www.youtube.com/embed/' + id + '?=' + module.generate.url(source) + '"'
-                  + ' width="' + width + '" height="' + height + '"'
-                  + ' frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>'
-                ;
-              }
-            }
-            else if(url) {
-              html = ''
-                + '<iframe src="' + url + '"'
-                + ' width="' + width + '" height="' + height + '"'
-                + ' frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>'
-              ;
-            }
-            else {
-              module.error(error.noVideo);
-            }
-            return html;
-          },
-
-          // generate url parameters
-          url: function(source) {
-            var
-              api      = (settings.api)
-                ? 1
-                : 0,
-              autoplay = (settings.autoplay)
-                ? 1
-                : 0,
-              hd       = (settings.hd)
-                ? 1
-                : 0,
-              showUI   = (settings.showUI)
-                ? 1
-                : 0,
-              // opposite used for some params
-              hideUI   = !(settings.showUI)
-                ? 1
-                : 0,
-              url = ''
-            ;
-            if(source == 'vimeo') {
-              url = ''
-                +      'api='      + api
-                + '&amp;title='    + showUI
-                + '&amp;byline='   + showUI
-                + '&amp;portrait=' + showUI
-                + '&amp;autoplay=' + autoplay
-              ;
-              if(settings.color) {
-                url += '&amp;color=' + settings.color;
-              }
-            }
-            if(source == 'ustream') {
-              url = ''
-                + 'autoplay=' + autoplay
-              ;
-              if(settings.color) {
-                url += '&amp;color=' + settings.color;
-              }
-            }
-            else if(source == 'youtube') {
-              url = ''
-                +      'enablejsapi=' + api
-                + '&amp;autoplay='    + autoplay
-                + '&amp;autohide='    + hideUI
-                + '&amp;hq='          + hd
-                + '&amp;modestbranding=1'
-              ;
-              if(settings.color) {
-                url += '&amp;color=' + settings.color;
-              }
-            }
-            return url;
+          if($nextElement.size() === 0) {
+            $module.detach().appendTo($parentElement);
+          }
+          else {
+            $module.detach().insertBefore($nextElement);
           }
         },
 
+        repaint: function() {
+          module.verbose('Repainting element');
+          var
+            fakeAssignment = element.offsetWidth
+          ;
+        },
+
+        animate: function(overrideSettings) {
+          settings = overrideSettings || settings;
+          if(!module.is.supported()) {
+            module.error(error.support);
+            return false;
+          }
+          module.debug('Preparing animation', settings.animation);
+          if(module.is.animating() && settings.queue) {
+            if(!settings.allowRepeats && module.has.direction() && module.is.occuring() && module.queuing !== true) {
+              module.error(error.repeated);
+            }
+            else {
+              module.queue(settings.animation);
+            }
+            return false;
+          }
+          if(module.can.animate) {
+            module.set.animating(settings.animation);
+          }
+          else {
+            module.error(error.noAnimation, settings.animation);
+          }
+        },
+
+        reset: function() {
+          module.debug('Resetting animation to beginning conditions');
+          $module.off(animationEnd + eventNamespace);
+          module.restore.conditions();
+          module.hide();
+          module.remove.animating();
+        },
+
+        queue: function(animation) {
+          module.debug('Queueing animation of', animation);
+          module.queuing = true;
+          $module
+            .one(animationEnd + eventNamespace, function() {
+              module.queuing = false;
+              module.repaint();
+              module.animate.apply(this, settings);
+            })
+          ;
+        },
+
+        complete: function () {
+          module.verbose('CSS animation complete', settings.animation);
+          if(!module.is.looping()) {
+            if( module.is.outward() ) {
+              module.verbose('Animation is outward, hiding element');
+              module.restore.conditions();
+              module.remove.display();
+              module.hide();
+              $.proxy(settings.onHide, this)();
+            }
+            else if( module.is.inward() ) {
+              module.verbose('Animation is outward, showing element');
+              module.restore.conditions();
+              module.set.display();
+              module.show();
+              $.proxy(settings.onShow, this)();
+            }
+            else {
+              module.restore.conditions();
+            }
+            module.remove.duration();
+            module.remove.animating();
+          }
+          $.proxy(settings.complete, this)();
+        },
+
+        has: {
+          direction: function(animation) {
+            animation = animation || settings.animation;
+            if( animation.search(className.inward) !== -1 || animation.search(className.outward) !== -1) {
+              module.debug('Direction already set in animation');
+              return true;
+            }
+            return false;
+          }
+        },
+
+        set: {
+          animating: function(animation) {
+            animation = animation || settings.animation;
+            module.save.conditions();
+            if(module.can.transition() && !module.has.direction()) {
+              module.set.direction();
+            }
+            module.remove.hidden();
+            module.set.display();
+            $module
+              .addClass(className.animating)
+              .addClass(className.transition)
+              .addClass(animation)
+              .one(animationEnd + eventNamespace, module.complete)
+            ;
+            module.set.duration(settings.duration);
+            module.debug('Starting tween', settings.animation, $module.attr('class'));
+          },
+          display: function() {
+            var
+              style         = $module.attr('style') || '',
+              displayType   = module.get.displayType(),
+              overrideStyle = style + ';display: ' + displayType + ' !important;'
+            ;
+            if( $module.css('display') !== displayType ) {
+              module.verbose('Setting inline visibility to', displayType);
+              $module
+                .attr('style', overrideStyle)
+              ;
+            }
+          },
+          direction: function() {
+            if($module.is(':visible') && !module.is.hidden()) {
+              module.debug('Automatically determining the direction of animation', 'Outward');
+              $module
+                .removeClass(className.inward)
+                .addClass(className.outward)
+              ;
+            }
+            else {
+              module.debug('Automatically determining the direction of animation', 'Inward');
+              $module
+                .removeClass(className.outward)
+                .addClass(className.inward)
+              ;
+            }
+          },
+          looping: function() {
+            module.debug('Transition set to loop');
+            $module
+              .addClass(className.looping)
+            ;
+          },
+          duration: function(duration) {
+            duration = duration || settings.duration;
+            duration = (typeof duration == 'number')
+              ? duration + 'ms'
+              : duration
+            ;
+            module.verbose('Setting animation duration', duration);
+            $module
+              .css({
+                '-webkit-animation-duration': duration,
+                '-moz-animation-duration': duration,
+                '-ms-animation-duration': duration,
+                '-o-animation-duration': duration,
+                'animation-duration': duration
+              })
+            ;
+          },
+          hidden: function() {
+            if(!module.is.hidden()) {
+              $module
+                .addClass(className.transition)
+                .addClass(className.hidden)
+              ;
+              if($module.css('display') !== 'none') {
+                module.verbose('Overriding default display to hide element');
+                $module
+                  .css('display', 'none')
+                ;
+              }
+            }
+          },
+          visible: function() {
+            $module
+              .addClass(className.transition)
+              .addClass(className.visible)
+            ;
+          }
+        },
+
+        save: {
+          displayType: function(displayType) {
+            module.displayType = displayType;
+          },
+          transitionExists: function(animation, exists) {
+            $.fn.transition.exists[animation] = exists;
+            module.verbose('Saving existence of transition', animation, exists);
+          },
+          conditions: function() {
+            module.cache = {
+              className : $module.attr('class'),
+              style     : $module.attr('style')
+            };
+            module.verbose('Saving original attributes', module.cache);
+          }
+        },
+
+        restore: {
+          conditions: function() {
+            if(module.cache === undefined) {
+              return false;
+            }
+            if(module.cache.className) {
+              $module.attr('class', module.cache.className);
+            }
+            else {
+              $module.removeAttr('class');
+            }
+            if(module.cache.style) {
+              module.verbose('Restoring original style attribute', module.cache.style);
+              $module.attr('style', module.cache.style);
+            }
+            else {
+              if(module.get.displayType() === 'block') {
+                module.verbose('Removing inline style override, element defaults to block');
+                $module.removeAttr('style');
+              }
+            }
+            if(module.is.looping()) {
+              module.remove.looping();
+            }
+            module.verbose('Restoring original attributes', module.cache);
+          }
+        },
+
+        remove: {
+          animating: function() {
+            $module.removeClass(className.animating);
+          },
+          display: function() {
+            if(module.displayType !== undefined) {
+              $module.css('display', '');
+            }
+          },
+          duration: function() {
+            $module
+              .css({
+                '-webkit-animation-duration' : '',
+                '-moz-animation-duration'    : '',
+                '-ms-animation-duration'     : '',
+                '-o-animation-duration'      : '',
+                'animation-duration'         : ''
+              })
+            ;
+          },
+          hidden: function() {
+            $module.removeClass(className.hidden);
+          },
+          visible: function() {
+            $module.removeClass(className.visible);
+          },
+          looping: function() {
+            module.debug('Transitions are no longer looping');
+            $module
+              .removeClass(className.looping)
+            ;
+            module.forceRepaint();
+          },
+          transition: function() {
+            $module
+              .removeClass(className.visible)
+              .removeClass(className.hidden)
+            ;
+          }
+        },
+        get: {
+          settings: function(animation, duration, complete) {
+            // single settings object
+            if(typeof animation == 'object') {
+              return $.extend(true, {}, $.fn.transition.settings, animation);
+            }
+            // all arguments provided
+            else if(typeof complete == 'function') {
+              return $.extend({}, $.fn.transition.settings, {
+                animation : animation,
+                complete  : complete,
+                duration  : duration
+              });
+            }
+            // only duration provided
+            else if(typeof duration == 'string' || typeof duration == 'number') {
+              return $.extend({}, $.fn.transition.settings, {
+                animation : animation,
+                duration  : duration
+              });
+            }
+            // duration is actually settings object
+            else if(typeof duration == 'object') {
+              return $.extend({}, $.fn.transition.settings, duration, {
+                animation : animation
+              });
+            }
+            // duration is actually callback
+            else if(typeof duration == 'function') {
+              return $.extend({}, $.fn.transition.settings, {
+                animation : animation,
+                complete  : duration
+              });
+            }
+            // only animation provided
+            else {
+              return $.extend({}, $.fn.transition.settings, {
+                animation : animation
+              });
+            }
+            return $.fn.transition.settings;
+          },
+          displayType: function() {
+            if(module.displayType === undefined) {
+              // create fake element to determine display state
+              module.can.transition();
+            }
+            return module.displayType;
+          },
+          transitionExists: function(animation) {
+            return $.fn.transition.exists[animation];
+          },
+          animationName: function() {
+            var
+              element     = document.createElement('div'),
+              animations  = {
+                'animation'       :'animationName',
+                'OAnimation'      :'oAnimationName',
+                'MozAnimation'    :'mozAnimationName',
+                'WebkitAnimation' :'webkitAnimationName'
+              },
+              animation
+            ;
+            for(animation in animations){
+              if( element.style[animation] !== undefined ){
+                return animations[animation];
+              }
+            }
+            return false;
+          },
+          animationEvent: function() {
+            var
+              element     = document.createElement('div'),
+              animations  = {
+                'animation'       :'animationend',
+                'OAnimation'      :'oAnimationEnd',
+                'MozAnimation'    :'mozAnimationEnd',
+                'WebkitAnimation' :'webkitAnimationEnd'
+              },
+              animation
+            ;
+            for(animation in animations){
+              if( element.style[animation] !== undefined ){
+                return animations[animation];
+              }
+            }
+            return false;
+          }
+
+        },
+
+        can: {
+          animate: function() {
+            if($module.css(settings.animation) !== 'none') {
+              module.debug('CSS definition found',  $module.css(settings.animation));
+              return true;
+            }
+            else {
+              module.debug('Unable to find css definition', $module.attr('class'));
+              return false;
+            }
+          },
+          transition: function() {
+            var
+              elementClass     = $module.attr('class'),
+              tagName          = $module.prop('tagName'),
+              animation        = settings.animation,
+              transitionExists = module.get.transitionExists(settings.animation),
+              $clone,
+              currentAnimation,
+              inAnimation,
+              displayType
+            ;
+            if( transitionExists === undefined || module.displayType === undefined) {
+              module.verbose('Determining whether animation exists');
+              $clone = $('<' + tagName + ' />').addClass( elementClass ).insertAfter($module);
+              currentAnimation = $clone
+                .removeClass(className.inward)
+                .removeClass(className.outward)
+                .addClass(className.animating)
+                .addClass(className.transition)
+                .addClass(animation)
+                .css(animationName)
+              ;
+              inAnimation = $clone
+                .addClass(className.inward)
+                .css(animationName)
+              ;
+              displayType = $clone
+                .attr('class', elementClass)
+                .removeAttr('style')
+                .removeClass(className.visible)
+                .show()
+                .css('display')
+              ;
+              module.verbose('Determining final display state', displayType);
+              if(currentAnimation != inAnimation) {
+                module.debug('Transition exists for animation', animation);
+                transitionExists = true;
+              }
+              else {
+                module.debug('Static animation found', animation, displayType);
+                transitionExists = false;
+              }
+              $clone.remove();
+              module.save.displayType(displayType);
+              if(transitionExists === undefined) {
+                module.save.transitionExists(animation, transitionExists);
+              }
+            }
+            return transitionExists;
+          }
+        },
+
+        is: {
+          animating: function() {
+            return $module.hasClass(className.animating);
+          },
+          inward: function() {
+            return $module.hasClass(className.inward);
+          },
+          outward: function() {
+            return $module.hasClass(className.outward);
+          },
+          looping: function() {
+            return $module.hasClass(className.looping);
+          },
+          occuring: function(animation) {
+            animation = animation || settings.animation;
+            return ( $module.hasClass(animation) );
+          },
+          visible: function() {
+            return $module.is(':visible');
+          },
+          hidden: function() {
+            return $module.css('visibility') === 'hidden';
+          },
+          supported: function() {
+            return(animationName !== false && animationEnd !== false);
+          }
+        },
+
+        hide: function() {
+          module.verbose('Hiding element');
+          module.remove.visible();
+          module.set.hidden();
+          module.repaint();
+        },
+
+        show: function(display) {
+          module.verbose('Showing element', display);
+          module.remove.hidden();
+          module.set.visible();
+          module.repaint();
+        },
+
+        start: function() {
+          module.verbose('Starting animation');
+          $module.removeClass(className.disabled);
+        },
+
+        stop: function() {
+          module.debug('Stopping animation');
+          $module.addClass(className.disabled);
+        },
+
+        toggle: function() {
+          module.debug('Toggling play status');
+          $module.toggleClass(className.disabled);
+        },
+
         setting: function(name, value) {
+          module.debug('Changing setting', name, value);
           if( $.isPlainObject(name) ) {
             $.extend(true, settings, name);
           }
@@ -12022,9 +16266,523 @@ $.fn.video = function(parameters) {
               executionTime = currentTime - previousTime;
               time          = currentTime;
               performance.push({
-                'Element'        : element,
                 'Name'           : message[0],
                 'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
+                'Execution Time' : executionTime
+              });
+            }
+            clearTimeout(module.performance.timer);
+            module.performance.timer = setTimeout(module.performance.display, 600);
+          },
+          display: function() {
+            var
+              title = settings.name + ':',
+              totalTime = 0
+            ;
+            time = false;
+            clearTimeout(module.performance.timer);
+            $.each(performance, function(index, data) {
+              totalTime += data['Execution Time'];
+            });
+            title += ' ' + totalTime + 'ms';
+            if(moduleSelector) {
+              title += ' \'' + moduleSelector + '\'';
+            }
+            if($allModules.size() > 1) {
+              title += ' ' + '(' + $allModules.size() + ')';
+            }
+            if( (console.group !== undefined || console.table !== undefined) && performance.length > 0) {
+              console.groupCollapsed(title);
+              if(console.table) {
+                console.table(performance);
+              }
+              else {
+                $.each(performance, function(index, data) {
+                  console.log(data['Name'] + ': ' + data['Execution Time']+'ms');
+                });
+              }
+              console.groupEnd();
+            }
+            performance = [];
+          }
+        },
+        // modified for transition to return invoke success
+        invoke: function(query, passedArguments, context) {
+          var
+            object = instance,
+            maxDepth,
+            found,
+            response
+          ;
+          passedArguments = passedArguments || queryArguments;
+          context         = element         || context;
+          if(typeof query == 'string' && object !== undefined) {
+            query    = query.split(/[\. ]/);
+            maxDepth = query.length - 1;
+            $.each(query, function(depth, value) {
+              var camelCaseValue = (depth != maxDepth)
+                ? value + query[depth + 1].charAt(0).toUpperCase() + query[depth + 1].slice(1)
+                : query
+              ;
+              if( $.isPlainObject( object[camelCaseValue] ) && (depth != maxDepth) ) {
+                object = object[camelCaseValue];
+              }
+              else if( object[camelCaseValue] !== undefined ) {
+                found = object[camelCaseValue];
+                return false;
+              }
+              else if( $.isPlainObject( object[value] ) && (depth != maxDepth) ) {
+                object = object[value];
+              }
+              else if( object[value] !== undefined ) {
+                found = object[value];
+                return false;
+              }
+              else {
+                return false;
+              }
+            });
+          }
+          if ( $.isFunction( found ) ) {
+            response = found.apply(context, passedArguments);
+          }
+          else if(found !== undefined) {
+            response = found;
+          }
+
+          if($.isArray(returnedValue)) {
+            returnedValue.push(response);
+          }
+          else if(returnedValue !== undefined) {
+            returnedValue = [returnedValue, response];
+          }
+          else if(response !== undefined) {
+            returnedValue = response;
+          }
+          return (found !== undefined)
+            ? found
+            : false
+          ;
+        }
+      };
+      module.initialize();
+    })
+  ;
+  return (returnedValue !== undefined)
+    ? returnedValue
+    : this
+  ;
+};
+
+// Records if CSS transition is available
+$.fn.transition.exists = {};
+
+$.fn.transition.settings = {
+
+  // module info
+  name        : 'Transition',
+
+  // debug content outputted to console
+  debug       : false,
+
+  // verbose debug output
+  verbose     : true,
+
+  // performance data output
+  performance : true,
+
+  // event namespace
+  namespace   : 'transition',
+
+  // animation complete event
+  complete    : function() {},
+  onShow      : function() {},
+  onHide      : function() {},
+
+  // whether EXACT animation can occur twice in a row
+  allowRepeats : false,
+
+  // animation duration
+  animation  : 'fade',
+  duration   : '500ms',
+
+  // new animations will occur after previous ones
+  queue       : true,
+
+  className   : {
+    animating  : 'animating',
+    disabled   : 'disabled',
+    hidden     : 'hidden',
+    inward     : 'in',
+    loading    : 'loading',
+    looping    : 'looping',
+    outward    : 'out',
+    transition : 'transition',
+    visible    : 'visible'
+  },
+
+  // possible errors
+  error: {
+    noAnimation : 'There is no css animation matching the one you specified.',
+    repeated    : 'That animation is already occurring, cancelling repeated animation',
+    method      : 'The method you called is not defined',
+    support     : 'This browser does not support CSS animations'
+  }
+
+};
+
+
+})( jQuery, window , document );
+
+ /*
+ * # Semantic - Video
+ * http://github.com/semantic-org/semantic-ui/
+ *
+ *
+ * Copyright 2014 Contributors
+ * Released under the MIT license
+ * http://opensource.org/licenses/MIT
+ *
+ */
+
+;(function ($, window, document, undefined) {
+
+"use strict";
+
+$.fn.video = function(parameters) {
+
+  var
+    $allModules     = $(this),
+
+    moduleSelector  = $allModules.selector || '',
+
+    time            = new Date().getTime(),
+    performance     = [],
+
+    query           = arguments[0],
+    methodInvoked   = (typeof query == 'string'),
+    queryArguments  = [].slice.call(arguments, 1),
+
+    requestAnimationFrame = window.requestAnimationFrame
+      || window.mozRequestAnimationFrame
+      || window.webkitRequestAnimationFrame
+      || window.msRequestAnimationFrame
+      || function(callback) { setTimeout(callback, 0); },
+
+    returnedValue
+  ;
+
+  $allModules
+    .each(function() {
+      var
+        settings        = ( $.isPlainObject(parameters) )
+          ? $.extend(true, {}, $.fn.video.settings, parameters)
+          : $.extend({}, $.fn.video.settings),
+
+        selector        = settings.selector,
+        className       = settings.className,
+        error           = settings.error,
+        metadata        = settings.metadata,
+        namespace       = settings.namespace,
+        templates       = settings.templates,
+
+        eventNamespace  = '.' + namespace,
+        moduleNamespace = 'module-' + namespace,
+
+        $window         = $(window),
+        $module         = $(this),
+        $placeholder    = $module.find(selector.placeholder),
+        $playButton     = $module.find(selector.playButton),
+        $embed          = $module.find(selector.embed),
+
+        element         = this,
+        instance        = $module.data(moduleNamespace),
+        module
+      ;
+
+      module = {
+
+        initialize: function() {
+          module.debug('Initializing video');
+          module.create();
+          $placeholder
+            .on('click' + eventNamespace, module.play)
+          ;
+          $playButton
+            .on('click' + eventNamespace, module.play)
+          ;
+          module.instantiate();
+        },
+
+        instantiate: function() {
+          module.verbose('Storing instance of module', module);
+          instance = module;
+          $module
+            .data(moduleNamespace, module)
+          ;
+        },
+
+        create: function() {
+          var
+            image = $module.data(metadata.image),
+            html = templates.video(image)
+          ;
+          $module.html(html);
+          module.refresh();
+          if(!image) {
+            module.play();
+          }
+          module.debug('Creating html for video element', html);
+        },
+
+        destroy: function() {
+          module.verbose('Destroying previous instance of video');
+          module.reset();
+          $module
+            .removeData(moduleNamespace)
+            .off(eventNamespace)
+          ;
+          $placeholder
+            .off(eventNamespace)
+          ;
+          $playButton
+            .off(eventNamespace)
+          ;
+        },
+
+        refresh: function() {
+          module.verbose('Refreshing selector cache');
+          $placeholder    = $module.find(selector.placeholder);
+          $playButton     = $module.find(selector.playButton);
+          $embed          = $module.find(selector.embed);
+        },
+
+        // sets new video
+        change: function(source, id, url) {
+          module.debug('Changing video to ', source, id, url);
+          $module
+            .data(metadata.source, source)
+            .data(metadata.id, id)
+            .data(metadata.url, url)
+          ;
+          settings.onChange();
+        },
+
+        // clears video embed
+        reset: function() {
+          module.debug('Clearing video embed and showing placeholder');
+          $module
+            .removeClass(className.active)
+          ;
+          $embed
+            .html(' ')
+          ;
+          $placeholder
+            .show()
+          ;
+          settings.onReset();
+        },
+
+        // plays current video
+        play: function() {
+          module.debug('Playing video');
+          var
+            source = $module.data(metadata.source) || false,
+            url    = $module.data(metadata.url)    || false,
+            id     = $module.data(metadata.id)     || false
+          ;
+          $embed
+            .html( module.generate.html(source, id, url) )
+          ;
+          $module
+            .addClass(className.active)
+          ;
+          settings.onPlay();
+        },
+
+        get: {
+          source: function(url) {
+            if(typeof url !== 'string') {
+              return false;
+            }
+            if(url.search('youtube.com') !== -1) {
+              return 'youtube';
+            }
+            else if(url.search('vimeo.com') !== -1) {
+              return 'vimeo';
+            }
+            return false;
+          },
+          id: function(url) {
+            if(settings.regExp.youtube.test(url)) {
+              return url.match(settings.regExp.youtube)[1];
+            }
+            else if(settings.regExp.vimeo.test(url)) {
+              return url.match(settings.regExp.vimeo)[2];
+            }
+            return false;
+          }
+        },
+
+        generate: {
+          // generates iframe html
+          html: function(source, id, url) {
+            module.debug('Generating embed html');
+            var
+              html
+            ;
+            // allow override of settings
+            source = source || settings.source;
+            id     = id     || settings.id;
+            if((source && id) || url) {
+              if(!source || !id) {
+                source = module.get.source(url);
+                id     = module.get.id(url);
+              }
+              if(source == 'vimeo') {
+                html = ''
+                  + '<iframe src="http://player.vimeo.com/video/' + id + '?=' + module.generate.url(source) + '"'
+                  + ' width="100%" height="100%"'
+                  + ' frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>'
+                ;
+              }
+              else if(source == 'youtube') {
+                html = ''
+                  + '<iframe src="http://www.youtube.com/embed/' + id + '?=' + module.generate.url(source) + '"'
+                  + ' width="100%" height="100%"'
+                  + ' frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>'
+                ;
+              }
+            }
+            else {
+              module.error(error.noVideo);
+            }
+            return html;
+          },
+
+          // generate url parameters
+          url: function(source) {
+            var
+              api      = (settings.api)
+                ? 1
+                : 0,
+              autoplay = (settings.autoplay === 'auto')
+                ? ($module.data('image') !== undefined)
+                : settings.autoplay,
+              hd       = (settings.hd)
+                ? 1
+                : 0,
+              showUI   = (settings.showUI)
+                ? 1
+                : 0,
+              // opposite used for some params
+              hideUI   = !(settings.showUI)
+                ? 1
+                : 0,
+              url = ''
+            ;
+            if(source == 'vimeo') {
+              url = ''
+                +      'api='      + api
+                + '&amp;title='    + showUI
+                + '&amp;byline='   + showUI
+                + '&amp;portrait=' + showUI
+                + '&amp;autoplay=' + autoplay
+              ;
+              if(settings.color) {
+                url += '&amp;color=' + settings.color;
+              }
+            }
+            if(source == 'ustream') {
+              url = ''
+                + 'autoplay=' + autoplay
+              ;
+              if(settings.color) {
+                url += '&amp;color=' + settings.color;
+              }
+            }
+            else if(source == 'youtube') {
+              url = ''
+                + 'enablejsapi='      + api
+                + '&amp;autoplay='    + autoplay
+                + '&amp;autohide='    + hideUI
+                + '&amp;hq='          + hd
+                + '&amp;modestbranding=1'
+              ;
+              if(settings.color) {
+                url += '&amp;color=' + settings.color;
+              }
+            }
+            return url;
+          }
+        },
+
+        setting: function(name, value) {
+          module.debug('Changing setting', name, value);
+          if( $.isPlainObject(name) ) {
+            $.extend(true, settings, name);
+          }
+          else if(value !== undefined) {
+            settings[name] = value;
+          }
+          else {
+            return settings[name];
+          }
+        },
+        internal: function(name, value) {
+          if( $.isPlainObject(name) ) {
+            $.extend(true, module, name);
+          }
+          else if(value !== undefined) {
+            module[name] = value;
+          }
+          else {
+            return module[name];
+          }
+        },
+        debug: function() {
+          if(settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.debug = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.debug.apply(console, arguments);
+            }
+          }
+        },
+        verbose: function() {
+          if(settings.verbose && settings.debug) {
+            if(settings.performance) {
+              module.performance.log(arguments);
+            }
+            else {
+              module.verbose = Function.prototype.bind.call(console.info, console, settings.name + ':');
+              module.verbose.apply(console, arguments);
+            }
+          }
+        },
+        error: function() {
+          module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
+          module.error.apply(console, arguments);
+        },
+        performance: {
+          log: function(message) {
+            var
+              currentTime,
+              executionTime,
+              previousTime
+            ;
+            if(settings.performance) {
+              currentTime   = new Date().getTime();
+              previousTime  = time || currentTime;
+              executionTime = currentTime - previousTime;
+              time          = currentTime;
+              performance.push({
+                'Name'           : message[0],
+                'Arguments'      : [].slice.call(message, 1) || '',
+                'Element'        : element,
                 'Execution Time' : executionTime
               });
             }
@@ -12148,10 +16906,17 @@ $.fn.video.settings = {
   performance : true,
 
   metadata    : {
-    source : 'source',
     id     : 'id',
+    image  : 'image',
+    source : 'source',
     url    : 'url'
   },
+
+  source      : false,
+  url         : false,
+  id          : false,
+
+  aspectRatio : (16/9),
 
   onPlay   : function(){},
   onReset  : function(){},
@@ -12164,11 +16929,16 @@ $.fn.video.settings = {
   width    : 'auto',
   height   : 'auto',
 
-  autoplay : false,
+  autoplay : 'auto',
   color    : '#442359',
   hd       : true,
   showUI   : false,
   api      : true,
+
+  regExp : {
+    youtube : /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/,
+    vimeo   : /http:\/\/(www\.)?vimeo.com\/(\d+)($|\/)/
+  },
 
   error      : {
     noVideo     : 'No video specified',
@@ -12183,6 +16953,22 @@ $.fn.video.settings = {
     embed       : '.embed',
     placeholder : '.placeholder',
     playButton  : '.play'
+  }
+};
+
+$.fn.video.settings.templates = {
+  video: function(image) {
+    var
+      html = ''
+    ;
+    if(image) {
+      html += ''
+        + '<i class="video play icon"></i>'
+        + '<img class="placeholder" src="' + image + '">'
+      ;
+    }
+    html += '<div class="embed"></div>';
+    return html;
   }
 };
 

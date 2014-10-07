@@ -9,7 +9,8 @@
   "scripts": {
     "test": "NODE_ENV=test mocha --recursive",
     "coverage": "istanbul cover _mocha",
-    "updates": "rm -rf bower_components && bower install semantic && cp -r bower_components/semantic/rtl/less private/less/semantic && rm -rf bower_components"
+    "updates": "rm -rf bower_components && bower install semantic && cp -r bower_components/semantic/rtl/less private/less/semantic && rm -rf bower_components",
+    "semantic": "rm -rf bower_components semantic.zip && mkdir bower_components && wget http://beta.semantic-ui.com/build/semantic.zip && unzip semantic.zip -d bower_components/semantic && cd bower_components/semantic/packaged && cp -Rf definitions/css/* ../../../public/css/ && cp -Rf definitions/javascript/* ../../../public/js/ "
   },
   "repository": {
     "type": "git",
