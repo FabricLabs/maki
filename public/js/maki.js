@@ -1,6 +1,7 @@
 // stub for a proper class
 var maki = {
-    templates: {}
+    config: null
+  , templates: {}
   , routes: []
   , socket: null // only one connected socket at a time (for now)
   , sockets: {
@@ -123,15 +124,22 @@ $(window).on('ready', function() {
     type: 'OPTIONS',
     url: '/'
   }).done(function(data) {
-    if (!data) return console.log('failed to acquire resource list; disabling fancy stuff.');
+    if (!data || !data.resources) return console.log('failed to acquire resource list; disabling fancy stuff.');
+    if (!data.config) return console.log('failed to acquire server config; disabling fancy stuff.');
+    
+    maki.config = data.config;
+    
     // server is online!
     maki.$viewport = $('[data-for=viewport]');
     maki.sockets.connect();
     
+    // exit instead of binding client view handler
+    if (!maki.config.views || !maki.config.views.client || maki.config.views.client !== true) return console.log('client view rendering disabled.');
+    
     $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
     //$('a[href="'+window.location.pathname+'"]').addClass('active');
 
-    maki.resources = data;
+    maki.resources = data.resources;
     maki.resources.forEach(function(resource) {
       // only support routing for lists and singles
       [ 'query', 'get' ].forEach(function(m) {

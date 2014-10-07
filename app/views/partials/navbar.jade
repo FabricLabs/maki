@@ -1,7 +1,9 @@
 .ui.grid
   .row
-    .ui.pointing.menu.navbar.page.grid(ng-controller="headerController", headroom)
-      a.brand.item(href="/") Maki
+    .ui.pointing.large.menu.navbar.page.grid(ng-controller="headerController")
+      a.brand.item(href="/")
+        i.icon.maki.left
+        | Maki
 
       //- block for prepend/append/replace-able menu items
       block mainMenu
