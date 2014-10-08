@@ -28,7 +28,7 @@ var Pour = maki.define('Pour', {
   attributes: {
     _faucet: { type: maki.mongoose.SchemaTypes.ObjectId , required: true },
     address: { type: String , max: 80 },
-    amount:  { type: String , max: 80 , id: true },
+    amount:  { type: String , max: 80 },
     ip:      { type: String , private: true },
     date:    { type: Date , default: Date.now , restricted: true },
     comment: { type: String },
@@ -41,16 +41,12 @@ var Pour = maki.define('Pour', {
 });
 
 Faucet.post('init', function( faucet , next ) {
-  
-  console.log(faucet);
-  
   // TODO: debounce / singleton
   faucet.btcClient().getBalance('*', 1, function(err, balance, resHeaders) {
     if (err) console.log(err);
 
     faucet.balance = balance;
     faucet.save(function(err) {
-      console.log('saved, err: ' , err );
       next( err , 'faucet stuff' );
     });
     
@@ -58,8 +54,8 @@ Faucet.post('init', function( faucet , next ) {
 });
 
 Pour.pre('save', function( done ) {
-  console.log('hi.  I would reject the creation of pours.');
-  // TODO: validate, ratelimit, etc.
+  var pour = this;
+  console.log('TODO: implement ratelimiter.  pre-save() called.', pour );
   done();
 });
 
