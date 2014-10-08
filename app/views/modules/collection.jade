@@ -1,6 +1,5 @@
-- var fields = Object.keys(collection)
-
-table.table.table-striped
+//- TODO: map each column and provide summary in footer
+table.ui.table.segment.sortable
   thead
     tr
       each field in fields
@@ -8,4 +7,14 @@ table.table.table-striped
 
   tbody
     each item in collection
-      include item
+      tr
+        each field in fields
+          td
+            if (field == idField)
+              a(href="/#{resource.collection}/#{item[ field ]}") #{item[ field ]}
+            else
+              | #{item[ field ]}
+
+  tfoot
+    tr
+      td #{collection.length} items

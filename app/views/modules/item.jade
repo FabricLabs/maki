@@ -1,3 +1,21 @@
-tr
-  each field in fields
-    td #{item[ field ]}
+
+block breadcrumbs
+  .divider  / 
+  a(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
+
+block content
+  //- TODO: map each column and provide summary in footer
+  table.ui.table.segment.sortable
+    thead
+      tr
+        each field in fields
+          td #{field}
+
+    tbody
+      tr
+        each field in fields
+          td
+            if (field == idField)
+              a(href="/#{resource.collection}/#{item[ field ]}") #{item[ field ]}
+            else
+              | #{item[ field ]}
