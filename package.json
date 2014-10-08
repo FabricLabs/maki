@@ -32,6 +32,7 @@
   "dependencies": {
     "asset-rack": "git://github.com/martindale/asset-rack.git#8d03859922d83f4839086b1208ff6aab28a0a272",
     "async": "~0.7.0",
+    "bitcoin": "^2.2.0",
     "body-parser": "~1.2.2",
     "connect-redis": "~2.0.0",
     "cookie-parser": "~1.1.0",
@@ -41,6 +42,7 @@
     "flashify": "~0.1.2",
     "jade": "~0.28.2",
     "json-patch": "^0.4.3",
+    "lodash": "^2.4.1",
     "maki-mongoose-hooks": "^0.1.0",
     "maki-queue": "0.0.1",
     "maki-service-websockets": "^0.1.1",
