@@ -30,7 +30,6 @@
   "readmeFilename": "README.md",
   "gitHead": "22dbaa6e09ffb728b79cecf128f4694fe12d5661",
   "dependencies": {
-    "asset-rack": "git://github.com/martindale/asset-rack.git#8d03859922d83f4839086b1208ff6aab28a0a272",
     "async": "~0.7.0",
     "body-parser": "~1.2.2",
     "connect-redis": "~2.0.0",
@@ -40,7 +39,9 @@
     "fast-json-patch": "^0.3.6",
     "flashify": "~0.1.2",
     "jade": "~0.28.2",
+    "jade-browser": "0.0.14",
     "json-patch": "^0.4.3",
+    "less-middleware": "^0.1.15",
     "maki-mongoose-hooks": "^0.1.0",
     "maki-queue": "0.0.1",
     "maki-service-websockets": "^0.1.1",
@@ -57,6 +58,7 @@
     "pluralize": "^1.0.0",
     "provide": "^0.1.3",
     "redis": "~0.10.3",
+    "serve-static": "^1.6.4",
     "spdy": "^1.28.1",
     "underscore": "~1.6.0",
     "ws": "~0.4.31"
