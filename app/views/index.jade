@@ -1,82 +1,49 @@
 extends layouts/default
 
 block content
-  if (user)
-    h1 Welcome, #{user.username}!
+  .ui.header.page.grid.huge
+    .sixteen.wide.column.huge
+      h1 Welcome to BitFaucet!
+      h3 We provide bitcoin from testnet for testing purposes.
+      p &nbsp;
+      
+      center
+        h2 #{ faucet.balance }
+          i.icon.bitcoin
+          | available
 
-  else
-    .ui.huge.header
-      h1 Hello, Maki.
-      p A simple framework for hand-rolling your web application.
+  .ui.page.grid
+    .sixteen.wide.column
+      form.ui.form(action="/pours", method="post")
+        input(type="hidden", name="_faucet", value="#{faucet._id}")
+       
+        .three.fields
+          .field.two.wide
+            label Amount
+            input(type="number", name="amount", step="any", max="5", min="0", value="1", required)
+          .field.twelve.wide
+            label Address
+            input(type="text", name="address", length="35", placeholder="i.e., miWQvs1rZFgBjXsP7nfyYA7tBvG6dHgV9d", required)
+          .field.two.wide
+            label &nbsp;
+            input.ui.blue.submit.button(type="submit", value="Get Bits &raquo;")
 
-    .ui
-      .ui.three.column.grid
-        .column
-          .ui.blue.segment.card
-            h2.center-text Hand-rolled.
-            p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
-        .column
-          .ui.red.segment.card
-            h2.center-text Get Making.
-            p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
-        .column
-          .ui.green.segment.card
-              h2.center-text Already registered?
-              a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
-          
-      .ui.column.grid
-        .column
-          h3 Resources
-          
-          .ui.list
-            each resource in maki.resources
-              a.item(href="#{resource.routes.query}") #{resource.plural}  
-          
-      .ui.column.grid
-        .column
-          h3 Features
-          hr
+  .ui.grid
+    .row.two
+    .row.two
+    .row.two
 
-          h4 Full-Javascript Stack
-          p Build your app without wasting time on context switching.  Every layer of the Maki stack is Javascript, from the database (MongoDB) to the server (Node.js) and on to the clientside.
-
-          h4 Authentication
-          p We've built authentication into the stack (using PassportJS), including username and password auth, and OAuth using providers like Facebook and Twitter.  Spend your time on your app, not third-party auth.
-
-      .ui.column.grid
-        .column
-          h3 Documentation
-          
-          h4 Resource-Driven Development
-          p You'll start your hand-rolled application by defining the resources your application exposes:
-          
-          
-          .ui.segment
-            code.javascript
-              | maki.define({
-              |   name: 'Person',
-              |   attributes: {
-              |     name: { type: String , max: 80 },
-              |     slug: { type: String , max: 80 , id: true }
-              |   }
-              | });
-              | 
-              
-          p Almost like magic, <strong>your resource now has an endpoint that renders HTML <em>and</em> serves JSON</strong>.  Even better, AngularJS will automatically wire itself up to this resource.
-          
-          p More interestingly, <strong>all URIs are auto-constructed</strong>, and listen for HTTP verbs to perform actions on those resources.  In the above example, the resource's name, <code>"Person"</code>, gets converted into <code>/people</code> for a query-able collection, and <code>/people/:id</code> for a single instance.
-          
-          h4 UI
-          p We're using Bootstrap for our base CSS framework, giving us a generally semantic way of building interface elements.  In addition, we're using Jade to simplify the construction of HTML using simple style rules.
-
-          h5 Tooltips
-          p Add <code>.tooltipped</code> to an element to enable automatic generation of a tooltip for that element, defaulting to its <code>title</code> attribute.
-          p For example, 
-            code
-              | a.tooltipped(href="/about", title="Learn More about Maki") About
-            |  will produce: 
-            a.tooltipped(href="/about", title="Learn More about Maki") About
-
-      .ui.column.grid
-        .column
-          hr
+  .ui
+    .ui.three.column.grid
+      .column
+        .ui.blue.segment.card
+          h2.center-text Hand-rolled.
+          p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
+      .column
+        .ui.red.segment.card
+          h2.center-text Get Making.
+          p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
+      .column
+        .ui.green.segment.card
+            h2.center-text Already registered?
+            a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
