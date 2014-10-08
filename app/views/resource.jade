@@ -2,7 +2,20 @@ extends layouts/default
 
 block content
 
-  h1 #{resource.plural}
+  - var idField = resource.fields.id;
+
+  h1.ui.breadcrumb
+    block breadcrumbs
+      a.active.section(href="/#{resource.collection}") #{resource.plural}
 
   //- TODO: use different modules for different collection types?
-  include modules/collection
+  if typeof(collection) == 'undefined'
+  
+    - var item = JSON.parse(JSON.stringify(item))
+    - var fields = Object.keys( item || {} )
+    include modules/item
+
+  else
+
+    - var fields = Object.keys( collection[0] || {} )
+    include modules/collection
