@@ -1,0 +1,7 @@
+form.ui.form.segment(action="/#{resource.collection}", method="post")
+  for field in fields
+    .field
+      label #{field}
+      input(type="text", name="#{field}")
+      
+  button.ui.blue.submit.button(type="submit") Create &raquo;
