@@ -138,12 +138,27 @@ describe('http', function(){
       });
   });
   
-  it('should allow for a resource to be created', function( done ) {
+  it('should allow for a resource to be created (single call)', function( done ) {
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    request( maki.app )
+      .post('/people')
+      .set('Accept', 'application/json')
+      .send({ username: 'test-user-'+randomNum })
+      .expect(200)
+      .end(function(err, res) {
+        if (err) throw err;
+        done();
+      });
+  });
+  
+  // TODO: evaluate this from a standards perspective.  Should HTML clients
+  // be treated differently?
+  it('should allow for a resource to be created (html client)', function( done ) {
     var randomNum = getRandomInt( 100000 , 1000000 );
     request( maki.app )
       .post('/people')
       .send({ username: 'test-user-'+randomNum })
-      .expect(200)
+      .expect(302)
       .end(function(err, res) {
         if (err) throw err;
         done();

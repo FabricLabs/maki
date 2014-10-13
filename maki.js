@@ -25,7 +25,7 @@ var resources = [
   {
     name: 'Dashboard',
     attributes: {
-      name: { type: String , max: 80 , name: true }
+      name: { type: String , max: 80 , name: true , slug: true }
     },
     requires: {
       'examples': {},

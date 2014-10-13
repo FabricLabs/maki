@@ -15,7 +15,13 @@ block content
     - var fields = Object.keys( item || {} )
     include modules/item
 
+    h3 Create
+    include forms/resource-create
+
   else
 
     - var fields = Object.keys( collection[0] || {} )
     include modules/collection
+
+    h3 Create
+    include forms/resource-create
