@@ -4,6 +4,7 @@ var maki = {
   , templates: {}
   , routes: []
   , collections: {}
+  , observers: []
   , socket: null // only one connected socket at a time (for now)
   , sockets: {
       subscriptions: [],
@@ -159,8 +160,15 @@ Resource.prototype.patch = function( ops ) {
 }
 Resource.prototype.sync = function() {
   var self = this;
-  $.getJSON( self.path , function(obj) {
-    self._collection = obj;
+  $.ajax({
+    async: false,
+    type: 'GET',
+    url: self.path,
+    dataType: 'json',
+    success: function(obj) {
+      console.log('received', obj);
+      self._collection = obj;
+    }
   });
 }
 
@@ -188,6 +196,19 @@ $(window).on('ready', function() {
       //maki.collections[ resource.name ] = new PouchDB( resource.name );
       maki.collections[ resource.name ] = new Resource( resource.name , '/' + resource.collection );
       maki.collections[ resource.name ].sync();
+      
+      // observers must be bound _after_ sync
+      var c = maki.collections[ resource.name ];
+      Object.observe( maki.collections[ resource.name ]._collection , function( changes ) {
+        console.log('observed changes: ' , changes);
+        
+        var selector = '*[data-model="'+c.name+'"][data-path="'+ c.path +'"]';
+        console.log('selector', selector);
+        
+        // hacky hack
+        $( selector ).replaceWith('<h1>LOL</h1>');
+        
+      });
       
     });
     
