@@ -10,16 +10,13 @@ block content
 
   //- TODO: use different modules for different collection types?
   if typeof(collection) == 'undefined'
-  
+    //- No collection was provided, render single
     - var item = JSON.parse(JSON.stringify(item))
     - var fields = Object.keys( item || {} )
     include modules/item
 
-    h3 Create
-    include forms/resource-create
-
   else
-
+    //- TODO: collect all fields, not infer from single element
     - var fields = Object.keys( collection[0] || {} )
     include modules/collection
 

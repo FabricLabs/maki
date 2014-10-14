@@ -39,15 +39,12 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-
-
 before(function(done) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   maki.start(function() {
     done();
   });
 });
-
 
 describe('Maki', function() {
   it('should expose a constructor', function(){
