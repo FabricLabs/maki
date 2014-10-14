@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "NODE_ENV=test mocha --recursive",
-    "coverage": "istanbul cover _mocha",
+    "coverage": "NODE_ENV=test istanbul cover _mocha -- --recursive",
     "updates": "rm -rf bower_components && bower install semantic && cp -r bower_components/semantic/rtl/less private/less/semantic && rm -rf bower_components"
   },
   "repository": {
@@ -38,10 +38,11 @@
     "express-session": "~1.2.1",
     "fast-json-patch": "^0.3.6",
     "flashify": "~0.1.2",
-    "jade": "~0.28.2",
+    "jade": "^1.7.0",
     "jade-browser": "0.0.14",
     "json-patch": "^0.4.3",
-    "less-middleware": "^0.1.15",
+    "less-middleware": "git://github.com/martindale/less.js-middleware#maki",
+    "lodash": "^2.4.1",
     "maki-mongoose-hooks": "^0.1.0",
     "maki-queue": "0.0.1",
     "maki-service-websockets": "^0.1.1",

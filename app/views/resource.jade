@@ -7,15 +7,19 @@ block content
   h1.ui.breadcrumb
     block breadcrumbs
       a.active.section(href="/#{resource.collection}") #{resource.plural}
+      - if (typeof(item) != 'undefined')
+        .divider / 
+        a(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
+
+  - var fields = Object.keys(resource.keys) || []
 
   //- TODO: use different modules for different collection types?
-  if typeof(collection) == 'undefined'
-  
-    - var item = JSON.parse(JSON.stringify(item))
-    - var fields = Object.keys( item || {} )
+  if (!collection)
+    //- No collection was provided, render single
     include modules/item
 
   else
-
-    - var fields = Object.keys( collection[0] || {} )
     include modules/collection
+
+    h3 Create
+    include forms/resource-create
