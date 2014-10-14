@@ -12,11 +12,10 @@ block content
         a(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
 
   - var fields = Object.keys(resource.keys) || []
-  
+
   //- TODO: use different modules for different collection types?
-  if typeof(item) != 'undefined'
+  if (!collection)
     //- No collection was provided, render single
-    - var item = JSON.parse(JSON.stringify(item))
     include modules/item
 
   else
