@@ -7,17 +7,19 @@ block content
   h1.ui.breadcrumb
     block breadcrumbs
       a.active.section(href="/#{resource.collection}") #{resource.plural}
+      - if (typeof(item) != 'undefined')
+        .divider / 
+        a(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
 
+  - var fields = Object.keys(resource.keys) || []
+  
   //- TODO: use different modules for different collection types?
-  if typeof(collection) == 'undefined'
+  if typeof(item) != 'undefined'
     //- No collection was provided, render single
     - var item = JSON.parse(JSON.stringify(item))
-    - var fields = Object.keys( item || {} )
     include modules/item
 
   else
-    //- TODO: collect all fields, not infer from single element
-    - var fields = Object.keys( collection[0] || {} )
     include modules/collection
 
     h3 Create
