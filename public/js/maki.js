@@ -3,6 +3,7 @@ var maki = {
     config: null
   , templates: {}
   , routes: []
+  , collections: {}
   , socket: null // only one connected socket at a time (for now)
   , sockets: {
       subscriptions: [],
@@ -79,6 +80,19 @@ var maki = {
                   'id': data.id
                 }));
               break;
+              case 'patch':
+                // update database
+                console.log( data );
+                
+                _.filter( maki.collections , function( c ) {
+                  console.log('checking ', c , data.params.channel)
+                  return c.path == data.params.channel;
+                } ).forEach(function( c ) {
+                  console.log('executing ', c );
+                  maki.collections[ c.name ].patch( data.params.ops );
+                });
+                
+              break;
               default:
                 console.log('unhandled jsonrpc method ' , data.method);
               break;
@@ -119,7 +133,39 @@ function DataBinder( objectID ) {
   });
 }
 
+var MakiDB = function() {};
+
+// naïve implementation of Resources
+// TODO: use PouchDB or something similar?
+var Resource = function( name , path ) {
+  this.name = name;
+  this.path = path;
+  this._collection = [];
+}
+Resource.prototype.create = function( doc ) {
+  this._collection.push( doc );
+}
+Resource.prototype.query = function( q ) {
+  return _.where( this._collection , q );
+}
+Resource.prototype.get = function( id ) {
+  return _.find( this._collection , function( doc ) {
+    return doc._id == id;
+  });
+}
+Resource.prototype.patch = function( ops ) {
+  console.log('patching', ops );
+  jsonpatch.apply( this._collection , ops );
+}
+Resource.prototype.sync = function() {
+  var self = this;
+  $.getJSON( self.path , function(obj) {
+    self._collection = obj;
+  });
+}
+
 $(window).on('ready', function() {
+  
   $.ajax({
     type: 'OPTIONS',
     url: '/'
@@ -128,6 +174,22 @@ $(window).on('ready', function() {
     if (!data.config) return console.log('failed to acquire server config; disabling fancy stuff.');
     
     maki.config = data.config;
+    
+    maki.resources = data.resources;
+    maki.resources.forEach(function(resource) {
+      // only support routing for lists and singles
+      [ 'query', 'get' ].forEach(function(m) {
+        var path = resource.paths[ m ];
+        if (path) maki.templates[ path ] = resource.templates[ m ];
+      });
+      
+      console.log(resource);
+      
+      //maki.collections[ resource.name ] = new PouchDB( resource.name );
+      maki.collections[ resource.name ] = new Resource( resource.name , '/' + resource.collection );
+      maki.collections[ resource.name ].sync();
+      
+    });
     
     // server is online!
     maki.$viewport = $('[data-for=viewport]');
@@ -139,15 +201,6 @@ $(window).on('ready', function() {
     $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
     //$('a[href="'+window.location.pathname+'"]').addClass('active');
 
-    maki.resources = data.resources;
-    maki.resources.forEach(function(resource) {
-      // only support routing for lists and singles
-      [ 'query', 'get' ].forEach(function(m) {
-        var path = resource.paths[ m ];
-        if (path) maki.templates[ path ] = resource.templates[ m ];
-      });
-    });
-    
     // bind pushState stuff
     $( document ).on('click', 'a', function(e) {
       e.preventDefault();
