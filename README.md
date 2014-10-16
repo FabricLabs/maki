@@ -9,6 +9,25 @@ Maki is a framework for hand-rolling web applications in a way that makes sense 
 - **Client-Responsiveness.**  Don't rely on user-agents or referers, but instead respond to what the client supports.  Make a request that only accepts JSON?  Get JSON back.  Accept HTML?  Get HTML back.
 - **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript _is_ available, a performant and well-designed client-side application takes over to eliminate full-page loads.  See also [Modules](#modules).
 
+## Quick Start
+
+1. Install Maki: `npm install martindale/maki`
+2. Create your app, perhaps in `yourapp.js`:
+  ```javascript
+  var myApp = new require('maki');
+  
+  myApp.define('Widget', {
+    attributes: {
+      name: String
+    }
+  });
+  
+  myApp.start();
+  ```
+3. Start your app: `node yourapp.js` – by default, accessible at http://localhost:9200
+
+
+## Documentation
 ### Definitions
 In general, we'll be using the proper noun form of these definitions when referring to them explicitly.
 
