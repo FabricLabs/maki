@@ -10,7 +10,7 @@ Maki is a framework for hand-rolling web applications in a way that makes sense 
 - **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript _is_ available, a performant and well-designed client-side application takes over to eliminate full-page loads.  See also [Modules](#modules).
 
 ## Quick Start
-You'll need [node.js](http://nodejs.org) to build a Maki application.   Additionally, [MongoDB](http://mongodb.org) and [Redis](http://redis.org) are the default storage engines, so you will need to install and configure them to use the defaults, or override them if you'd like to use something different.
+You'll need [node.js](http://nodejs.org) to build a Maki application.   Additionally, [MongoDB](http://mongodb.org) and [Redis](http://redis.org) are the default storage and messaging engines, so you will need to install and configure them to use the defaults, or override them if you'd like to use something different.
 
 1. Install Maki: `npm install martindale/maki`
 2. Create your app, perhaps in `yourapp.js`:
