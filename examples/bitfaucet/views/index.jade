@@ -1,0 +1,49 @@
+extends layouts/default
+
+block content
+  .ui.header.page.grid.huge
+    .sixteen.wide.column.huge
+      h1 Welcome to BitFaucet!
+      h3 We provide bitcoin from testnet for testing purposes.
+      p &nbsp;
+      
+      center
+        h2 #{ faucet.balance }
+          i.icon.bitcoin
+          | available
+
+  .ui.page.grid
+    .sixteen.wide.column
+      form.ui.form(action="/pours", method="post")
+        input(type="hidden", name="_faucet", value="#{faucet._id}")
+       
+        .three.fields
+          .field.two.wide
+            label Amount
+            input(type="number", name="amount", step="any", max="5", min="0", value="1", required)
+          .field.eleven.wide
+            label Address
+            input(type="text", name="address", length="35", placeholder="i.e., miWQvs1rZFgBjXsP7nfyYA7tBvG6dHgV9d", required)
+          .field.three.wide
+            label &nbsp;
+            button.ui.blue.submit.button(type="submit") Get Bits &raquo;
+
+  .ui.grid
+    .row.two
+    .row.two
+    .row.two
+
+  .ui
+    .ui.three.column.grid
+      .column
+        .ui.blue.segment.card
+          h2.center-text Hand-rolled.
+          p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
+      .column
+        .ui.red.segment.card
+          h2.center-text Get Making.
+          p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
+      .column
+        .ui.green.segment.card
+            h2.center-text Already registered?
+            a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In

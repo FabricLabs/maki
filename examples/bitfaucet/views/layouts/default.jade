@@ -1,0 +1,49 @@
+doctype html
+html(ng-app="maki")
+  head
+    title BitFaucet
+
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+
+    link(rel="stylesheet", href="/css/semantic.css")
+    link(rel="stylesheet", href="/css/fontawesome/font-awesome.css")
+    link(rel="stylesheet", href="/css/highlight/maki.css")
+    link(rel="stylesheet", href="/css/maki.css")
+    link(rel="stylesheet", href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Open+Sans:300italic,400,300,700")
+
+    script(src="/js/jquery.js")
+    script(src="/js/semantic.js")
+    script(src="/js/underscore-min.js")
+
+    script(src="/js/templates.js")
+    script(src="/js/highlight.pack.js")
+    script(src="/js/headroom.min.js")
+    script(src="/js/uuid.js")
+    script(src="/js/jsonrpc.js")
+    
+    script(src="/js/maki.js")
+
+    base(href="/")
+
+  body(ng-controller="mainController")
+    block navbar
+      include ../partials/navbar
+    
+    .contained
+      .ui.grid
+        include ../partials/flash
+
+      .ui.grid
+        .column.content(data-for="viewport")
+          block content
+
+    footer
+      .contained
+        .ui.grid
+          .column
+            .ui.one.column.stackable.center.aligned
+              small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
+              | 
+              a.ui.tiny.button(class="btn btn-default", href="bitcoin:1Ae7wguPTP8Zm3146opVhay4hUS7NiaxYw", alt="B") Donate 
+                i.fa.fa-bitcoin
+                | itcoin &raquo;
