@@ -9,6 +9,46 @@ Maki is a framework for hand-rolling web applications in a way that makes sense 
 - **Client-Responsiveness.**  Don't rely on user-agents or referers, but instead respond to what the client supports.  Make a request that only accepts JSON?  Get JSON back.  Accept HTML?  Get HTML back.
 - **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript _is_ available, a performant and well-designed client-side application takes over to eliminate full-page loads.  See also [Modules](#modules).
 
+## Quick Start
+You'll need [node.js](http://nodejs.org) to build a Maki application.   Additionally, [MongoDB](http://mongodb.org) and [Redis](http://redis.org) are the default storage and messaging engines, so you will need to install and configure them to use the defaults, or override them if you'd like to use something different.
+
+1. Install Maki: `npm install martindale/maki`
+2. Create your app, perhaps in `yourapp.js`:
+  ```javascript
+  var myApp = new require('maki');
+  
+  myApp.define('Widget', {
+    attributes: {
+      name: String
+    }
+  });
+  
+  myApp.start();
+  ```
+3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
+
+### Zero Configuration
+
+Maki-built apps do not require any special configuration.  However, it is intended to be a platform for customization – it will look in your project's folder for customizations (such as a change to the HTTP port) based on the pattern exposed by [its Default Directory Structure](#default-directory-structure).
+
+For example, add this file to `./config/index.js` to change the HTTP port:
+```javascript
+module.exports = { services: { http: { port: 8080 } } };
+```
+
+...or this file to `./app/views/index.jade` to change what the index page looks like:
+```jade
+extends layouts/default
+
+block content
+  h1 Hello, world!
+```
+
+Maki is zero-configuration by default, but will use your changes where available as an extension to its own internal, default behaviors.  See below for further documentation on the options and default behaviors.
+
+## Documentation
+Maki exposes an extremely simple interface to a powerful set of features.  These features are easy to understand, as they stem from a basic set of principles and philosophies.  We'll start with some simple definitions.
+
 ### Definitions
 In general, we'll be using the proper noun form of these definitions when referring to them explicitly.
 
@@ -21,9 +61,9 @@ In general, we'll be using the proper noun form of these definitions when referr
 - **Service:** the offering of your app / website / api via various protocols (HTTP, WebSockets, gopher, etc.)
 
 ## Resource-Driven Development (RDD)
-Generally, programming web applications involves writing logic around a series of Resources to control their behavior and deliver an experience with the application's "Scope".  Maki aims to _start_ with that mental model of your application's "Scope", allow you to **hand-roll** (get it?) extensions (read: add business logic) to that mental model, and then deliver that model as a Service.
+Generally, programming applications involves writing logic around a series of Resources to control their behavior and deliver an experience with the application's "Scope".  Maki aims to _start_ with that mental model of your application's "Scope", allow you to **hand-roll** (get it?) extensions (read: add business logic) to that mental model, and then deliver that model as a Service.
 
-**Example Maki Application**
+**Example Maki Application**  
 All URIs are automatically derived from the the Resource definition.
 ```javascript
 var config = require('./config');
@@ -198,16 +238,6 @@ TODO: explanation here.
 - `patch` will provide an array of operations to execute on a resource.
 - `subscribe`
 - `unsubscribe`
-
-
-## Instructions
-You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to run this application.  Installing these is out-of-scope, and instructions are contained on the links to the left.
-
-1. Clone the project (you can download the zip above or use git)
-2. In the project's folder, run `npm install`.  Wait for it to install all necessary components.
-3. Run `node maki.js`.
-
-You'll now, by default, have a web application running at http://localhost:9200 -- you can edit the port by changing config.js.
 
 ## Default Directory Structure
 Maki is meant to be understood without context or documentation, and as such the directory structure [and the code itself, for that matter] _should_ be fairly self-explanatory.  Nevertheless, here's an explicit declaration for each of the default folders and their intended use.
