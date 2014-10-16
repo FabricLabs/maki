@@ -1,5 +1,5 @@
 //- TODO: map each column and provide summary in footer
-table.ui.table.segment.sortable
+table.ui.table.segment.sortable(data-model="#{resource.name}", data-path="#{resource.routes.query}")
   thead
     tr
       each field in fields
@@ -7,7 +7,7 @@ table.ui.table.segment.sortable
 
   tbody
     each item in collection
-      tr
+      tr(data-model="#{resource.name}", data-path="#{resource.routes.query}/#{item[ idField ]}")
         each field in fields
           td
             if (field == idField)
