@@ -25,9 +25,24 @@ You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to ru
   
   myApp.start();
   ```
-3. Start your app: `node yourapp.js` – by default, accessible at http://localhost:9200
+3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
 
 Maki-built apps do not require any special configuration.  However, it is intended to be a platform for customization – it will look in your project's folder for customizations (such as a change to the HTTP port) based on the pattern exposed by [its Default Directory Structure](#default-directory-structure).
+
+For example, add this file to `./config/index.js` to change the HTTP port:
+```javascript
+module.exports = { services: { http: { port: 8080 } } };
+```
+
+...or this file to `./app/views/index.jade` to change what the index page looks like:
+```jade
+extends layouts/default
+
+block content
+  h1 Hello, world!
+```
+
+Maki is zero-configuration by default, but will use your changes where available as an extension to its own internal, default behaviors.  See below for further documentation on the options and default behaviors.
 
 ## Documentation
 Maki exposes an extremely simple interface to a powerful set of features.  These features are easy to understand, as they stem from a basic set of principles and philosophies.  We'll start with some simple definitions.
