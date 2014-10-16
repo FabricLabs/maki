@@ -27,6 +27,8 @@ You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to ru
   ```
 3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
 
+### Zero Configuration
+
 Maki-built apps do not require any special configuration.  However, it is intended to be a platform for customization – it will look in your project's folder for customizations (such as a change to the HTTP port) based on the pattern exposed by [its Default Directory Structure](#default-directory-structure).
 
 For example, add this file to `./config/index.js` to change the HTTP port:
