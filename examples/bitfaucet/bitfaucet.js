@@ -76,7 +76,7 @@ var Pour = bitfaucet.define('Pour', {
       create: function( req , res , next) {
         console.log('handler called');
 
-        req.flash('info', 'Pour created successfully!');
+        req.flash('success', 'Pour created successfully!');
         return res.redirect('/');
       }
     }
