@@ -58,7 +58,8 @@ var Index = maki.define('Index', {
       filter: {},
       single: true
     }
-  }
+  },
+  static: true
 })
 
 Faucet.post('init', function( faucet , next ) {
