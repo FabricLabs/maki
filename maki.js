@@ -25,31 +25,28 @@ var resources = [
   {
     name: 'Dashboard',
     attributes: {
-      name: { type: String , max: 80 , name: true , slug: true , required: true }
+        name: { type: String , max: 80 , name: true , slug: true , required: true }
+      , _people: { type: maki.mongoose.SchemaTypes.ObjectId, ref: 'Person' }
     },
     requires: {
       'examples': {},
-      'people': {}
+      'people': {
+        filter: {
+          // _id: { $in: dashboard._people }
+        }
+      }
     }
   },
   {
     name: 'NewThing',
     attributes: {
       name: { type: String , max: 80 }
-    },
-    requires: {
-      'examples': {},
-      'people': {}
     }
   },
   {
     name: 'Widget',
     attributes: {
       name: { type: String , max: 80 }
-    },
-    requires: {
-      'examples': {},
-      'people': {}
     }
   }
 ];

@@ -1,7 +1,5 @@
-var config = require('../../config');
-
 var Maki = require('../../lib/Maki');
-var maki = new Maki( config );
+var maki = new Maki(  );
 
 var bitcoin = require('bitcoin');
 
@@ -37,8 +35,31 @@ var Pour = maki.define('Pour', {
       'broadcast',
       'failed'
     ], default: 'pending', required: true }
+  },
+  handlers: {
+    'html': {
+      create: function( err, pour ) {
+        return res.redirect('/');
+      }
+    }
   }
 });
+
+var Index = maki.define('Index', {
+  name: 'Index',
+  routes: {
+    query: '/'
+  },
+  templates: {
+    query: 'index'
+  },
+  requires: {
+    'Faucet': {
+      filter: {},
+      single: true
+    }
+  }
+})
 
 Faucet.post('init', function( faucet , next ) {
   // TODO: debounce / singleton

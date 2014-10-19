@@ -120,6 +120,7 @@ function DataBinder( objectID ) {
 }
 
 $(window).on('ready', function() {
+  return;
   $.ajax({
     type: 'OPTIONS',
     url: '/'
