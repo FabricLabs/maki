@@ -120,7 +120,6 @@ function DataBinder( objectID ) {
 }
 
 $(window).on('ready', function() {
-  return;
   $.ajax({
     type: 'OPTIONS',
     url: '/'
@@ -190,6 +189,11 @@ $(window).on('ready', function() {
 
       return false;
     });
+    
+    $('.message .close').on('click', function() {
+      $(this).closest('.message').fadeOut();
+    });
+    
   });
 });
 

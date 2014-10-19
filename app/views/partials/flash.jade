@@ -1,14 +1,17 @@
-pre #{flash}
-
 if (typeof(flash) != 'undefined')
-  .messages
+  .ui.row
     if (typeof(flash.error) != 'undefined')
       for error in flash.error
-        .alert.alert-error.alert-dismissable
-          button.close(type="button", data-dismiss="alert", aria-hidden="true") &times;
-          | !{error}
+        .ui.error.message
+          i.icon.close(type="button", data-dismiss="alert")
+          p.header !{error}
     if (typeof(flash.info) != 'undefined')
       for info in flash.info
-        .alert.alert-info.alert-dismissable
-          button.close(type="button", data-dismiss="alert") &times;
-          | !{info}
+        .ui.info.message
+          i.icon.close(type="button", data-dismiss="alert")
+          p.header !{info}
+    if (typeof(flash.success) != 'undefined')
+      for success in flash.success
+        .ui.success.message
+          i.icon.close(type="button", data-dismiss="alert")
+          p.header !{success}
