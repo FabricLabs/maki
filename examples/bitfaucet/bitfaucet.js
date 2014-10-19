@@ -38,7 +38,10 @@ var Pour = maki.define('Pour', {
   },
   handlers: {
     'html': {
-      create: function( err, pour ) {
+      create: function( req , res , next) {
+        
+        console.log('handler called');
+        
         return res.redirect('/');
       }
     }
