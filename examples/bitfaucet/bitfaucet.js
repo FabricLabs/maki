@@ -39,9 +39,9 @@ var Pour = maki.define('Pour', {
   handlers: {
     'html': {
       create: function( req , res , next) {
-        
         console.log('handler called');
-        
+
+        req.flash('info', 'Pour created successfully!');
         return res.redirect('/');
       }
     }
