@@ -59,6 +59,7 @@ var Pour = bitfaucet.define('Pour', {
     amount:  { type: String , max: 80 },
     ip:      { type: String , private: true },
     date:    { type: Date , default: Date.now , restricted: true },
+    txid:    { type: String },
     comment: { type: String },
     status:  { type: String , enum: [
       'pending',
@@ -131,8 +132,7 @@ Faucet.post('init', function( faucet , next ) {
   // Get balance from this faucet's instance of btcClient().  
   // Underlying, this is an RPC call to the backing bitcoind instance.
   faucet.btcClient().getBalance('*', 1, function(err, balance, resHeaders) {
-    if (err) console.log(err);
-
+    if (err) return console.log(err);
     // Set and persist the updated balance to the storage engine.
     faucet.balance = balance;
     faucet.save(function(err) {
@@ -178,7 +178,8 @@ Pour.on('create', function( pour ) {
       } else {
         Pour.update( pour._id , {
           // Let's update the `status` attribute (as previously defined).
-          status: 'broadcast'
+          status: 'broadcast',
+          txid: txid
         } , function(err) {
           
         });
