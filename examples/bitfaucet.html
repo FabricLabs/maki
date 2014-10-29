@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>bitfaucet.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="public/stylesheets/normalize.css" />
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="page">
+
+      <div class="header">
+        
+          <h1>bitfaucet.js</h1>
+        
+
+        
+      </div>
+
+      
+        
+        <p>BitFaucet is a simple example of a Maki-powered application.<br>It implements some basic Resources with external lookups, and overrides some
+of Maki’s built-in behaviors.</p>
+
+        
+      
+        
+        <p>First, we’ll retrieve the Maki class.<br>In a real application, this could simply be <code>require(&#39;maki&#39;)</code>.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> Maki = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../../lib/Maki'</span>);</pre></div>
+        
+      
+        
+        <p>Create an instance of Maki – named according to our app.<br>As shorthand, this could be <code>var bitfaucet = require(&#39;maki&#39;)();</code></p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> bitfaucet = <span class="hljs-keyword">new</span> Maki();</pre></div>
+        
+      
+        
+        <p>Let’s define a few requirements.<br>In our case, we need a Bitcoin client.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> bitcoin = <span class="hljs-built_in">require</span>(<span class="hljs-string">'bitcoin'</span>);</pre></div>
+        
+      
+        
+        <h2 id="resource-definitions">Resource Definitions</h2>
+<p>Maki starts with definitions of “Resources” that your application exposes.
+Our first Resource is, well, a “Faucet”.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> Faucet = bitfaucet.define(<span class="hljs-string">'Faucet'</span>, {</pre></div>
+        
+      
+        
+        <h3 id="resource-attributes">Resource Attributes</h3>
+
+        
+          <div class='highlight'><pre>  attributes: {</pre></div>
+        
+      
+        
+        <p>Attributes can have enforced types, validators, behaviors…<br>Most of these should be self-descriptive.  For a full reference, check
+<a href="">the documentation</a>.</p>
+
+        
+          <div class='highlight'><pre>    name:    { type: <span class="hljs-built_in">String</span> , <span class="hljs-keyword">default</span>: <span class="hljs-string">'Default'</span> , required: <span class="hljs-literal">true</span> },
+    balance: { type: <span class="hljs-built_in">String</span> , <span class="hljs-keyword">default</span>: <span class="hljs-number">0</span> , required: <span class="hljs-literal">true</span> },
+    host:    { type: <span class="hljs-built_in">String</span> , <span class="hljs-keyword">default</span>: <span class="hljs-string">'localhost'</span>, required: <span class="hljs-literal">true</span> },
+    port:    { type: <span class="hljs-built_in">Number</span> , <span class="hljs-keyword">default</span>: <span class="hljs-number">8332</span>, required: <span class="hljs-literal">true</span> },
+    user:    { type: <span class="hljs-built_in">String</span> , <span class="hljs-keyword">default</span>: <span class="hljs-string">'default'</span> },
+    pass:    { type: <span class="hljs-built_in">String</span> , <span class="hljs-keyword">default</span>: <span class="hljs-string">'default'</span> },
+    timeout: { type: <span class="hljs-built_in">Number</span> , <span class="hljs-keyword">default</span>: <span class="hljs-number">30000</span> }
+  },</pre></div>
+        
+      
+        
+        <h3 id="resource-methods">Resource Methods</h3>
+<p>Maki Resources can expose “methods”.  These exist as functions on every
+instance of such a resource.<br>In the case of a “Faucet”, each faucet needs a bitcoind instance.</p>
+
+        
+          <div class='highlight'><pre>  methods: {
+    btcClient: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+      <span class="hljs-keyword">var</span> faucet = <span class="hljs-keyword">this</span>;
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> bitcoin.Client( faucet );
+    }
+  }
+});</pre></div>
+        
+      
+        
+        <p>We’re also going to create another Resource, a “Pour”.<br>When a user wants to take money from the Faucet, they want to “create a new
+pour”. </p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> Pour = bitfaucet.define(<span class="hljs-string">'Pour'</span>, {
+  name: <span class="hljs-string">'Pour'</span>,
+  attributes: {</pre></div>
+        
+      
+        
+        <p><strong>Our first “special” attribute!</strong><br>This is a special type, an ObjectId, which is a “pointer” (like in C++)
+to another Resource.  </p>
+<p>As you might imagine, a Pour cannot be created without a Faucet to Pour
+from.</p>
+
+        
+          <div class='highlight'><pre>    _faucet: { type: bitfaucet.mongoose.SchemaTypes.ObjectId , required: <span class="hljs-literal">true</span> },
+    address: { type: <span class="hljs-built_in">String</span> , max: <span class="hljs-number">80</span> },
+    amount:  { type: <span class="hljs-built_in">String</span> , max: <span class="hljs-number">80</span> },
+    ip:      { type: <span class="hljs-built_in">String</span> , private: <span class="hljs-literal">true</span> },
+    date:    { type: <span class="hljs-built_in">Date</span> , <span class="hljs-keyword">default</span>: <span class="hljs-built_in">Date</span>.now , restricted: <span class="hljs-literal">true</span> },
+    comment: { type: <span class="hljs-built_in">String</span> },
+    status:  { type: <span class="hljs-built_in">String</span> , enum: [
+      <span class="hljs-string">'pending'</span>,
+      <span class="hljs-string">'broadcast'</span>,
+      <span class="hljs-string">'failed'</span>
+    ], <span class="hljs-keyword">default</span>: <span class="hljs-string">'pending'</span>, required: <span class="hljs-literal">true</span> }
+  },</pre></div>
+        
+      
+        
+        <h3 id="resource-handlers">Resource Handlers</h3>
+<p>Handlers can be used to override internal behaviors for specific contexts.
+In the case of the Faucet, we want to change the default behavior for the
+‘create’ method of a Pour, but <em>only</em> for the <code>html</code> transformer.  More
+detail on this later.</p>
+
+        
+          <div class='highlight'><pre>  handlers: {
+    <span class="hljs-string">'html'</span>: {
+      create: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( req , res , next)</span> </span>{
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'handler called'</span>);
+
+        req.flash(<span class="hljs-string">'info'</span>, <span class="hljs-string">'Pour created successfully!'</span>);
+        <span class="hljs-keyword">return</span> res.redirect(<span class="hljs-string">'/'</span>);
+      }
+    }
+  }
+});</pre></div>
+        
+      
+        
+        <p>The Index Resource has a few extra custom options provided.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">var</span> Index = bitfaucet.define(<span class="hljs-string">'Index'</span>, {
+  name: <span class="hljs-string">'Index'</span>,</pre></div>
+        
+      
+        
+        <p>First, we’re going to override the default route for the <code>query</code> method.
+By default, this would be <code>/indices</code> due to Maki’s semantics, but we want
+the Index resource to simply replace the front page.</p>
+
+        
+          <div class='highlight'><pre>  routes: {
+    query: <span class="hljs-string">'/'</span>
+  },</pre></div>
+        
+      
+        
+        <p>Let’s also change the default template (again, defaulting to
+<code>indices.jade</code>)</p>
+
+        
+          <div class='highlight'><pre>  templates: {
+    query: <span class="hljs-string">'index'</span>
+  },</pre></div>
+        
+      
+        
+        <h3 id="resource-requirements">Resource Requirements</h3>
+<p>Requirement are additional Resources that must be collected when rendering 
+non-pure (i.e., non-JSON) views.  For example, when rendering the Index,
+we’ll need to collect a Faucet.</p>
+
+        
+          <div class='highlight'><pre>  requires: {</pre></div>
+        
+      
+        
+        <p>Requirements are key-&gt;value pairs, where key is a defined (!) resource,
+and the pair is an hashmap with some expected values.</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-string">'Faucet'</span>: {</pre></div>
+        
+      
+        
+        <p><code>filter</code> defines what query to pass to the Resource engine.</p>
+
+        
+          <div class='highlight'><pre>      filter: {},</pre></div>
+        
+      
+        
+        <p><code>single</code> tells Maki that we are collecting exactly one instance of this
+requirement.</p>
+
+        
+          <div class='highlight'><pre>      single: <span class="hljs-literal">true</span>
+    }
+  },</pre></div>
+        
+      
+        
+        <p>This is a static Resource, so don’t attempt to persist it to the database.
+This is useful for content pages that can’t be interacted with.</p>
+
+        
+          <div class='highlight'><pre>  static: <span class="hljs-literal">true</span>
+})</pre></div>
+        
+      
+        
+        <h2 id="resource-hooks">Resource Hooks</h2>
+<p>Hooks can be attached to Resources in the form of both <code>pre</code> and <code>post</code>
+middlewares.  </p>
+<p>In our case, every time a Faucet is retrieved from the datastore, issue a
+call to the underlying bitcoind (wherever it may be) to get the current
+balance, and then update our copy of it.</p>
+<p>There is almost certainly a more scalable way of doing this (a cache), but
+this is left as an exercise to the reader.</p>
+
+        
+          <div class='highlight'><pre>Faucet.post(<span class="hljs-string">'init'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( faucet , next )</span> </span>{</pre></div>
+        
+      
+        
+        <p>Get balance from this faucet’s instance of btcClient().<br>Underlying, this is an RPC call to the backing bitcoind instance.</p>
+
+        
+          <div class='highlight'><pre>  faucet.btcClient().getBalance(<span class="hljs-string">'*'</span>, <span class="hljs-number">1</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, balance, resHeaders)</span> </span>{
+    <span class="hljs-keyword">if</span> (err) <span class="hljs-built_in">console</span>.log(err);</pre></div>
+        
+      
+        
+        <p>Set and persist the updated balance to the storage engine.</p>
+
+        
+          <div class='highlight'><pre>    faucet.balance = balance;
+    faucet.save(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> </span>{
+      next( err , <span class="hljs-string">'faucet stuff'</span> );
+    });
+    
+  });
+});</pre></div>
+        
+      
+        
+        <p>Before saving a Pour, validate that it is authorized.<br>In our simple example, all Pours are allowed (without a rate-limit), but in a
+real-world example you will clearly want to implement some sort of validator.</p>
+
+        
+          <div class='highlight'><pre>Pour.pre(<span class="hljs-string">'save'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( done )</span> </span>{
+  <span class="hljs-keyword">var</span> pour = <span class="hljs-keyword">this</span>;
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'TODO: implement ratelimiter.  pre-save() called.'</span>, pour );
+  done();
+});</pre></div>
+        
+      
+        
+        <h2 id="resource-events">Resource Events</h2>
+<p>All Maki resources are also event emitters.  This allows you to subscribe to 
+events from any part of your application, and trigger custom behavior.</p>
+<p>In BitFaucet’s case, let’s initiate the Bitcoin transfer!</p>
+
+        
+          <div class='highlight'><pre>Pour.on(<span class="hljs-string">'create'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">( pour )</span> </span>{</pre></div>
+        
+      
+        
+        <p><code>.populate</code> collects other resources automatically.  Remember that
+“special” field?  This is why it exists.</p>
+
+        
+          <div class='highlight'><pre>  pour.populate({
+    path: <span class="hljs-string">'_faucet'</span>,
+    model: <span class="hljs-string">'Faucet'</span> <span class="hljs-comment">// This defines the "Model" that we're expecting.</span>
+  }, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, pour)</span> </span>{</pre></div>
+        
+      
+        
+        <p>Initiate the Bitcoin transfer…</p>
+
+        
+          <div class='highlight'><pre>    pour._faucet.btcClient().sendToAddress( pour.address , <span class="hljs-built_in">parseFloat</span>(pour.amount) , <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, txid)</span> </span>{
+      <span class="hljs-keyword">if</span> (err) {
+        <span class="hljs-built_in">console</span>.error(err);</pre></div>
+        
+      
+        
+        <p>Resources in Maki expose an <code>update</code> method, which accepts a query
+and will update all matching documents.</p>
+
+        
+          <div class='highlight'><pre>        Pour.update( pour._id , {
+          status: <span class="hljs-string">'failed'</span>
+        } , <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> </span>{
+          <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'could not commit failure to database'</span>);
+        });
+      } <span class="hljs-keyword">else</span> {
+        Pour.update( pour._id , {</pre></div>
+        
+      
+        
+        <p>Let’s update the <code>status</code> attribute (as previously defined).</p>
+
+        
+          <div class='highlight'><pre>          status: <span class="hljs-string">'broadcast'</span>
+        } , <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> </span>{
+          
+        });
+      }
+    });
+  });
+});</pre></div>
+        
+      
+        
+        <h2 id="start">Start</h2>
+<p><code>maki.start()</code> opens the sockets and listens for new connections for each of 
+the enabled Services.  By default, <code>http</code>, <code>https</code>, <code>ws</code>, and <code>wss</code> are 
+available.</p>
+
+        
+          <div class='highlight'><pre>bitfaucet.start();</pre></div>
+        
+      
+      <div class="fleur">h</div>
+    </div>
+  </div>
+</body>
+</html>
