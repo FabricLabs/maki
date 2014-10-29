@@ -1,0 +1,407 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Maki by martindale</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Maki</h1>
+        <p>:bento: Framework for hand-rolling web applications.  Originally created at Triangle Startup EDU 2013, and later used to build @coursefork and many other projects.</p>
+
+        <p class="view"><a href="https://github.com/martindale/maki">View the Project on GitHub <small>martindale/maki</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/martindale/maki/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/martindale/maki/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/martindale/maki">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="maki" class="anchor" href="#maki"><span class="octicon octicon-link"></span></a>Maki</h1>
+
+<p><a href="https://travis-ci.org/martindale/maki"><img src="https://travis-ci.org/martindale/maki.svg" alt="Build Status"></a>
+<a href="https://coveralls.io/r/martindale/maki?branch=master"><img src="https://coveralls.io/repos/martindale/maki/badge.png?branch=master" alt="Coverage Status"></a></p>
+
+<p>Maki is a framework for hand-rolling web applications in a way that makes sense to a human.</p>
+
+<ul>
+<li>
+<strong>REST API built-in.</strong>  All URIs are semantic and indempotent, automatically.</li>
+<li>
+<strong>Client-Responsiveness.</strong>  Don't rely on user-agents or referers, but instead respond to what the client supports.  Make a request that only accepts JSON?  Get JSON back.  Accept HTML?  Get HTML back.</li>
+<li>
+<strong>Javascript <em>optional</em>.</strong>  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript <em>is</em> available, a performant and well-designed client-side application takes over to eliminate full-page loads.  See also <a href="#modules">Modules</a>.</li>
+</ul>
+
+<h2>
+<a name="quick-start" class="anchor" href="#quick-start"><span class="octicon octicon-link"></span></a>Quick Start</h2>
+
+<p>You'll need <a href="http://nodejs.org">node.js</a> to build a Maki application.   Additionally, <a href="http://mongodb.org">MongoDB</a> and <a href="http://redis.org">Redis</a> are the default storage and messaging engines, so you will need to install and configure them to use the defaults, or override them if you'd like to use something different.</p>
+
+<ol>
+<li>Install Maki: <code>npm install martindale/maki</code>
+</li>
+<li>
+<p>Create your app, perhaps in <code>yourapp.js</code>:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">myApp</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'maki'</span><span class="p">);</span>
+
+<span class="nx">myApp</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">'Widget'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">attributes</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">name</span><span class="o">:</span> <span class="nb">String</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+
+<span class="nx">myApp</span><span class="p">.</span><span class="nx">start</span><span class="p">();</span>
+</pre></div>
+</li>
+<li>Start your app: <code>node yourapp.js</code> – by default, accessible at <a href="http://localhost:9200">http://localhost:9200</a>
+</li>
+</ol>
+
+<h3>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h3>
+
+<p>Maki-built apps do not require any special configuration.  However, it is intended to be a platform for customization – it will look in your project's folder for customizations (such as a change to the HTTP port) based on the pattern exposed by <a href="#default-directory-structure">its Default Directory Structure</a>.</p>
+
+<p>For example, add this file to <code>./config/index.js</code> to change the HTTP port:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">services</span><span class="o">:</span> <span class="p">{</span> <span class="nx">http</span><span class="o">:</span> <span class="p">{</span> <span class="nx">port</span><span class="o">:</span> <span class="mi">8080</span> <span class="p">}</span> <span class="p">}</span> <span class="p">};</span>
+</pre></div>
+
+<p>...or this file to <code>./app/views/index.jade</code> to change what the index page looks like:</p>
+
+<div class="highlight highlight-jade"><pre><span class="nt">extends</span> layouts/default
+
+<span class="nt">block</span> content
+  <span class="nt">h1</span> Hello, world!
+</pre></div>
+
+<p>Maki is zero-configuration by default, but will use your changes where available as an extension to its own internal, default behaviors.  See below for further documentation on the options and default behaviors.</p>
+
+<h2>
+<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h2>
+
+<p>Maki exposes an extremely simple interface to a powerful set of features.  These features are easy to understand, as they stem from a basic set of principles and philosophies.  We'll start with some simple definitions.</p>
+
+<h3>
+<a name="definitions" class="anchor" href="#definitions"><span class="octicon octicon-link"></span></a>Definitions</h3>
+
+<p>In general, we'll be using the proper noun form of these definitions when referring to them explicitly.</p>
+
+<ul>
+<li>
+<strong>Application:</strong> the executable process that binds Resources and their associated Models, Controllers, and Views into a deliverable Service.</li>
+<li>
+<strong>Resource:</strong> the abstract concept of an interactive object.  For example, a "user" of a website is a Resource, and can be interacted with; created (registered), listed (page displaying a list of users), and viewed (profile page).  Resources generally expose one or more identifiers, or Uniform Resource Identifiers (URI).</li>
+<li>
+<strong>Module:</strong> a collection of <strong>renderables</strong> (html, lexers, etc.) and <strong>their associated styling</strong>.  For example, in an HTML context, a <strong>Module</strong> consists of HTML, Javascript, and associated CSS for styling.</li>
+<li>
+<strong>Model:</strong> the abstract class that exposes a Resource's Schema and associated validators, methods, and statics.</li>
+<li>
+<strong>Controller:</strong> the code associated with specific interactions on a Resource and the behavior of the Application.</li>
+<li>
+<strong>View:</strong> logic and template for displaying a specific Resource.  This generally contains logic and is dependent on context.  A View MAY compose several Modules.</li>
+<li>
+<strong>Service:</strong> the offering of your app / website / api via various protocols (HTTP, WebSockets, gopher, etc.)</li>
+</ul>
+
+<h2>
+<a name="resource-driven-development-rdd" class="anchor" href="#resource-driven-development-rdd"><span class="octicon octicon-link"></span></a>Resource-Driven Development (RDD)</h2>
+
+<p>Generally, programming applications involves writing logic around a series of Resources to control their behavior and deliver an experience with the application's "Scope".  Maki aims to <em>start</em> with that mental model of your application's "Scope", allow you to <strong>hand-roll</strong> (get it?) extensions (read: add business logic) to that mental model, and then deliver that model as a Service.</p>
+
+<p><strong>Example Maki Application</strong><br>
+All URIs are automatically derived from the the Resource definition.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">config</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'./config'</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">Maki</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'maki'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">maki</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Maki</span><span class="p">(</span> <span class="nx">config</span> <span class="p">);</span>
+
+<span class="nx">maki</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">'Person'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">attributes</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">name</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="nb">String</span> <span class="p">,</span> <span class="nx">max</span><span class="o">:</span> <span class="mi">80</span> <span class="p">},</span>
+    <span class="nx">slug</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="nb">String</span> <span class="p">,</span> <span class="nx">max</span><span class="o">:</span> <span class="mi">80</span> <span class="p">,</span> <span class="nx">id</span><span class="o">:</span> <span class="kc">true</span> <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+
+<span class="nx">maki</span><span class="p">.</span><span class="nx">start</span><span class="p">();</span>
+</pre></div>
+
+<p>That's it.  That's all you need.  A <code>GET</code> request to <code>/people</code> will now provide a list of people:</p>
+
+<div class="highlight highlight-bash"><pre>&gt; curl http://localhost:9200/people
+<span class="o">[{</span><span class="s2">"slug"</span>: <span class="s2">"martindale"</span>, <span class="s2">"name"</span>: <span class="s2">"martindale"</span><span class="o">}]</span>
+</pre></div>
+
+<p>Requesting an HTML version of that Resource will give you exactly that:</p>
+
+<div class="highlight highlight-bash"><pre>&gt; curl -H <span class="s2">"Accept: text/html"</span> http://localhost:9200/people
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;!-- rendered version of the resource snipped --&gt;
+...
+</pre></div>
+
+<p>Similarly, you can subscribe to updates to that same Resource by switching to the <code>ws://</code> protocol:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">socket</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">WebSocket</span><span class="p">(</span> <span class="s1">'ws://localhost:9200/people'</span> <span class="p">);</span>
+<span class="nx">socket</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">msg</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// receive an event here</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'received event, method: '</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">msg</span><span class="p">).</span><span class="nx">method</span> <span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>This newly-opened websocket will, by default, be subscribed to all updates to the <code>people</code> Resource, including new additions to the underlying collection, or modifications to the elements contained therein.</p>
+
+<p>For convenience, Maki exposes some basic methods to the client. Here's the same request using the convenience methods:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">maki</span><span class="p">.</span><span class="nx">sockets</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s1">'/people'</span><span class="p">);</span>
+</pre></div>
+
+<p>You can subscribe to multiple resources on a single socket, as follows:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">maki</span><span class="p">.</span><span class="nx">sockets</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s1">'/people'</span><span class="p">);</span>
+<span class="nx">maki</span><span class="p">.</span><span class="nx">sockets</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s1">'/examples'</span><span class="p">);</span>
+</pre></div>
+
+<p>Maki's events utilize <a href="http://www.jsonrpc.org/specification">JSON-RPC 2.0</a>, allowing for a clearly defined interaction model with error handling and simple concurrency.</p>
+
+<p>Updates from the server are additionally encapsulated using <a href="http://tools.ietf.org/html/rfc5789">RFC 5789, PATCH Method for HTTP</a>.  This allows for complex, but <em>atomic</em> updates of specific resources that might be cached locally (server -&gt; client) or updated remotely (client -&gt; server).  For further explanation HTTP PATCH, see <a href="https://www.mnot.net/blog/2012/09/05/patch">Mark Nottingham's explanation of the problem</a>.</p>
+
+<h4>
+<a name="reconnection" class="anchor" href="#reconnection"><span class="octicon octicon-link"></span></a>Reconnection</h4>
+
+<p>Maki's sockets are resilient to latency, network connectivity issues, and multiple-tenant environments, for up to 24 hours (configurable).  The server will intelligently clean up idle sockets, and clients will intelligently reconnect using a pre-configured back-off strategy.</p>
+
+<h4>
+<a name="validators" class="anchor" href="#validators"><span class="octicon octicon-link"></span></a>Validators</h4>
+
+<p>Every attribute on a Resource can have custom validators:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">Person</span> <span class="o">=</span> <span class="nx">maki</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">'Person'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">attributes</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">username</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="nb">String</span> <span class="p">,</span> <span class="nx">max</span><span class="o">:</span> <span class="mi">80</span> <span class="p">,</span> <span class="nx">required</span><span class="o">:</span> <span class="kc">true</span> <span class="p">,</span> <span class="nx">slug</span><span class="o">:</span> <span class="kc">true</span> <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+
+<span class="nx">Person</span><span class="p">.</span><span class="nx">path</span><span class="p">(</span><span class="s1">'username'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">length</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">)</span> <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">},</span> <span class="s1">'Invalid username.  Must be &gt; 5 characters.'</span><span class="p">);</span>
+</pre></div>
+
+<p>Validators can also be defined as functions on attributes themselves by supplying a <code>validator</code>:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">maki</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">'Person'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">attributes</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">username</span><span class="o">:</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="nb">String</span> <span class="p">,</span> <span class="nx">max</span><span class="o">:</span> <span class="mi">80</span> <span class="p">,</span> <span class="nx">required</span><span class="o">:</span> <span class="kc">true</span> <span class="p">,</span> <span class="nx">slug</span><span class="o">:</span> <span class="kc">true</span> <span class="p">,</span> <span class="nx">validator</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">value</span><span class="p">.</span><span class="nx">length</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">)</span> <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+      <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span> <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="methods" class="anchor" href="#methods"><span class="octicon octicon-link"></span></a>Methods</h3>
+
+<p>All Maki resources expose exactly five (5) methods:</p>
+
+<ul>
+<li>
+<strong>query</strong> to select a list of documents,</li>
+<li>
+<strong>get</strong> to get a single instance of a document by its identifier (ID),</li>
+<li>
+<strong>create</strong> to create a new instance of a document,</li>
+<li>
+<strong>update</strong> to change properties of a document, and</li>
+<li>
+<strong>destroy</strong> to remove a document.</li>
+</ul>
+
+<h3>
+<a name="events" class="anchor" href="#events"><span class="octicon octicon-link"></span></a>Events</h3>
+
+<p>Maki exposes events at the Resource level (as emitted by the above Methods):</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">maki</span><span class="p">.</span><span class="nx">resources</span><span class="p">.</span><span class="nx">Person</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'create'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">person</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'new Person'</span><span class="p">,</span> <span class="nx">person</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>...as well as on the Storage level (as <code>pre</code> or <code>post</code> middleware):</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">maki</span><span class="p">.</span><span class="nx">resources</span><span class="p">.</span><span class="nx">Person</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">'save'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">person</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'just saved a Person:'</span> <span class="p">,</span> <span class="nx">person</span><span class="p">);</span>
+
+  <span class="nx">done</span><span class="p">();</span>
+<span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="dependency-injection" class="anchor" href="#dependency-injection"><span class="octicon octicon-link"></span></a>Dependency Injection</h3>
+
+<p>Often, a single Resource we need other Resources to be contextualized into a View.  For example, viewing a "Person" (viewing a profile page) may require collecting a list of "Projects" (another resource, a subcollection of documents <em>owned</em> by a Person), but the JSON representation of that View is not an accurate representation of the Resource.  For this case, <em>only</em> the HTML context of the View will collect the necessary dependencies.</p>
+
+<p><strong>person.jade</strong></p>
+
+<div class="highlight highlight-jade"><pre><span class="nt">extends</span> layouts/default
+
+<span class="nt">block</span> content
+
+  <span class="nt">h1</span> <span class="si">#{</span><span class="n">person</span><span class="o">.</span><span class="n">name</span><span class="si">}</span>
+
+  <span class="nt">h2</span> Projects
+  <span class="nt">ul</span>
+    <span class="nt">each</span> project in projects
+      <span class="nt">include</span> partials/project
+
+</pre></div>
+
+<p>This will allow Maki to collect the "projects" Resource as a subcollection of the Person Resource, or more specifically, only within this View.  The JSON View will <em>not</em> collect Projects, and subsequently spare [precious] server time.</p>
+
+<h3>
+<a name="pubsub" class="anchor" href="#pubsub"><span class="octicon octicon-link"></span></a>PubSub</h3>
+
+<p>WebSockets exposed by Maki are, by default, subscribed to the Resource exposed by the path you're connecting to.  For example, <code>ws://localhost:9200/people</code> will subscribe to the People resource, as defined by Maki.  This may not be ideal for subscribing to multiple (or <em>many</em> resources), so Maki allows for multi-plexing on single websocket connections:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">maki</span><span class="p">.</span><span class="nx">sockets</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s1">'/examples'</span><span class="p">);</span>
+</pre></div>
+
+<p>In pure Javascript (without Maki):</p>
+
+<div class="highlight highlight-javascript"><pre><span class="kd">var</span> <span class="nx">ws</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">WebSocket</span><span class="p">(</span><span class="s1">'ws://localhost:9200/people'</span><span class="p">);</span>
+<span class="nx">ws</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">'open'</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+
+  <span class="kd">var</span> <span class="nx">JSONRPCEvent</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">jsonrpc</span><span class="o">:</span> <span class="s1">'2.0'</span><span class="p">,</span>
+    <span class="nx">method</span><span class="o">:</span> <span class="s1">'subscribe'</span><span class="p">,</span>
+    <span class="nx">data</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">channel</span><span class="o">:</span> <span class="s1">'/examples'</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+
+  <span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span> <span class="nx">JSONRPCEvent</span> <span class="p">)</span> <span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+
+<p>In both of the above examples, the currently open WebSocket will now receive events for both the <code>/people</code> and the <code>/examples</code> paths (or rather, the Resources <em>exposed</em> by those paths).</p>
+
+<h2>
+<a name="architecture" class="anchor" href="#architecture"><span class="octicon octicon-link"></span></a>Architecture</h2>
+
+<p>Maki's architecture is Resource-centric.  All aspects of the datastore, its query pipeline, the business logic, and view layer are derived from the definition of the Resources your application exposes.</p>
+
+<p>TODO: IMAGE HERE</p>
+
+<p>TODO: explanation here.</p>
+
+<h3>
+<a name="rpc-methods" class="anchor" href="#rpc-methods"><span class="octicon octicon-link"></span></a>RPC Methods</h3>
+
+<ul>
+<li>
+<code>ping</code> should be responded to with a "pong" result.</li>
+<li>
+<code>patch</code> will provide an array of operations to execute on a resource.</li>
+<li><code>subscribe</code></li>
+<li><code>unsubscribe</code></li>
+</ul>
+
+<h2>
+<a name="default-directory-structure" class="anchor" href="#default-directory-structure"><span class="octicon octicon-link"></span></a>Default Directory Structure</h2>
+
+<p>Maki is meant to be understood without context or documentation, and as such the directory structure [and the code itself, for that matter] <em>should</em> be fairly self-explanatory.  Nevertheless, here's an explicit declaration for each of the default folders and their intended use.</p>
+
+<div class="highlight highlight-bash"><pre>.
+├── app             <span class="c"># contains the traditional MVC "app"</span>
+│   ├── controllers <span class="c"># application-specific logic</span>
+│   ├── models      <span class="c"># models (schemas, their validators, methods, and statics)</span>
+│   └── views       <span class="c"># composable elements for rendering HTML, JSON, or XML</span>
+├── config          <span class="c"># configuration files (generally overridden by environment variables)</span>
+├── data            <span class="c"># data files for use in various places.</span>
+├── lib             <span class="c"># various classes / prototypes</span>
+├── private         <span class="c"># resources not exposed to the client (LESS, etc.).  This is a 1:1 map of the public folder</span>
+│   └── css         <span class="c"># contains the LESS files used to generate the **public** CSS files (currently, autogenerated using asset-rack)</span>
+├── public          <span class="c"># resources exposed to the client (images, CSS, etc)</span>
+│   ├── css         <span class="c"># CSS</span>
+│   ├── fonts       <span class="c"># Fonts (.woff, etc.)     </span>
+│   ├── img         <span class="c"># Images   </span>
+│   └── js          <span class="c"># JavaScript  </span>
+└── tests           <span class="c"># Tests.  Write them.</span>
+</pre></div>
+
+<h3>
+<a name="npm" class="anchor" href="#npm"><span class="octicon octicon-link"></span></a>NPM</h3>
+
+<p>We use NPM for package management, exclusively.  You will see in the above folder that <code>node_modules</code> is not present; that's because you should consider it ephemeral and <strong>never touch it</strong>.  Let NPM do what it does best: manage packages.</p>
+
+<h2>
+<a name="recommended-deployment" class="anchor" href="#recommended-deployment"><span class="octicon octicon-link"></span></a>Recommended Deployment</h2>
+
+<p>I use <a href="https://github.com/unitech/pm2">pm2</a> (<code>npm install pm2 -g</code>) to manage node apps in production, and I strongly recommend you do, too.  It's got awesome features like log management, process clustering, and automatic startup scripts.</p>
+
+<p>For Maki by itself, <code>pm2 start maki.js</code> will produce the following:</p>
+
+<div class="highlight highlight-bash"><pre>&gt; pm2 start maki.js 
+PM2 Process launched
+┌──────────┬────┬─────────┬───────┬────────┬───────────┬────────┬─────────────┬─────────────┐
+│ App name │ id │ mode    │ PID   │ status │ restarted │ uptime │      memory │    watching │
+├──────────┼────┼─────────┼───────┼────────┼───────────┼────────┼─────────────┼─────────────┤
+│ maki     │ <span class="m">0</span>  │ cluster │ <span class="m">93966</span> │ online │         <span class="m">0</span> │ 0s     │ 25.652 MB   │ unactivated │
+└──────────┴────┴─────────┴───────┴────────┴───────────┴────────┴─────────────┴─────────────┘
+ Use <span class="sb">`</span>pm2 desc<span class="o">[</span>ribe<span class="o">]</span> &lt;id&gt;<span class="sb">`</span> to get more details
+</pre></div>
+
+<p>You can check on running processes using <code>pm2 ls</code>.  For example, on a server with multiple running services:</p>
+
+<div class="highlight highlight-bash"><pre>&gt; pm2 ls
+┌────────────┬────┬─────────┬───────┬────────┬───────────┬────────┬──────────────┬─────────────┐
+│ App name   │ id │ mode    │ PID   │ status │ restarted │ uptime │       memory │    watching │
+├────────────┼────┼─────────┼───────┼────────┼───────────┼────────┼──────────────┼─────────────┤
+│ para       │ <span class="m">0</span>  │ cluster │ <span class="m">21140</span> │ online │         <span class="m">0</span> │ 14d    │  69.734 MB   │ unactivated │
+│ worker     │ <span class="m">1</span>  │ cluster │ <span class="m">21142</span> │ online │         <span class="m">0</span> │ 14d    │  83.996 MB   │ unactivated │
+│ bot        │ <span class="m">2</span>  │ cluster │ <span class="m">21223</span> │ online │         <span class="m">1</span> │ 14d    │ 115.543 MB   │ unactivated │
+│ maki       │ <span class="m">3</span>  │ cluster │ <span class="m">21154</span> │ online │         <span class="m">0</span> │ 14d    │  92.676 MB   │ unactivated │
+│ soundtrack │ <span class="m">4</span>  │ cluster │ <span class="m">32655</span> │ online │         <span class="m">3</span> │ 18h    │ 324.176 MB   │ unactivated │
+└────────────┴────┴─────────┴───────┴────────┴───────────┴────────┴──────────────┴─────────────┘
+ Use <span class="sb">`</span>pm2 desc<span class="o">[</span>ribe<span class="o">]</span> &lt;id&gt;<span class="sb">`</span> to get more details
+</pre></div>
+
+<p>For production monitoring, see also <code>pm2 monit</code>, <code>vtop</code> (available via <code>npm install vtop -g</code>), and <a href="http://strongloop.com/">StrongLoop</a>.</p>
+
+<p>Use environment variables for configuration.  See <code>config/index.js</code> for a list of configurable values.</p>
+
+<h2>
+<a name="spirit" class="anchor" href="#spirit"><span class="octicon octicon-link"></span></a>Spirit</h2>
+
+<p>Please feel free to submit changes to this repo via pull requests!  We're trying to keep this as general and flexible as possible, so anyone can take the project and run with it.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/martindale">martindale</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
