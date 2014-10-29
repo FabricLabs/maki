@@ -4,6 +4,9 @@
    which sets them when require('./thisfile') is run. */
 
 module.exports = {
+  service: {
+    namespace: process.env.MAKI_SERVICE_NAMESPACE || 'maki-test'
+  },
   dns: {
     name: process.env.MAKI_DNS_NAME || 'localhost'
   },
