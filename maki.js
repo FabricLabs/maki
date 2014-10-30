@@ -65,12 +65,12 @@ var Person = maki.define('Person', {
 });
 
 Person.pre('save', function( done ) {
-  console.log('hi');
+  if (maki.debug) console.log('hi');
   done();
 });
 
 Person.on('create', function( person ) {
-  console.log('ho');
+  if (maki.debug) console.log('ho');
 });
 
 var LocalStrategy = require('passport-local').Strategy;
