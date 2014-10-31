@@ -3,12 +3,10 @@ var config = require('./config');
 var Maki = require('./lib/Maki');
 var maki = new Maki( config );
 
-var resources = [
-  
-];
+maki.define('Random', {});
 
-resources.forEach(function(resource) {
-  maki.define( resource.name , resource );
-});
+var HTTP = require('./lib/Service/http');
+
+maki.serve([ HTTP ]);
 
 maki.start();
