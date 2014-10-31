@@ -37,7 +37,7 @@
     "express": "git://github.com/martindale/express#multiple-views",
     "express-session": "~1.2.1",
     "fast-json-patch": "^0.3.6",
-    "flashify": "~0.1.2",
+    "flashify": "^0.1.2",
     "jade": "^1.7.0",
     "jade-browser": "0.0.14",
     "json-patch": "^0.4.3",
@@ -61,7 +61,6 @@
     "redis": "~0.10.3",
     "serve-static": "^1.6.4",
     "spdy": "^1.28.1",
-    "underscore": "~1.6.0",
     "ws": "~0.4.31"
   },
   "devDependencies": {

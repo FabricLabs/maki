@@ -47,6 +47,7 @@ before(function(done) {
 });
 
 describe('Maki', function() {
+  
   it('should expose a constructor', function(){
     assert(typeof maki, 'function');
   });
@@ -156,6 +157,7 @@ describe('http', function(){
     var randomNum = getRandomInt( 100000 , 1000000 );
     request( maki.app )
       .post('/people')
+      .set('Accept', 'text/html')
       .send({ username: 'test-user-'+randomNum })
       .expect(302)
       .end(function(err, res) {
@@ -304,7 +306,6 @@ describe('ws', function() {
   });
   
   it('should receive a patch event for changed documents', function( done ) {
-    //this.timeout(5000);
     var randomNum = getRandomInt( 100000 , 1000000 );
     var personName = 'test-user-'+randomNum;
     var personURL = resource('/people/' + personName );
