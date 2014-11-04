@@ -5,6 +5,7 @@ var cheerio = require('cheerio');
 var request = require('supertest');
 var rest = require('restler');
 var WebSocket = require('ws');
+var JSONRPC = require('maki-jsonrpc');
 
 var config = require('../config');
 
@@ -27,6 +28,9 @@ maki.define('Person', {
   ]
 });
 
+var HTTP = require('../lib/Service/http');
+maki.serve([ HTTP ]);
+
 function resource( path , options ) {
   var options  = options || {};
   var protocol = (options.ssl) ? 'https' : 'http';
@@ -39,10 +43,11 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-before(function(done) {
+before(function(ready) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   maki.start(function() {
-    done();
+    console.log('setup done!');
+    ready();
   });
 });
 
@@ -159,7 +164,7 @@ describe('http', function(){
       .post('/people')
       .set('Accept', 'text/html')
       .send({ username: 'test-user-'+randomNum })
-      .expect(302)
+      .expect(303)
       .end(function(err, res) {
         if (err) throw err;
         done();
@@ -184,6 +189,9 @@ describe('http', function(){
 describe('https', function(){
   var https = require('https');
   var uri = resource('/', { ssl: true });
+  
+  console.log( uri );
+  
   it('should be listening for https', function() {
     https.get( uri , function(res) {
       assert.equal( res.statusCode , 200 );
@@ -252,7 +260,7 @@ describe('ws', function() {
       return done();
     });
     ws.on('open', function() {
-      var message = new maki.JSONRPC('subscribe', { channel: '/' });
+      var message = new JSONRPC('subscribe', { channel: '/' });
       ws.send( message.toJSON() );
     });
     
@@ -266,7 +274,7 @@ describe('ws', function() {
       return done();
     });
     ws.on('open', function() {
-      var message = new maki.JSONRPC('unsubscribe', { channel: '/' });
+      var message = new JSONRPC('unsubscribe', { channel: '/' });
       ws.send( message.toJSON() );
     });
     
