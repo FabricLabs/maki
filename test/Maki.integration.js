@@ -19,7 +19,7 @@ var maki = new Maki( config );
 maki.define('Person', {
   name: 'Person',
   attributes: {
-    username: { type: String , max: 80 , required: true , slug: true },
+    username: { type: String , max: 80 , required: true , id: true },
     description: { type: String , max: 500 },
     hash: { type: String , default: 'asdf', required: true , restricted: true }
   },

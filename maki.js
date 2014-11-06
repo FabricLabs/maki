@@ -45,9 +45,4 @@ maki.define('Widget', {
   }
 });
 
-
-var HTTP = require('./lib/Service/http');
-
-maki.serve([ HTTP ]);
-
-maki.start();
+maki.serve(['http']).start();
