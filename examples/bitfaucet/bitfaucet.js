@@ -54,7 +54,7 @@ var Pour = bitfaucet.define('Pour', {
     //   
     // As you might imagine, a Pour cannot be created without a Faucet to Pour
     // from.
-    _faucet: { type: bitfaucet.mongoose.SchemaTypes.ObjectId , required: true },
+    _faucet: { type: require('mongoose').SchemaTypes.ObjectId , required: true },
     address: { type: String , max: 80 },
     amount:  { type: String , max: 80 },
     ip:      { type: String , private: true },
