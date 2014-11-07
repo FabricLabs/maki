@@ -28,9 +28,6 @@ maki.define('Person', {
   ]
 });
 
-var HTTP = require('../lib/Service/http');
-maki.serve([ HTTP ]);
-
 function resource( path , options ) {
   var options  = options || {};
   var protocol = (options.ssl) ? 'https' : 'http';
