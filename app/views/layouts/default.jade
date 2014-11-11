@@ -31,10 +31,10 @@ html(ng-app="maki")
     
     .contained
       .ui.grid
-        include ../partials/flash
-
-      .ui.grid
         .column.content(data-for="viewport")
+        
+          include ../partials/flash
+        
           block content
 
     footer

@@ -79,6 +79,10 @@ var maki = {
                   'id': data.id
                 }));
               break;
+              case 'patch':
+                // TODO: update in-memory data (two-way binding);
+                console.log( data );
+              break;
               default:
                 console.log('unhandled jsonrpc method ' , data.method);
               break;
@@ -189,6 +193,11 @@ $(window).on('ready', function() {
 
       return false;
     });
+    
+    $('.message .close').on('click', function() {
+      $(this).closest('.message').fadeOut();
+    });
+    
   });
 });
 
