@@ -75,9 +75,7 @@ var Pour = bitfaucet.define('Pour', {
   handlers: {
     'html': {
       create: function( req , res , next) {
-        console.log('handler called');
-
-        req.flash('success', 'Pour created successfully!');
+        //req.flash('success', 'Pour created successfully!');
         return res.redirect('/');
       }
     }
@@ -107,10 +105,9 @@ var Index = bitfaucet.define('Index', {
     // and the pair is an hashmap with some expected values.
     'Faucet': {
       // `filter` defines what query to pass to the Resource engine.
-      filter: {},
-      // `single` tells Maki that we are collecting exactly one instance of this
-      // requirement.
-      single: true
+      filter: {} 
+      // You can pass `single: true` if you specifically need a single instance
+      // of this requirement.
     }
   },
   // This is a static Resource, so don't attempt to persist it to the database.
@@ -163,6 +160,7 @@ Pour.on('create', function( pour ) {
     path: '_faucet',
     model: 'Faucet' // This defines the "Model" that we're expecting.
   }, function(err, pour) {
+    if (!pour._faucet) return;
     
     // Initiate the Bitcoin transfer...
     pour._faucet.btcClient().sendToAddress( pour.address , parseFloat(pour.amount) , function(err, txid) {
