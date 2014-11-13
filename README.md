@@ -49,6 +49,10 @@ Maki is zero-configuration by default, but will use your changes where available
 ## Documentation
 Maki exposes an extremely simple interface to a powerful set of features.  These features are easy to understand, as they stem from a basic set of principles and philosophies.  We'll start with some simple definitions.
 
+### Why?
+In a traditional application – for example, a web application – a front-end engineer might change the interaction pattern of a particular interface control in such a way that the server interface might no longer be sufficient.  In said traditional application, server-side changes are necessary to support the front-end engineers.  With Maki, **interface elements can be changed freely and be predictably bound to server resources.
+
+
 ### Definitions
 In general, we'll be using the proper noun form of these definitions when referring to them explicitly.
 

@@ -288,7 +288,7 @@ describe('ws', function() {
       }
     });
     ws.on('open', function() {
-      maki.socks.server.markAndSweep();
+      maki.socks.markAndSweep();
     });
   });
   

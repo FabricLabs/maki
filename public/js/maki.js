@@ -45,7 +45,7 @@ var maki = {
       connect: function() {
         maki.sockets.disconnect();
 
-        var retryTimes = [1000, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000]; //in ms
+        var retryTimes = [/*/50, 1000, 5000, /**/ 10000, 30000, 60000, 120000, 300000, 600000, 86400000]; //in ms
         var retryIndex = 0;
         
         var path = 'ws://' + window.location.host + window.location.pathname;
