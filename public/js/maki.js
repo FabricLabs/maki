@@ -1,3 +1,7 @@
+// staged back-off strategy for websockets
+var retryTimes = [ 50, 250, 1000, 2500, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000 ]; //in ms
+var retryIndex = 0;
+
 // stub for a proper class
 var maki = {
     config: null
@@ -44,9 +48,6 @@ var maki = {
       },
       connect: function() {
         maki.sockets.disconnect();
-
-        var retryTimes = [/*/50, 1000, 5000, /**/ 10000, 30000, 60000, 120000, 300000, 600000, 86400000]; //in ms
-        var retryIndex = 0;
         
         var path = 'ws://' + window.location.host + window.location.pathname;
         maki.socket = new WebSocket( path );
@@ -55,10 +56,9 @@ var maki = {
           // TODO: randomize reconnection timeout buffer
           if (retryIndex < retryTimes.length) {
             console.log('retrying in ' + retryTimes[ retryIndex ] + 'ms');
-            setTimeout( maki.sockets.connect , retryTimes[ retryIndex ] );
+            setTimeout( maki.sockets.connect , retryTimes[ retryIndex++ ] );
           } else {
             console.log('failed for the last time.  not attempting again.');
-            retryTimes[ retryIndex++ ];
           }
         };
         maki.socket.onmessage = function onMessage(msg) {
@@ -67,7 +67,6 @@ var maki = {
           } catch (e) {
             var data = {};
           }
-
           // experimental JSON-RPC implementation
           if (data.jsonrpc === '2.0') {
             switch (data.method) {
@@ -92,6 +91,7 @@ var maki = {
           }
         };
         maki.socket.onopen = function onOpen() {
+          retryIndex = 0;
           // this is redundant, as the connection will already be subscribed
           // however, we need to modify internal stores, so call it anyways
           maki.sockets.subscribe( window.location.pathname );
