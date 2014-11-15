@@ -7,6 +7,7 @@ module.exports = {
   service: {
       name: process.env.MAKI_SERVICE_NAME || 'Maki'
     , namespace: process.env.MAKI_SERVICE_NAMESPACE || 'maki-test'
+    , mission: process.env.MAKI_SERVICE_MISSION || 'A simple framework for hand-rolling your web application.'
   },
   dns: {
     name: process.env.MAKI_DNS_NAME || 'localhost'

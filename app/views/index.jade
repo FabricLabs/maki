@@ -6,8 +6,8 @@ block content
 
   else
     .ui.huge.header
-      h1 Hello, Maki.
-      p A simple framework for hand-rolling your web application.
+      h1 Hello, #{config.service.name}.
+      p #{config.service.mission}
 
     .ui
       .ui.three.column.grid
@@ -24,59 +24,17 @@ block content
               h2.center-text Already registered?
               a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
           
-      .ui.column.grid
+      .ui.three.column.grid
         .column
           h3 Resources
           
           .ui.list
-            each resource in maki.resources
-              a.item(href="#{resource.routes.query}") #{resource.plural}  
-          
-      .ui.column.grid
-        .column
-          h3 Features
-          hr
-
-          h4 Full-Javascript Stack
-          p Build your app without wasting time on context switching.  Every layer of the Maki stack is Javascript, from the database (MongoDB) to the server (Node.js) and on to the clientside.
-
-          h4 Authentication
-          p We've built authentication into the stack (using PassportJS), including username and password auth, and OAuth using providers like Facebook and Twitter.  Spend your time on your app, not third-party auth.
-
-      .ui.column.grid
-        .column
-          h3 Documentation
-          
-          h4 Resource-Driven Development
-          p You'll start your hand-rolled application by defining the resources your application exposes:
-          
-          
-          .ui.segment
-            code.javascript
-              | maki.define({
-              |   name: 'Person',
-              |   attributes: {
-              |     name: { type: String , max: 80 },
-              |     slug: { type: String , max: 80 , id: true }
-              |   }
-              | });
-              | 
+            each resource in resources
+              a.item(href="#{resource.routes.query}") #{resource.plural}
               
-          p Almost like magic, <strong>your resource now has an endpoint that renders HTML <em>and</em> serves JSON</strong>.  Even better, AngularJS will automatically wire itself up to this resource.
-          
-          p More interestingly, <strong>all URIs are auto-constructed</strong>, and listen for HTTP verbs to perform actions on those resources.  In the above example, the resource's name, <code>"Person"</code>, gets converted into <code>/people</code> for a query-able collection, and <code>/people/:id</code> for a single instance.
-          
-          h4 UI
-          p We're using Bootstrap for our base CSS framework, giving us a generally semantic way of building interface elements.  In addition, we're using Jade to simplify the construction of HTML using simple style rules.
-
-          h5 Tooltips
-          p Add <code>.tooltipped</code> to an element to enable automatic generation of a tooltip for that element, defaulting to its <code>title</code> attribute.
-          p For example, 
-            code
-              | a.tooltipped(href="/about", title="Learn More about Maki") About
-            |  will produce: 
-            a.tooltipped(href="/about", title="Learn More about Maki") About
-
-      .ui.column.grid
         .column
-          hr
+          h3 Services
+          
+          .ui.list
+            each service in services
+              a.item(href="#{service.protocol}://#{service.authority}") #{service.name}
