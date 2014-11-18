@@ -40,7 +40,8 @@
     "fast-json-patch": "^0.3.6",
     "flashify": "^0.1.2",
     "jade": "^1.7.0",
-    "jade-browser": "0.0.14",
+    "jade-browser": "git://github.com/martindale/jade-browser#maki",
+    "jade-loader": "^0.7.0",
     "json-patch": "^0.4.3",
     "less-middleware": "git://github.com/martindale/less.js-middleware#maki",
     "lodash": "^2.4.1",
@@ -63,6 +64,7 @@
     "redis": "~0.10.3",
     "serve-static": "^1.6.4",
     "spdy": "^1.28.1",
+    "webpack": "^1.4.13",
     "ws": "~0.4.31"
   },
   "devDependencies": {
@@ -73,6 +75,7 @@
     "istanbul": "^0.3.0",
     "mocha": "~1.20.1",
     "restler": "^3.2.2",
-    "supertest": "~0.13.0"
+    "supertest": "~0.13.0",
+    "webpack-dev-middleware": "^1.0.11"
   }
 }

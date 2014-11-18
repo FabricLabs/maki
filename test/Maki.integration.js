@@ -153,6 +153,31 @@ describe('http', function(){
       });
   });
   
+  it('should return a created resource from an appropriate location', function( done ) {
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    var username = 'test-user-'+randomNum;
+    
+    request( maki.app )
+      .post('/people')
+      .set('Accept', 'application/json')
+      .send({ username: username })
+      .expect(200)
+      .end(function(err, res) {
+        if (err) throw err;
+        
+        request( maki.app )
+          .get('/people/' + username )
+          .set('Accept', 'application/json')
+          .expect(200)
+          .end(function(err, res) {
+            if (err) throw err;
+            if (res.body.username !== username) throw 'no result';
+            
+            done();
+          });
+      });
+  });
+  
   // TODO: evaluate this from a standards perspective.  Should HTML clients
   // be treated differently?
   it('should allow for a resource to be created (html client)', function( done ) {

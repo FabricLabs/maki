@@ -79,8 +79,15 @@ var maki = {
                 }));
               break;
               case 'patch':
-                // TODO: update in-memory data (two-way binding);
-                console.log( data );
+                console.log('received patch event', data );
+                
+                var uri = data.params.channel;
+                var ops = data.params.ops;
+                
+                if (!maki._resources[ uri ]) maki._resources[ uri ] = {};
+                
+                jsonpatch.apply( maki._resources[ uri ] , ops );
+                
               break;
               default:
                 console.log('unhandled jsonrpc method ' , data.method);
@@ -123,25 +130,141 @@ function DataBinder( objectID ) {
   });
 }
 
+var renderer = function( context , next ) {
+
+  var obj = {};
+  obj[ context.state.template ] = context.state.obj;
+  
+  // merge in always available vars...
+  obj = _.merge( obj , maki.always );
+  
+  console.log('seeking', context.state.template , 'in', jade.templates );
+  console.log( jade.templates[ context.state.template + '.jade' ] );
+  console.log('will render with', obj );
+  
+  var render = jade.templates[ context.state.template + '.jade' ];
+  
+  if (!render) {
+    var render = jade.templates[ 'resource.jade' ];
+    var subject = context.state.obj;
+    
+    // TODO: fix
+    var resource = context.state.resource;
+    console.log('found resource', resource);
+    obj['resource'] = resource;
+
+    if (subject && !Array.isArray(subject)) {
+      obj['item'] = subject;
+    } else {
+      obj['collection'] = subject;
+    }
+    
+  }
+  
+  var output = render( obj );
+  
+  console.log('rendered output', output);
+  
+  // TODO: proper data binding, shadow dom, etc.
+  //maki.$viewport.html( jade.render( context.state.template , obj ) );
+  maki.$viewport.html( output );
+  
+  $('a.active').removeClass('active');
+  $('a[href="'+context.path+'"]').addClass('active');
+  
+  //return next();
+};
+
+var subscriber = function( context , next ) {
+  
+  maki.sockets.unsubscribe( window.location.pathname );
+  maki.sockets.subscribe( context.path );
+
+  return next();
+
+};
+
+var builder = function( route , resource ) {
+  return function( context , next ) {
+    
+    console.log( context );
+    
+    // TODO: use local factory / caching mechanism
+    $.ajax({
+        url: context.path
+      , dataType: 'json'
+    }).always(function( results ) {
+      if (!results) template = '500';
+
+      console.log('builder', context.path , maki.templates );
+      console.log('results is...', results);
+
+      context.state.route = route;
+      context.state.resource = resource;
+      context.state.template = maki.templates[ route ];
+      context.state.obj = results;
+      
+      return next();
+
+    });
+  };
+};
+
 $(window).on('ready', function() {
+
   $.ajax({
     type: 'OPTIONS',
     url: '/'
   }).done(function(data) {
+    console.log('OPTIONS, data:', data );
+    
     if (!data || !data.resources) return console.log('failed to acquire resource list; disabling fancy stuff.');
     if (!data.config) return console.log('failed to acquire server config; disabling fancy stuff.');
+    if (!data.always) return console.log('failed to acquire server always; disabling fancy stuff.');
     
     maki.config = data.config;
+    maki.always = data.always;
+    maki.db = new loki( maki.config.service.namespace );
+    
+    maki.collections = {};
+    maki._resources = {};
     
     // server is online!
     maki.$viewport = $('[data-for=viewport]');
     maki.sockets.connect();
     
+    maki.resources = data.resources;
+    maki.resources.forEach(function(resource) { // duplicated below, not DRY for easy debug
+      var fields = ( resource.options.attributes ) ? Object.keys( resource.options.attributes ) : [];
+      var indices = _.union( ['_id'] , fields.filter(function(x) {
+        return resource.options.attributes[ x ].index === true;
+      }) );
+      
+      console.log('creating collection', resource.name , 'with indices' , indices);
+      maki.collections[ resource.name ] = maki.db.addCollection( resource.name , indices );
+      
+      // in-memory stub for basic patch events, without persistence
+      maki._resources[ resource.routes.query ] = [];
+      
+      console.log( resource );
+      
+      // only support routing for lists and singles
+      [ 'query', 'get' ].forEach(function(m) {
+        var route = resource.routes[ m ];
+        
+        if (route) maki.templates[ route ] = resource.templates[ m ];
+        if (route) page( route , builder( route , resource ) , subscriber , renderer );
+      });
+    });
+    
+    page.start();
+    
     // exit instead of binding client view handler
-    if (!maki.config.views || !maki.config.views.client || maki.config.views.client !== true) return console.log('client view rendering disabled.');
+    console.log(maki.config);
+    if (!maki.config.views || !maki.config.views.client || maki.config.views.client.render !== true) return console.log('client view rendering disabled.');
     
     $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
-    //$('a[href="'+window.location.pathname+'"]').addClass('active');
+    $('a[href="'+window.location.pathname+'"]').addClass('active');
 
     maki.resources = data.resources;
     maki.resources.forEach(function(resource) {
@@ -164,8 +287,14 @@ $(window).on('ready', function() {
         // TODO: fix this
         if (href.length <= 1) return template = 'index';
         
+        console.log('link clicked...', href );
+        console.log('regex string...', route );
+        
         var string = route;
         var regex = new RegExp( eval( string ) );
+        
+        console.log( regex , 'test', regex.test(href) , '->', maki.templates[ route ]);
+        
         // TODO: do not match '/' –- see bugfix at top of this loop
         if (regex.test( href )) template = maki.templates[ route ];
       });
@@ -183,7 +312,13 @@ $(window).on('ready', function() {
         var obj = {};
         obj[ template ] = results;
         
-        maki.$viewport.html( Templates[ template ]( obj ) );
+        // merge in always available vars...
+        obj = _.merge( obj , maki.always );
+        
+        console.log('seeking', template);
+        
+        // TODO: proper data binding, shadow dom, etc.
+        maki.$viewport.html( jade.render( template , obj ) );
         
         $('a.active').removeClass('active');
         $a.addClass('active');
@@ -199,78 +334,4 @@ $(window).on('ready', function() {
     });
     
   });
-});
-
-maki.angular = {
-  controller: function() { return this; },
-  directive:  function() { return this; }
-}
-
-maki.angular.controller('mainController', function( $scope ) {
-  
-  $scope.$on('$destroy', function() {
-     window.onbeforeunload = maki.sockets.disconnect;
-  });
-  
-  // TODO: use pubsub
-  $scope.$on('$locationChangeStart', function(event) {
-    // hack to collapse navbar on navigation
-    $('.navbar-collapse').removeClass('in').addClass('collapse');
-
-    // TODO: unsubscribe, NOT disconnect
-    //maki.sockets.unsubscribe();
-    maki.sockets.disconnect();
-
-  });
-  $scope.$on('$locationChangeSuccess', function(event) {
-    // TODO: use subscribe, and subscribe to all resources on page!
-    maki.sockets.connect();
-    //maki.sockets.subscribe();
-  });
-});
-
-maki.angular.controller('headerController', function( $scope , $location ) {
-  $scope.isActive = function (viewLocation) {
-    return viewLocation === $location.path();
-  };
-});
-
-maki.angular.directive('tooltipped', function() {
-  return {
-      restrict: 'C'
-    , link: function( scope , element ) {
-        $( element ).tooltip({
-          container: 'body'
-        });  
-      }
-  }
-}).directive('code', function() {
-  return {
-    restrict: 'E',
-    link: function( scope , element ) {
-      $( element ).each(function(i, block) {
-        hljs.highlightBlock(block);
-      });
-    }
-  }
-}).directive('headroom', function() {
-  return {
-    restrict: 'EA',
-    scope: {
-      tolerance: '=',
-      offset: '=',
-      classes: '='
-    },
-    link: function(scope, element) {
-      var options = {};
-      angular.forEach(Headroom.options, function(value, key) {
-        options[key] = scope[key] || Headroom.options[key];
-      });
-      var headroom = new Headroom(element[0], options);
-      headroom.init();
-      scope.$on('destroy', function() {
-        headroom.destroy();
-      });
-    }
-  };
 });
