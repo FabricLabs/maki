@@ -8,6 +8,7 @@ Maki is a framework for hand-rolling web applications in a way that makes sense 
 - **REST API built-in.**  All URIs are semantic and indempotent, automatically.
 - **Client-Responsiveness.**  Don't rely on user-agents or referers, but instead respond to what the client supports.  Make a request that only accepts JSON?  Get JSON back.  Accept HTML?  Get HTML back.
 - **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript _is_ available, a performant and well-designed client-side application takes over to eliminate full-page loads.  See also [Modules](#modules).
+- **Connect Middlwares**  Maki uses the [Connect middleware pattern](http://stephensugden.com/middleware_guide/) for extending core functionality, but extends the concept to apply to more than just HTTP servers.
 
 ## Quick Start
 You'll need [node.js](http://nodejs.org) to build a Maki application.   Additionally, [MongoDB](http://mongodb.org) and [Redis](http://redis.org) are the default storage and messaging engines, so you will need to install and configure them to use the defaults, or override them if you'd like to use something different.
