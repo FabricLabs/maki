@@ -31,8 +31,8 @@ maki.define('Person', {
 function resource( path , options ) {
   var options  = options || {};
   var protocol = (options.ssl) ? 'https' : 'http';
-  var host     = (options.ssl) ? config.services.spdy.host : config.services.http.host;
-  var port     = (options.ssl) ? config.services.spdy.port : config.services.http.port;
+  var host     = (options.ssl) ? maki.config.services.spdy.host : maki.config.services.http.host;
+  var port     = (options.ssl) ? maki.config.services.spdy.port : maki.config.services.http.port;
 
   return protocol + '://' + host + ':' + port + path;
 }
@@ -44,7 +44,9 @@ before(function(ready) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   maki.start(function() {
     console.log('setup done!');
-    ready();
+    setTimeout(function() {
+      ready();
+    }, 250);
   });
 });
 
@@ -140,7 +142,7 @@ describe('http', function(){
       });
   });
   
-  it('should allow for a resource to be created (single call)', function( done ) {
+  it('should allow for a resource to be created via POST (single call)', function( done ) {
     var randomNum = getRandomInt( 100000 , 1000000 );
     request( maki.app )
       .post('/people')
@@ -151,6 +153,45 @@ describe('http', function(){
         if (err) throw err;
         done();
       });
+  });
+  
+  it('should allow for a resource to be created via PUT (single call)', function( done ) {
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    var username = 'test-user-'+randomNum;
+    
+    console.log('RESOURCE', resource('/people') );
+    
+    rest.put( resource('/people/' + username) , {
+      data: { username: username },
+      headers: { accept: 'application/json' }
+    }).on('complete', function(data, res) {
+      console.log('complete', data);
+      assert( res.statusCode , 303 );
+      done();
+    });
+
+  });
+  
+  it('should allow for a resource to be updated via PATCH (single call)', function( done ) {
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    var username = 'test-user-'+randomNum;
+    
+    rest.put( resource('/people/' + username) , {
+      data: { username: username },
+      headers: { accept: 'application/json' }
+    }).on('complete', function(data, res) {
+      rest.patch( resource('/people/' + username) , {
+        data: { username: username + '-patched' },
+        headers: { accept: 'application/json' }
+      }).on('complete', function(data, res) {
+        console.log('complete', data );
+        assert( data.username , username + '-patched' );
+        done();
+      });
+    });
+    
+
+
   });
   
   it('should return a created resource from an appropriate location', function( done ) {
