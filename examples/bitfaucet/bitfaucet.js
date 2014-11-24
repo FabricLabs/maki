@@ -142,10 +142,10 @@ Faucet.post('init', function( faucet , next ) {
 // Before saving a Pour, validate that it is authorized.  
 // In our simple example, all Pours are allowed (without a rate-limit), but in a
 // real-world example you will clearly want to implement some sort of validator.
-Pour.pre('save', function( done ) {
+Pour.pre('create', function( next ) {
   var pour = this;
   console.log('TODO: implement ratelimiter.  pre-save() called.', pour );
-  done();
+  next();
 });
 
 // ## Resource Events
