@@ -42,6 +42,7 @@
     "jade": "^1.7.0",
     "jade-browser": "0.0.14",
     "json-patch": "^0.4.3",
+    "jsonpath-object-transform": "git://github.com/dvdln/jsonpath-object-transform",
     "less-middleware": "git://github.com/martindale/less.js-middleware#maki",
     "lodash": "^2.4.1",
     "maki-jsonrpc": "^0.1.1",
