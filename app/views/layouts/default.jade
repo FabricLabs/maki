@@ -28,22 +28,19 @@ html(ng-app="maki")
   body(ng-controller="mainController")
     block navbar
       include ../partials/navbar
-    
-    .contained
-      .ui.grid
-        .column.content(data-for="viewport")
-        
-          include ../partials/flash
-        
-          block content
 
-    footer
-      .contained
-        .ui.grid
-          .column
-            .ui.one.column.stackable.center.aligned
-              small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
-              | 
-              a.ui.tiny.button(class="btn btn-default", href="bitcoin:1Ae7wguPTP8Zm3146opVhay4hUS7NiaxYw", title="B") Donate 
-                i.fa.fa-bitcoin(alt="B", title="B")
-                | itcoin &raquo;
+    .ui.page.grid
+      .column.content(data-for="viewport")
+      
+        include ../partials/flash
+      
+        block content
+
+    .ui.page.grid
+      .column
+        .ui.one.column.stackable.center.aligned
+          small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
+          | 
+          a.ui.tiny.button(class="btn btn-default", href="bitcoin:1Ae7wguPTP8Zm3146opVhay4hUS7NiaxYw", title="B") Donate 
+            i.fa.fa-bitcoin(alt="B", title="B")
+            | itcoin &raquo;
