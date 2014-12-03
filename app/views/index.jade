@@ -7,7 +7,7 @@ block content
   else
     .ui.huge.header
       h1 Hello, #{config.service.name}.
-      p #{config.service.mission}
+      p !{ markdown( config.service.mission ) }
 
     .ui
       .ui.three.column.grid
