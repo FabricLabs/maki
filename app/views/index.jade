@@ -30,7 +30,8 @@ block content
           
           .ui.list
             each resource in resources
-              a.item(href="#{resource.routes.query}") #{resource.plural}
+              if (!resource.internal)
+                a.item(href="#{resource.routes.query}") #{resource.plural}
               
         .column
           h3 Services
