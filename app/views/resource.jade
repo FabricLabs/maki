@@ -4,12 +4,13 @@ block content
 
   - var idField = resource.fields.id;
 
-  h1.ui.breadcrumb
-    block breadcrumbs
-      a.active.section(href="/#{resource.collection}") #{resource.plural}
-      - if (typeof(item) != 'undefined')
-        .divider / 
-        a(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
+  h1
+    .ui.breadcrumb
+      block breadcrumbs
+        a.active.section(href="/#{resource.collection}") #{resource.plural}
+        - if (typeof(item) != 'undefined')
+          .divider / 
+          a.section(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
 
   - var fields = Object.keys(resource.keys) || []
 
