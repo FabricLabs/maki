@@ -233,7 +233,7 @@ In both of the above examples, the currently open WebSocket will now receive eve
 ## Architecture
 Maki's architecture is Resource-centric.  All aspects of the datastore, its query pipeline, the business logic, and view layer are derived from the definition of the Resources your application exposes.
 
-![Maki Architecture Overview](public/img/maki-architecture.svg?raw=true)
+![Maki Architecture Overview](public/img/maki-architecture.png?raw=true)
 
 TODO: explanation here.
 
