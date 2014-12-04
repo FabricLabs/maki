@@ -1,26 +1,27 @@
 extends layouts/default
 
 block content
-  .ui.huge.header
-    h1 Hello, #{config.service.name}.
+  .ui.header
+    h1.huge Hello, #{config.service.name}.
     p !{ markdown( config.service.mission ) }
 
   .ui.grid
-    .five.wide.column
-      .ui.segment.card
-        h2.center-text Hand-rolled.
-        p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
-    .five.wide.column
-      .ui.segment.card
-        h2.center-text Get Making.
-        p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
-    .five.wide.column
-      .ui.segment.card
-          h2.center-text Already registered?
-          a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
-      
+    .three.column.row
+      .left.floated.column
+        .ui.segment.card
+          h2.center-text Hand-rolled.
+          p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
+      .left.floated.column
+        .ui.segment.card
+          h2.center-text Get Making.
+          p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
+      .left.floated.column
+        .ui.segment.card
+            h2.center-text Already registered?
+            a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
+        
   .ui.grid
-    .five.column
+    .eight.wide.column
       h3 Resources
       
       .ui.list
@@ -28,7 +29,7 @@ block content
           if (!resource.internal)
             a.item(href="#{resource.routes.query}") #{resource.plural}
           
-    .five.column
+    .eight.wide.column
       h3 Services
       
       .ui.list

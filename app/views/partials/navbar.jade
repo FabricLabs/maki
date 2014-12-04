@@ -1,16 +1,23 @@
-.ui.page.grid
-  .ui.pointing.menu.large(ng-controller="headerController")
-    a.item(href="/")
-      i.icon.lab.left
-      | #{config.service.name}
+.ui.page
+  .ui.pointing.main.tiered.menu.large(ng-controller="headerController")
+    .menu
+      a.item(href="/")
+        i.icon.lab.left
+        | #{config.service.name}
 
-    //- block for prepend/append/replace-able menu items
-    block mainMenu
+      //- block for prepend/append/replace-able menu items
+      block mainMenu
+        .right.menu
+          a.item(href="https://github.com/martindale/maki")
+            i.fork.icon
+            |  Code &raquo;
+    .ui.sub.menu
       a.item(href="/", title="#{config.service.name} Homepage", ng-class="{ active: isActive('/')}")
         i.home.icon
         |  Home
-      .right.menu
-        a.item(href="https://github.com/martindale/maki")
-          i.code.icon
-          |  Code &raquo;
-        
+      each resource in resources
+        if (!resource.internal)
+          a.item(href="#{resource.routes.query}")
+            if (resource.options.icon)
+              i.icon(class="#{resource.options.icon}")
+            | #{resource.plural}

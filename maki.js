@@ -13,7 +13,8 @@ maki.define('Person', {
   },
   plugins: [
     require('passport-local-mongoose')
-  ]
+  ],
+  icon: 'user'
 });
 
 maki.define('Example', {
@@ -21,7 +22,8 @@ maki.define('Example', {
     name:    { type: String , max: 80 },
     slug:    { type: String , max: 80 , id: true },
     content: { type: String }
-  }
+  },
+  icon: 'idea'
 });
 
 maki.define('Dashboard', {
@@ -36,13 +38,15 @@ maki.define('Dashboard', {
         // _id: { $in: dashboard._people }
       }
     }
-  }
+  },
+  icon: 'dashboard'
 });
 
 maki.define('Widget', {
   attributes: {
     name: { type: String , max: 80 }
-  }
+  },
+  icon: 'setting'
 });
 
 maki.serve(['http']).start();
