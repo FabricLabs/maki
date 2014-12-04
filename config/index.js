@@ -4,14 +4,30 @@
    which sets them when require('./thisfile') is run. */
 
 module.exports = {
+  service: {
+      name: process.env.MAKI_SERVICE_NAME || 'Maki'
+    , authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200'
+    , namespace: process.env.MAKI_SERVICE_NAMESPACE || 'maki-test'
+    , mission: process.env.MAKI_SERVICE_MISSION || 'A simple framework for hand-rolling your web application.'
+  },
+  dns: {
+    name: process.env.MAKI_DNS_NAME || 'localhost'
+  },
   services: {
     http: {
-      port: process.env.MAKI_HTTP_PORT || 9200
+        port: process.env.MAKI_HTTP_PORT || 9200
+      , host: process.env.MAKI_HTTP_HOST || 'localhost'
+    },
+    spdy: {
+        host: process.env.MAKI_HTTP_HOST || 'localhost'
+      , port: process.env.MAKI_SPDY_PORT || 9643
     }
   },
   database: {
-      name: process.env.MAKI_DATABASE_NAME || 'maki'
-    , uri:  process.env.MAKI_DATABASE_URI  || 'localhost' 
+    name: process.env.MAKI_DATABASE_NAME   || 'maki',
+    masters: (process.env.MAKI_DATABASE_MASTERS)
+      ? JSON.parse(process.env.MAKI_DATABASE_MASTERS)
+      : [ 'localhost' ]
   },
   sessions: {
       enabled: process.env.MAKI_SESSIONS_ENABLE || true
@@ -27,6 +43,14 @@ module.exports = {
   auth: {
     local: {
       enabled: true
+    }
+  },
+  views: {
+    plugins: {
+      'moment': require('moment')
+    },
+    client: {
+      render: process.env.MAKI_VIEWS_CLIENT_RENDER || false
     }
   }
 };

@@ -1,0 +1,9 @@
+.ui.grid
+  .row
+    .ui.pointing.large.menu.navbar.page.grid(ng-controller="headerController")
+      a.brand.item(href="/")
+        i.icon.maki.left
+        | BitFaucet
+
+      //- block for prepend/append/replace-able menu items
+      block mainMenu

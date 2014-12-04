@@ -1,35 +1,85 @@
 Maki
 ==============
+[![Build Status](https://travis-ci.org/martindale/maki.svg)](https://travis-ci.org/martindale/maki)
+[![Coverage Status](https://coveralls.io/repos/martindale/maki/badge.png?branch=master)](https://coveralls.io/r/martindale/maki?branch=master)
 
-Maki is a framework for hand-rolling web applications in a way that makes sense.
+Maki is a framework for hand-rolling web applications in a way that makes sense to a human.
 
 - **REST API built-in.**  All URIs are semantic and indempotent, automatically.
 - **Client-Responsiveness.**  Don't rely on user-agents or referers, but instead respond to what the client supports.  Make a request that only accepts JSON?  Get JSON back.  Accept HTML?  Get HTML back.
-- **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript _is_ available, a performant and well-designed client-side application takes over to eliminate full-page loads.
+- **Javascript _optional_.**  If the client doesn't have Javascript enabled, applications built with Maki will continue to work using pure HTML.  When Javascript _is_ available, a performant and well-designed client-side application takes over to eliminate full-page loads.  See also [Modules](#modules).
+
+## Quick Start
+You'll need [node.js](http://nodejs.org) to build a Maki application.   Additionally, [MongoDB](http://mongodb.org) and [Redis](http://redis.org) are the default storage and messaging engines, so you will need to install and configure them to use the defaults, or override them if you'd like to use something different.
+
+1. Install Maki: `npm install martindale/maki`
+2. Create your app, perhaps in `yourapp.js`:
+  ```javascript
+  var myApp = new require('maki');
+  
+  myApp.define('Widget', {
+    attributes: {
+      name: String
+    }
+  });
+  
+  myApp.start();
+  ```
+3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
+
+### Configuration
+
+Maki-built apps do not require any special configuration.  However, it is intended to be a platform for customization – it will look in your project's folder for customizations (such as a change to the HTTP port) based on the pattern exposed by [its Default Directory Structure](#default-directory-structure).
+
+For example, add this file to `./config/index.js` to change the HTTP port:
+```javascript
+module.exports = { services: { http: { port: 8080 } } };
+```
+
+...or this file to `./app/views/index.jade` to change what the index page looks like:
+```jade
+extends layouts/default
+
+block content
+  h1 Hello, world!
+```
+
+Maki is zero-configuration by default, but will use your changes where available as an extension to its own internal, default behaviors.  See below for further documentation on the options and default behaviors.
+
+## Documentation
+Maki exposes an extremely simple interface to a powerful set of features.  These features are easy to understand, as they stem from a basic set of principles and philosophies.  We'll start with some simple definitions.
+
+### Why?
+In a traditional application – for example, a web application – a front-end engineer might change the interaction pattern of a particular interface control in such a way that the server interface might no longer be sufficient.  In said traditional application, server-side changes are necessary to support the front-end engineers.  With Maki, **interface elements can be changed freely and be predictably bound to server resources.
+
 
 ### Definitions
 In general, we'll be using the proper noun form of these definitions when referring to them explicitly.
 
 - **Application:** the executable process that binds Resources and their associated Models, Controllers, and Views into a deliverable Service.
 - **Resource:** the abstract concept of an interactive object.  For example, a "user" of a website is a Resource, and can be interacted with; created (registered), listed (page displaying a list of users), and viewed (profile page).  Resources generally expose one or more identifiers, or Uniform Resource Identifiers (URI).
+- **Module:** a collection of **renderables** (html, lexers, etc.) and **their associated styling**.  For example, in an HTML context, a **Module** consists of HTML, Javascript, and associated CSS for styling.
 - **Model:** the abstract class that exposes a Resource's Schema and associated validators, methods, and statics.
 - **Controller:** the code associated with specific interactions on a Resource and the behavior of the Application.
-- **View:** logic and template for displaying a specific Resource.  This generally contains logic and is dependent on context.
+- **View:** logic and template for displaying a specific Resource.  This generally contains logic and is dependent on context.  A View MAY compose several Modules.
 - **Service:** the offering of your app / website / api via various protocols (HTTP, WebSockets, gopher, etc.)
 
 ## Resource-Driven Development (RDD)
-Generally, programming web applications involves writing logic around a series of Resources to control their behavior and deliver an experience with the application's "Scope".  Maki aims to _start_ with that mental model of your application's "Scope", allow you to **hand-roll** (get it?) extensions (read: add business logic) to that mental model, and then deliver that model as a Service.
+Generally, programming applications involves writing logic around a series of Resources to control their behavior and deliver an experience with the application's "Scope".  Maki aims to _start_ with that mental model of your application's "Scope", allow you to **hand-roll** (get it?) extensions (read: add business logic) to that mental model, and then deliver that model as a Service.
 
-**Example Maki Application**
+**Example Maki Application**  
+All URIs are automatically derived from the the Resource definition.
 ```javascript
-var app  = require('express')();
-var maki = require('maki')( app );
+var config = require('./config');
 
-resource.define({
-    name: 'Person'
-  , path: '/people'
-  , template: 'people'
-  , get: maki.controllers.people.list // defined in ./controllers/people and injected by Maki
+var Maki = require('maki');
+var maki = new Maki( config );
+
+maki.define('Person', {
+  attributes: {
+    name: { type: String , max: 80 },
+    slug: { type: String , max: 80 , id: true }
+  }
 });
 
 maki.start();
@@ -38,13 +88,14 @@ That's it.  That's all you need.  A `GET` request to `/people` will now provide 
 
 ```bash
 > curl http://localhost:9200/people
-[{"slug": "martindale", "username": "martindale"}]
+[{"slug": "martindale", "name": "martindale"}]
 ```
 Requesting an HTML version of that Resource will give you exactly that:
 ```bash
 > curl -H "Accept: text/html" http://localhost:9200/people
 <!DOCTYPE html>
-<html ng-app="maki">
+<html>
+<!-- rendered version of the resource snipped -->
 ...
 ```
 Similarly, you can subscribe to updates to that same Resource by switching to the `ws://` protocol:
@@ -73,6 +124,66 @@ Updates from the server are additionally encapsulated using [RFC 5789, PATCH Met
 #### Reconnection
 Maki's sockets are resilient to latency, network connectivity issues, and multiple-tenant environments, for up to 24 hours (configurable).  The server will intelligently clean up idle sockets, and clients will intelligently reconnect using a pre-configured back-off strategy.
 
+#### Validators
+Every attribute on a Resource can have custom validators:
+```javascript
+var Person = maki.define('Person', {
+  attributes: {
+    username: { type: String , max: 80 , required: true , slug: true }
+  }
+});
+
+Person.path('username', function(value) {
+  if (value.length < 5) return false;
+  
+  return true;
+}, 'Invalid username.  Must be > 5 characters.');
+```
+
+Validators can also be defined as functions on attributes themselves by supplying a `validator`:
+```javascript
+maki.define('Person', {
+  attributes: {
+    username: { type: String , max: 80 , required: true , slug: true , validator: function(value) {
+      if (value.length < 5) return false;
+      
+      return true;
+    } }
+  }
+});
+```
+
+
+### Methods
+All Maki resources expose exactly five (5) methods:
+
+- **query** to select a list of documents,
+- **get** to get a single instance of a document by its identifier (ID),
+- **create** to create a new instance of a document,
+- **update** to change properties of a document, and
+- **destroy** to remove a document.
+
+### Events
+Maki exposes events at the Resource level (as emitted by the above Methods):
+
+```javascript
+maki.resources.Person.on('create', function( person ) {
+  console.log('new Person', person);
+});
+```
+
+...as well as on the Storage level (as `pre` or `post` middleware):
+
+```javascript
+maki.resources.Person.post('save', function(done) {
+  var person = this;
+  
+  console.log('just saved a Person:' , person);
+  
+  done();
+});
+```
+
 ### Dependency Injection
 Often, a single Resource we need other Resources to be contextualized into a View.  For example, viewing a "Person" (viewing a profile page) may require collecting a list of "Projects" (another resource, a subcollection of documents _owned_ by a Person), but the JSON representation of that View is not an accurate representation of the Resource.  For this case, _only_ the HTML context of the View will collect the necessary dependencies.
 
@@ -94,18 +205,43 @@ block content
 This will allow Maki to collect the "projects" Resource as a subcollection of the Person Resource, or more specifically, only within this View.  The JSON View will _not_ collect Projects, and subsequently spare [precious] server time.
 
 ### PubSub
+WebSockets exposed by Maki are, by default, subscribed to the Resource exposed by the path you're connecting to.  For example, `ws://localhost:9200/people` will subscribe to the People resource, as defined by Maki.  This may not be ideal for subscribing to multiple (or _many_ resources), so Maki allows for multi-plexing on single websocket connections:
 
+```javascript
+maki.sockets.subscribe('/examples');
+```
+
+In pure Javascript (without Maki):
+```javascript
+var ws = new WebSocket('ws://localhost:9200/people');
+ws.on('open', function() {
+  
+  var JSONRPCEvent = {
+    jsonrpc: '2.0',
+    method: 'subscribe',
+    data: {
+      channel: '/examples'
+    }
+  };
+  
+  ws.send( JSON.stringify( JSONRPCEvent ) );
+});
+```
+
+In both of the above examples, the currently open WebSocket will now receive events for both the `/people` and the `/examples` paths (or rather, the Resources _exposed_ by those paths).
 
 ## Architecture
+Maki's architecture is Resource-centric.  All aspects of the datastore, its query pipeline, the business logic, and view layer are derived from the definition of the Resources your application exposes.
 
-## Instructions
-You'll need [node.js](http://nodejs.org) and [mongodb](http://mongodb.org) to run this application.  Installing these is out-of-scope, and instructions are contained on the links to the left.
+TODO: IMAGE HERE
 
-1. Clone the project (you can download the zip above or use git)
-2. In the project's folder, run `npm install`.  Wait for it to install all necessary components.
-3. Run `node maki.js`.
+TODO: explanation here.
 
-You'll now, by default, have a web application running at http://localhost:9200 -- you can edit the port by changing config.js.
+### RPC Methods
+- `ping` should be responded to with a "pong" result.
+- `patch` will provide an array of operations to execute on a resource.
+- `subscribe`
+- `unsubscribe`
 
 ## Default Directory Structure
 Maki is meant to be understood without context or documentation, and as such the directory structure [and the code itself, for that matter] _should_ be fairly self-explanatory.  Nevertheless, here's an explicit declaration for each of the default folders and their intended use.

@@ -1,0 +1,15 @@
+//- TODO: map each column and provide summary in footer
+table.ui.table.segment.sortable
+  thead
+    tr
+      each field in fields
+        td #{field}
+
+  tbody
+    tr
+      each field in fields
+        td
+          if (field == idField)
+            a(href="/#{resource.collection}/#{item[ field ]}") #{item[ field ]}
+          else
+            | #{item[ field ]}

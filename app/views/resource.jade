@@ -1,0 +1,25 @@
+extends layouts/default
+
+block content
+
+  - var idField = resource.fields.id;
+
+  h1.ui.breadcrumb
+    block breadcrumbs
+      a.active.section(href="/#{resource.collection}") #{resource.plural}
+      - if (typeof(item) != 'undefined')
+        .divider / 
+        a(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
+
+  - var fields = Object.keys(resource.keys) || []
+
+  //- TODO: use different modules for different collection types?
+  if (!collection)
+    //- No collection was provided, render single
+    include modules/item
+
+  else
+    include modules/collection
+
+    h3 Create
+    include forms/resource-create

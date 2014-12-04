@@ -1,22 +1,13 @@
-// stub for jsonRPC class (shared)
-var jsonRPC = function( method , params ) {
-  this._method = method;
-  this._params = params;
-}
-jsonRPC.prototype.toJSON = function(notify) {
-  var self = this;
-  return JSON.stringify({
-    'jsonrpc': '2.0',
-    'method': self._method,
-    'params': self._params,
-    'id': (notify === false) ? undefined : uuid.v1()
-  });
-}
+// staged back-off strategy for websockets
+var retryTimes = [ 50, 250, 1000, 2500, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000 ]; //in ms
+var retryIndex = 0;
 
 // stub for a proper class
 var maki = {
-    angular: angular.module('maki', ['ngRoute', 'ngResource'])
-  , socket: null
+    config: null
+  , templates: {}
+  , routes: []
+  , socket: null // only one connected socket at a time (for now)
   , sockets: {
       subscriptions: [],
       subscribe: function( channel ) {
@@ -57,9 +48,6 @@ var maki = {
       },
       connect: function() {
         maki.sockets.disconnect();
-
-        var retryTimes = [1000, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000]; //in ms
-        var retryIndex = 0;
         
         var path = 'ws://' + window.location.host + window.location.pathname;
         maki.socket = new WebSocket( path );
@@ -68,10 +56,9 @@ var maki = {
           // TODO: randomize reconnection timeout buffer
           if (retryIndex < retryTimes.length) {
             console.log('retrying in ' + retryTimes[ retryIndex ] + 'ms');
-            setTimeout( maki.sockets.connect , retryTimes[ retryIndex ] );
+            setTimeout( maki.sockets.connect , retryTimes[ retryIndex++ ] );
           } else {
             console.log('failed for the last time.  not attempting again.');
-            retryTimes[ retryIndex++ ];
           }
         };
         maki.socket.onmessage = function onMessage(msg) {
@@ -80,23 +67,31 @@ var maki = {
           } catch (e) {
             var data = {};
           }
-
-          console.log(data);
           // experimental JSON-RPC implementation
           if (data.jsonrpc === '2.0') {
             switch (data.method) {
               case 'ping':
-                console.log('was ping, sending response');
+                console.log('was ping, playing pong');
                 maki.socket.send(JSON.stringify({
                   'jsonrpc': '2.0',
                   'result': 'pong',
                   'id': data.id
                 }));
               break;
+              case 'patch':
+                // TODO: update in-memory data (two-way binding);
+                console.log( data );
+              break;
+              default:
+                console.log('unhandled jsonrpc method ' , data.method);
+              break;
             }
+          } else {
+            
           }
         };
         maki.socket.onopen = function onOpen() {
+          retryIndex = 0;
           // this is redundant, as the connection will already be subscribed
           // however, we need to modify internal stores, so call it anyways
           maki.sockets.subscribe( window.location.pathname );
@@ -105,48 +100,114 @@ var maki = {
     }
 };
 
-maki.angular.config(function($routeProvider, $locationProvider, $resourceProvider) {
+function DataBinder( objectID ) {
+  var pubSub = $({});
   
-  var pages = [];
-  $.ajax({
-    async: false,
-    type: 'OPTIONS',
-    url: '/',
-    success: function(data) {
-      pages = data;
-    }
+  var attribute = 'bind-' + objectID;
+  var message = objectID + ':change';
+  
+  $(document).on('change', '[data-' + attribute + ']', function(e) {
+    var $input = $(this);
+    pubSub.trigger( message , [ $input.data( attribute ) ] , $input.val() );
   });
   
-  pages.forEach(function(page) {
-    $routeProvider.when.apply( this , [ page.path , {
-      template: function( params ) {
-        var self = this;
-        var obj = {};
-
-        $.ajax({
-            url: self.location
-          , success: function( results ) {
-              obj[ page.name ] = results;
-            }
-          , async: false
-        });
-        
-        return Templates[ page.template ]( obj );
-      }
-    } ] );
-    $routeProvider.otherwise({
-      template: function() {
-        return Templates['404']();
+  pubSub.on( message , function(e, property, value) {
+    $('[data-' + attribute + '=' + property + ']').each(function() {
+      var $bound = $(this);
+      if ( $bound.is('input, textarea, select') ) {
+        $bound.val( value );
+      } else {
+        $bound.html( value );
       }
     });
   });
+}
 
-  // use the HTML5 History API
-  $locationProvider.html5Mode(true);
+$(window).on('ready', function() {
+  $.ajax({
+    type: 'OPTIONS',
+    url: '/'
+  }).done(function(data) {
+    if (!data || !data.resources) return console.log('failed to acquire resource list; disabling fancy stuff.');
+    if (!data.config) return console.log('failed to acquire server config; disabling fancy stuff.');
+    
+    maki.config = data.config;
+    
+    // server is online!
+    maki.$viewport = $('[data-for=viewport]');
+    maki.sockets.connect();
+    
+    // exit instead of binding client view handler
+    if (!maki.config.views || !maki.config.views.client || maki.config.views.client !== true) return console.log('client view rendering disabled.');
+    
+    $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
+    //$('a[href="'+window.location.pathname+'"]').addClass('active');
 
+    maki.resources = data.resources;
+    maki.resources.forEach(function(resource) {
+      // only support routing for lists and singles
+      [ 'query', 'get' ].forEach(function(m) {
+        var path = resource.paths[ m ];
+        if (path) maki.templates[ path ] = resource.templates[ m ];
+      });
+    });
+    
+    // bind pushState stuff
+    $( document ).on('click', 'a', function(e) {
+      e.preventDefault();
+      var $a = $(this);
+      var href = $a.attr('href');
+      
+      var template;
+      Object.keys(maki.templates).forEach(function(route) {
+        // HACK: don't bother matching routes of almost-zero length
+        // TODO: fix this
+        if (href.length <= 1) return template = 'index';
+        
+        var string = route;
+        var regex = new RegExp( eval( string ) );
+        // TODO: do not match '/' –- see bugfix at top of this loop
+        if (regex.test( href )) template = maki.templates[ route ];
+      });
+      
+      // TODO: use local factory / caching mechanism
+      $.ajax({
+          url: href
+        , async: false
+      }).always(function( results ) {
+        if (!results) template = '500';
+
+        maki.sockets.unsubscribe( window.location.pathname );
+        maki.sockets.subscribe( href );
+
+        var obj = {};
+        obj[ template ] = results;
+        
+        maki.$viewport.html( Templates[ template ]( obj ) );
+        
+        $('a.active').removeClass('active');
+        $a.addClass('active');
+        
+        history.pushState({}, '', href );
+      });
+
+      return false;
+    });
+    
+    $('.message .close').on('click', function() {
+      $(this).closest('.message').fadeOut();
+    });
+    
+  });
 });
 
+maki.angular = {
+  controller: function() { return this; },
+  directive:  function() { return this; }
+}
+
 maki.angular.controller('mainController', function( $scope ) {
+  
   $scope.$on('$destroy', function() {
      window.onbeforeunload = maki.sockets.disconnect;
   });
@@ -166,7 +227,15 @@ maki.angular.controller('mainController', function( $scope ) {
     maki.sockets.connect();
     //maki.sockets.subscribe();
   });
-}).directive('tooltipped', function() {
+});
+
+maki.angular.controller('headerController', function( $scope , $location ) {
+  $scope.isActive = function (viewLocation) {
+    return viewLocation === $location.path();
+  };
+});
+
+maki.angular.directive('tooltipped', function() {
   return {
       restrict: 'C'
     , link: function( scope , element ) {
@@ -203,10 +272,5 @@ maki.angular.controller('mainController', function( $scope ) {
         headroom.destroy();
       });
     }
-  };
-});
-maki.angular.controller('headerController', function( $scope , $location ) {
-  $scope.isActive = function (viewLocation) {
-    return viewLocation === $location.path();
   };
 });
