@@ -1,8 +1,9 @@
 form.ui.form.segment(action="/#{resource.collection}", method="post")
   for field in fields
     - if (resource.keys[field])
-      .field(class=((resource.options.attributes[ field ] && resource.options.attributes[ field ].required) ? 'required' : undefined ))
+      - var f = resource.attributes[ field ]
+      .field(class=((f && f.required) ? 'required' : undefined ))
         label #{field}
-        input(type="text", name="#{field}", required=((resource.options.attributes[ field ] && resource.options.attributes[ field ].required) ? 'required' : undefined ), class=((resource.options.attributes[ field ] && resource.options.attributes[ field ].required) ? 'required' : undefined ) )
+        input(type="#{f._type}", name="#{field}", required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) )
       
   button.ui.blue.submit.button(type="submit") Create &raquo;

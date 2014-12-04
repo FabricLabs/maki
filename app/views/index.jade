@@ -1,41 +1,37 @@
 extends layouts/default
 
 block content
-  if (user)
-    h1 Welcome, #{user.username}!
+  .ui.header
+    h1.huge Hello, #{config.service.name}.
+    p !{ markdown( config.service.mission ) }
 
-  else
-    .ui.huge.header
-      h1 Hello, #{config.service.name}.
-      p !{ markdown( config.service.mission ) }
+  .ui.grid
+    .three.column.row
+      .left.floated.column
+        .ui.segment.card
+          h2.center-text Hand-rolled.
+          p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
+      .left.floated.column
+        .ui.segment.card
+          h2.center-text Get Making.
+          p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
+      .left.floated.column
+        .ui.segment.card
+            h2.center-text Already registered?
+            a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
 
-    .ui
-      .ui.three.column.grid
-        .column
-          .ui.blue.segment.card
-            h2.center-text Hand-rolled.
-            p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
-        .column
-          .ui.red.segment.card
-            h2.center-text Get Making.
-            p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
-        .column
-          .ui.green.segment.card
-              h2.center-text Already registered?
-              a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
+  .ui.grid
+    .eight.wide.column
+      h3 Resources
+      
+      .ui.list
+        each resource in resources
+          if (!resource.internal)
+            a.item(href="#{resource.routes.query}") #{resource.plural}
           
-      .ui.three.column.grid
-        .column
-          h3 Resources
-          
-          .ui.list
-            each resource in resources
-              if (!resource.internal)
-                a.item(href="#{resource.routes.query}") #{resource.plural}
-              
-        .column
-          h3 Services
-          
-          .ui.list
-            each service in services
-              a.item(href="#{service.protocol}://#{service.authority}") #{service.name}
+    .eight.wide.column
+      h3 Services
+      
+      .ui.list
+        each service in services
+          a.item(href="#{service.protocol}://#{service.authority}") #{service.name}
