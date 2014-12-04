@@ -34,6 +34,11 @@
     , "uri": "https://github.com/martindale/confluence"
     , "description": "Automatically construct a single stream from many social media profiles."
     , "image": "/img/soundtrack.io.png"
+  },
+  {
+      "name": "CodingSoundtrack.org"
+    , "uri": "https://github.com/martindale/snarl"
+    , "description": "Automatic tracking bot for collaborative music site, plug.dj.  Deprecated by soundtrack.io."
+    , "image": "/img/soundtrack.io.png"
   }
 ]
-
