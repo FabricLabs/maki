@@ -212,6 +212,12 @@ var builder = function( route , resource ) {
 
 $(window).on('ready', function() {
 
+  // update classes for links
+  // note: only anchor tags are updated here.
+  // don't create links that aren't anchor tags.  that's what they're for.
+  $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
+  $('a[href="'+window.location.pathname+'"]').addClass('active');
+
   $.ajax({
     type: 'OPTIONS',
     url: '/'
@@ -262,9 +268,6 @@ $(window).on('ready', function() {
     // exit instead of binding client view handler
     console.log(maki.config);
     if (!maki.config.views || !maki.config.views.client || maki.config.views.client.render !== true) return console.log('client view rendering disabled.');
-    
-    $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
-    $('a[href="'+window.location.pathname+'"]').addClass('active');
 
     maki.resources = data.resources;
     maki.resources.forEach(function(resource) {
