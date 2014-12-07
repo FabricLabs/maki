@@ -3,7 +3,7 @@
    This is done using the module.exports function,
    which sets them when require('./thisfile') is run. */
    
-var NAMESPACE = process.env.MAKI_SERVICE_NAMESPACE || 'maki-dev';
+var NAMESPACE = process.env.MAKI_SERVICE_NAMESPACE || 'maki';
 var DATABASE  = process.env.MAKI_DATABASE_NAME || NAMESPACE;
 
 module.exports = {
