@@ -246,6 +246,25 @@ describe('http', function(){
       done();
     });
   });
+
+  it('should expose JSON when requested', function(done) {
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    rest.post( resource('/people') , {
+      data: {
+        username: 'test-user-'+randomNum,
+        hash: 'fooooooooo'
+      }
+    }).on('complete', function(createdDoc) {
+      rest.get( resource('/people') , {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).on('complete', function( people ) {
+        assert.ok( people.length );
+        done();
+      });
+    });
+  });
   
 });
 
