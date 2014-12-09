@@ -28,6 +28,16 @@ maki.define('Person', {
   ]
 });
 
+maki.define('Example', {
+  attributes: {
+    name:    { type: String , max: 80 },
+    slug:    { type: String , max: 80 , id: true },
+    content: { type: String }
+  },
+  source: 'test/fixtures/examples.json',
+  icon: 'idea'
+});
+
 function resource( path , options ) {
   var options  = options || {};
   var protocol = (options.ssl) ? 'https' : 'http';
@@ -197,6 +207,20 @@ describe('http', function(){
         assert.ok( people.length );
         done();
       });
+    });
+  });
+
+  it('should inform clients about unsupported methods', function(done) {
+    rest.post( resource('/examples') , {
+      headers: {
+        'Accept': 'application/json'
+      },
+      data: {
+        name: 'this-should-never-exist'
+      }
+    }).on('complete', function(doc, res) {
+      assert( res.statusCode === 405 );
+      done();
     });
   });
   
