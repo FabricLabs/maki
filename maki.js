@@ -9,7 +9,7 @@ maki.define('Person', {
     hash:     { type: String , restricted: true },
     salt:     { type: String , restricted: true },
     email:    { type: String , max: 80 , restricted: true },
-    created:  { type: Date , default: Date.now, restricted: true }
+    created:  { type: Date , default: Date.now }
   },
   plugins: [
     require('passport-local-mongoose')
