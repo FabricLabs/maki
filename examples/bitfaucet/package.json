@@ -1,0 +1,23 @@
+{
+  "name": "maki-examples-bitfaucet",
+  "version": "0.0.1",
+  "description": "bitcoin faucet as an example for maki",
+  "main": "bitfaucet.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "bitcoin",
+    "maki",
+    "faucet",
+    "bitfaucet",
+    "example",
+    "money"
+  ],
+  "author": "Eric Martindale",
+  "license": "MIT",
+  "dependencies": {
+    "bitcoin": "^2.2.0",
+    "maki": "git://github.com/martindale/maki"
+  }
+}
