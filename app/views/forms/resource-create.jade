@@ -4,6 +4,6 @@ form.ui.form.segment(action="/#{resource.collection}", method="post")
       - var f = resource.attributes[ field ]
       .field(class=((f && f.required) ? 'required' : undefined ))
         label #{field}
-        input(type="#{f._type}", name="#{field}", required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) )
+        input(type="#{f._type}", name="#{field}", value=((f && f._default) ? f._default : undefined ), required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) )
       
   button.ui.blue.submit.button(type="submit") Create &raquo;

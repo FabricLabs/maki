@@ -21,7 +21,8 @@ maki.define('Example', {
   attributes: {
     name:    { type: String , max: 80 },
     slug:    { type: String , max: 80 , id: true },
-    content: { type: String }
+    content: { type: String },
+    screenshot: { type: Maki.types.File }
   },
   source: 'data/examples.json',
   icon: 'idea'
