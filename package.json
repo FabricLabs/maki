@@ -52,6 +52,8 @@
     "marked": "^0.3.2",
     "moment": "^2.8.4",
     "mongoose": "~3.8.1",
+    "mongoose-crate": "^1.0.7",
+    "mongoose-crate-localfs": "^1.1.1",
     "mongoose-slug": "^1.3.1",
     "monq": "^0.3.1",
     "node-uuid": "^1.4.1",

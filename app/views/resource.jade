@@ -13,6 +13,13 @@ block content
           a.section(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
 
   - var fields = Object.keys(resource.keys) || []
+  
+  h3 Attributes:
+  pre #{fields}
+  h4 Keys:
+  pre #{resource.keys}
+  h4 Options:
+  pre #{Object.keys( resource.options.attributes )}
 
   //- TODO: use different modules for different collection types?
   if (!collection)
