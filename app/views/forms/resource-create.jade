@@ -1,4 +1,4 @@
-form.ui.form.segment(action="/#{resource.collection}", method="post")
+form.ui.form.segment(action="/#{resource.collection}", method="post", enctype="multipart/form-data")
   for field in fields
     - if (resource.keys[field])
       - var f = resource.attributes[ field ]
