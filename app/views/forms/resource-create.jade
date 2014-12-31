@@ -8,9 +8,8 @@ form.ui.form.segment(action="/#{resource.collection}", method="post", enctype="m
         if (f && f._type == 'lookup')
           .ui.category.search.icon.input(data-field-name="#{field}")
             i.search.icon
-            input.prompt(type="text", placeholder="Look for #{ resources[ f.ref ].collection }...")
+            input.prompt(type="text", name="#{field}", placeholder="Look for #{ resources[ f.ref ].collection }...")
             .results
-
         else
           input(type="#{f._type}", name="#{field}", value=((f && f._default) ? f._default : undefined ), required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) )
       
