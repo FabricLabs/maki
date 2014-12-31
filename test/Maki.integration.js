@@ -168,14 +168,11 @@ describe('http', function(){
   it('should allow for a resource to be created via PUT (single call)', function( done ) {
     var randomNum = getRandomInt( 100000 , 1000000 );
     var username = 'test-user-'+randomNum;
-    
-    console.log('RESOURCE', resource('/people') );
-    
+
     rest.put( resource('/people/' + username) , {
       data: { username: username },
       headers: { accept: 'application/json' }
     }).on('complete', function(data, res) {
-      console.log('complete', data);
       assert( res.statusCode , 303 );
       done();
     });
@@ -210,7 +207,6 @@ describe('http', function(){
         data: { username: username + '-patched' },
         headers: { accept: 'application/json' }
       }).on('complete', function(data, res) {
-        console.log('complete', data );
         assert( data.username , username + '-patched' );
         done();
       });
@@ -296,9 +292,7 @@ describe('http', function(){
 describe('https', function(){
   var https = require('https');
   var uri = resource('/', { ssl: true });
-  
-  console.log( uri );
-  
+
   it('should be listening for https', function() {
     https.get( uri , function(res) {
       assert.equal( res.statusCode , 200 );

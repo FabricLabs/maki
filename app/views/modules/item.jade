@@ -9,7 +9,7 @@ table.ui.table.segment.sortable
     tr
       each field in fields
         td
-          if (field == idField)
-            a(href="/#{resource.collection}/#{item[ field ]}") #{item[ field ]}
+          if (field == idField || field == nameField)
+            a(href="/#{resource.collection}/#{item[ idField ]}") #{item[ nameField ]}
           else
             | #{item[ field ]}
