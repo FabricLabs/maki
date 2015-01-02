@@ -1,3 +1,16 @@
+mixin fieldValue( field )
+  td
+    pre f:#{field}
+    pre a:#{Object.keys(resource.attributes)}
+    if (field == idField)
+      a(href="/#{resource.collection}/#{item[ field ]}") #{item[ field ]}
+    else
+      if (resource.attributes[ field ] && resource.attributes[ field ]._type === 'nested')
+        pre SUP #{resource.attributes[ field ]._type}
+        //-include ./item
+      else
+        | #{item[ field ]}
+
 //- TODO: map each column and provide summary in footer
 table.ui.table.segment.sortable
   thead
@@ -8,8 +21,4 @@ table.ui.table.segment.sortable
   tbody
     tr
       each field in fields
-        td
-          if (field == idField)
-            a(href="/#{resource.collection}/#{item[ field ]}") #{item[ field ]}
-          else
-            | #{item[ field ]}
+        mixin fieldValue( field )

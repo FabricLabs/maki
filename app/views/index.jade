@@ -20,7 +20,7 @@ block content
           a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
       
   .ui.grid
-    .five.column
+    .eight.wide.column
       h3 Resources
       
       .ui.list
@@ -28,7 +28,7 @@ block content
           if (!resource.internal)
             a.item(href="#{resource.routes.query}") #{resource.plural}
           
-    .five.column
+    .eight.wide.column
       h3 Services
       
       .ui.list

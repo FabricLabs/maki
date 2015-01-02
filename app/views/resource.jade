@@ -1,25 +1,54 @@
 extends layouts/default
 
-block content
+mixin fieldValue( field , item )
+  td
+    if (field == idField)
+      a(href="/#{resource.collection}/#{item[ field ]}") #{item[ field ]}
+    else
+      if (resource.attributes[ field ] && resource.attributes[ field ]._type === 'nested')
+        pre SUP #{resource.attributes[ field ]._type}
+        //-include ./item
+      else
+        | #{item[ field ]}
 
+block content
   - var idField = resource.fields.id;
 
   h1.ui.breadcrumb
     block breadcrumbs
       a.active.section(href="/#{resource.collection}") #{resource.plural}
-      - if (typeof(item) != 'undefined')
+      if (typeof(item) != 'undefined')
         .divider / 
         a(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
 
   - var fields = Object.keys(resource.keys) || []
+  //- TODO: map each column and provide summary in footer
+  table.ui.table.segment.sortable
+    thead
+      tr
+        each field in fields
+          td #{field}
 
-  //- TODO: use different modules for different collection types?
-  if (!collection)
-    //- No collection was provided, render single
-    include modules/item
+    tbody
+      if (!collection)
+        tr
+          each field in fields
+            mixin fieldValue( field , item )
+      else
+        each item in collection
+          tr
+            each field in fields
+              mixin fieldValue( field , item )
 
-  else
-    include modules/collection
+    if (collection && !item)
+      tfoot
+        tr
+          td #{collection.length} items
 
-    h3 Create
-    include forms/resource-create
+  h3 Create
+  include forms/resource-create
+
+
+
+
+

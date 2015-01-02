@@ -9,6 +9,9 @@ module.exports = {
     , authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200'
     , namespace: process.env.MAKI_SERVICE_NAMESPACE || 'maki-test'
     , mission: process.env.MAKI_SERVICE_MISSION || 'A simple framework for hand-rolling your web application.'
+    , seeds: [
+        'localhost:9200'
+      ]
   },
   dns: {
     name: process.env.MAKI_DNS_NAME || 'localhost'
