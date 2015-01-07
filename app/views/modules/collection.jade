@@ -14,9 +14,12 @@ table.ui.table.segment.sortable
         td
           input(type="checkbox")
         each field in fields
+          - var f = resource.attributes[ field ]
           td
             if (field == idField || field == nameField)
               a(href="/#{resource.collection}/#{item[ idField ]}") #{item[ nameField ]}
+            else if (f._type === 'file')
+              a(href="/files/#{item[ field ]}") #{item[ field ]}
             else
               | #{item[ field ]}
         td
