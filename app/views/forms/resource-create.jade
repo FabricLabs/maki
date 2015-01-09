@@ -10,6 +10,8 @@ form.ui.form.segment(action="/#{resource.collection}", method="post", enctype="m
             i.search.icon
             input.prompt(type="text", name="#{field}", placeholder="Look for #{ resources[ f.ref ].collection }...")
             .results
+        else if (f && f._type == 'textarea')
+          textarea(name="#{field}", rows="#{f._rows}", required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) ) #{f._default}
         else
           input(type="#{f._type}", name="#{field}", value=((f && f._default) ? f._default : undefined ), required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) )
       
