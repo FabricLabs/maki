@@ -8,8 +8,11 @@ table.ui.table.segment.sortable
   tbody
     tr
       each field in fields
+        - var f = resource.attributes[ field ]
         td
-          if (field == idField)
-            a(href="/#{resource.collection}/#{item[ field ]}") #{item[ field ]}
+          if (field == idField || field == nameField)
+            a(href="/#{resource.collection}/#{item[ idField ]}") #{item[ nameField ]}
+          else if (f && f._type === 'file')
+            a(href="/files/#{item[ field ]}") #{item[ field ]}
           else
             | #{item[ field ]}
