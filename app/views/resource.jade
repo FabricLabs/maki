@@ -10,22 +10,13 @@ block content
       block breadcrumbs
         a.active.section(href="/#{resource.collection}") #{resource.plural}
         - if (typeof(item) != 'undefined')
-          .divider / 
+          .divider /
           a.section(href="/#{resource.collection}/#{item[ resource.fields.id ]}") #{item[ resource.fields.name ]}
 
   - var fields = Object.keys(resource.keys) || []
   - if (resource.fields.name !== '_id') {
   -   delete resource.keys['_id']
   - }
-
-  h3 Attributes:
-  pre #{fields}
-  h3 Fields:
-  pre #{JSON.stringify(resource.fields)}
-  h4 Keys:
-  pre #{JSON.stringify(resource.keys)}
-  h4 Options:
-  pre #{Object.keys( resource.options.attributes )}
 
   //- TODO: use different modules for different collection types?
   if (!collection)
