@@ -140,6 +140,14 @@ $(window).on('ready', function() {
     
     maki.config = data.config;
     
+    // bind things
+    $.fn.api.settings.api.search = '/search?query={value}';
+    $('.search input')
+      .api({
+        action: 'search',
+        stateContext: '.ui.input'
+      });
+    
     // server is online!
     maki.$viewport = $('[data-for=viewport]');
     maki.sockets.connect();

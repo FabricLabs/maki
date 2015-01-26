@@ -4,26 +4,25 @@ block content
   .ui.header
     h1.huge Hello, #{config.service.name}.
       a.ui.label(href="https://github.com/martindale/maki/tree/master") v0.2.0-pre
-    p !{ markdown( config.service.mission ) }
-
+    h2 !{ markdown( config.service.mission ) }
+    
+    p !{ markdown( config.service.description ) }
+    
   .ui.stackable.three.column.grid
-    .column
-      .ui.horizontal.segment.card
-        h2.center-text Hand-rolled.
-        p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
-    .column
-      .ui.horizontal.segment.card
-        h2.center-text Get Making.
-        p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
-    .column
-      .ui.horizontal.segment.card
-          h2.center-text Already registered?
-          a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
+    for point in config.service.points
+      .column
+        .ui.fluid.card
+          .content
+            h2.header #{ point.header }
+            //- TODO: use marked config, not a regex, to fix errant <p> tags
+            p.description
+              | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
+          if (point.action)
+            .ui.bottom.attached.button(href="#{point.action.link}") !{point.action.text}
 
   .ui.stackable.three.column.grid
     .column
       h3 Resources
-      
       .ui.list
         each resource in resources
           if (!resource.internal)

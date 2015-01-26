@@ -11,7 +11,26 @@ module.exports = {
     name: process.env.MAKI_SERVICE_NAME || 'Maki' ,
     authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200' ,
     namespace: NAMESPACE,
-    mission: process.env.MAKI_SERVICE_MISSION || 'A simple framework for hand-rolling your web application.'
+    mission: process.env.MAKI_SERVICE_MISSION || 'A simple framework for hand-rolling your web application.',
+    description: process.env.MAKI_SERVICE_DESCRIPTION || 'Maki is an "architecture as a library" project, allowing you to focus on building your project rather than laboring over architecture decisions.',
+    points: [
+      {
+        header: 'Hand-rolled.',
+        description: 'No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.'
+      },
+      {
+        header: 'Get Making.',
+        description: 'No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.'
+      },
+      {
+        header: 'Already registered?',
+        description: 'Go on then.  Get logged in.  You\'re _groovy_.',
+        action: {
+          text: 'Log In &raquo;',
+          link: ''
+        }
+      }
+    ]
   },
   dns: {
     name: process.env.MAKI_DNS_NAME || 'localhost'

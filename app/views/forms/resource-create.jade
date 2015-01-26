@@ -1,9 +1,18 @@
-form.ui.form.segment(action="/#{resource.collection}", method="post")
+form.ui.form.segment(action="/#{resource.collection}", method="post", enctype="multipart/form-data")
   for field in fields
-    - if (resource.keys[field])
+    if (resource.keys[field])
       - var f = resource.attributes[ field ]
       .field(class=((f && f.required) ? 'required' : undefined ))
-        label #{field}
-        input(type="#{f._type}", name="#{field}", required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) )
+        label #{f.alias || field}
+      
+        if (f && f._type == 'lookup')
+          .ui.category.search.icon.input(data-field-name="#{field}")
+            i.search.icon
+            input.prompt(type="text", name="#{field}", placeholder="Look for #{ resources[ f.ref ].collection }...")
+            .results
+        else if (f && f._type == 'textarea')
+          textarea(name="#{field}", rows="#{f._rows}", required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) ) #{f._default}
+        else
+          input(type="#{f._type}", name="#{field}", value=((f && f._default) ? f._default : undefined ), required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) )
       
   button.ui.blue.submit.button(type="submit") Create &raquo;
