@@ -29,18 +29,19 @@ html.no-js
     base(href="/")
 
   body(ng-controller="mainController")
-    block navbar
-      include ../partials/navbar
-
     .ui.page.grid
-      .column.content(data-for="viewport")
-      
-        include ../partials/flash
-      
-        block content
+      .row
+        block navbar
+          include ../partials/navbar
 
-    .ui.page.grid
-      .column
+      .row
+        .column.content(data-for="viewport")
+        
+          include ../partials/flash
+        
+          block content
+
+      .row
         .ui.one.column.stackable.center.aligned
           small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
           | 
