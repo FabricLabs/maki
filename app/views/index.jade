@@ -7,17 +7,20 @@ block content
 
   .ui.stackable.three.column.grid
     .column
-      .ui.horizontal.segment.card
-        h2.center-text Hand-rolled.
-        p.center-text No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
+      .ui.fluid.card
+        .content
+          h2.header Hand-rolled.
+          p.description No black boxes or arcane scribbling here.  Pure Javascript, and direct access to everything.
     .column
-      .ui.horizontal.segment.card
-        h2.center-text Get Making.
-        p.center-text Get started on that project <em>now</em>.  Don't worry about project setup.
+      .ui.fluid.card
+        .content
+          h2.header Get Making.
+          p.description Get started on that project <em>now</em>.  Don't worry about project setup.
     .column
-      .ui.horizontal.segment.card
-          h2.center-text Already registered?
-          a.fluid.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
+      .ui.fluid.card
+        .content
+          h2.header Already registered?
+        .ui.bottom.attached.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
 
   .ui.stackable.three.column.grid
     .column
