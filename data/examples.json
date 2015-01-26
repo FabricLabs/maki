@@ -22,5 +22,23 @@
     , "uri": "http://converse.ericmartindale.com/"
     , "description": "Open-source discussion board."
     , "image": "/img/soundtrack.io.png"
+  },
+  {
+      "name": "EVE Ship Viewer"
+    , "uri": "http://shipviewer.ericmartindale.com/"
+    , "description": "View EVE Online ships in the browser."
+    , "image": "/img/soundtrack.io.png"
+  },
+  {
+      "name": "confluence"
+    , "uri": "https://github.com/martindale/confluence"
+    , "description": "Automatically construct a single stream from many social media profiles."
+    , "image": "/img/soundtrack.io.png"
+  },
+  {
+      "name": "CodingSoundtrack.org"
+    , "uri": "https://github.com/martindale/snarl"
+    , "description": "Automatic tracking bot for collaborative music site, plug.dj.  Deprecated by soundtrack.io."
+    , "image": "/img/soundtrack.io.png"
   }
 ]
