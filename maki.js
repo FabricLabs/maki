@@ -8,7 +8,7 @@ maki.define('Example', {
     name:    { type: String , max: 80 },
     slug:    { type: String , max: 80 , id: true },
     content: { type: String },
-    screenshot: { type: Maki.types.File }
+    screenshot: { type: 'File' }
   },
   source: 'data/examples.json',
   icon: 'idea'
