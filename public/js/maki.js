@@ -124,6 +124,13 @@ function DataBinder( objectID ) {
 }
 
 $(window).on('ready', function() {
+
+  // update classes for links
+  // note: only anchor tags are updated here.
+  // don't create links that aren't anchor tags.  that's what they're for.
+  $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
+  $('a[href="'+window.location.pathname+'"]').addClass('active');
+
   $.ajax({
     type: 'OPTIONS',
     url: '/'
@@ -133,15 +140,20 @@ $(window).on('ready', function() {
     
     maki.config = data.config;
     
+    // bind things
+    $.fn.api.settings.api.search = '/search?query={value}';
+    $('.search input')
+      .api({
+        action: 'search',
+        stateContext: '.ui.input'
+      });
+    
     // server is online!
     maki.$viewport = $('[data-for=viewport]');
     maki.sockets.connect();
     
     // exit instead of binding client view handler
     if (!maki.config.views || !maki.config.views.client || maki.config.views.client !== true) return console.log('client view rendering disabled.');
-    
-    $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
-    //$('a[href="'+window.location.pathname+'"]').addClass('active');
 
     maki.resources = data.resources;
     maki.resources.forEach(function(resource) {

@@ -9,19 +9,23 @@ maki.define('Person', {
     hash:     { type: String , restricted: true },
     salt:     { type: String , restricted: true },
     email:    { type: String , max: 80 , restricted: true },
-    created:  { type: Date , default: Date.now, restricted: true }
+    created:  { type: Date , default: Date.now }
   },
   plugins: [
     require('passport-local-mongoose')
-  ]
+  ],
+  icon: 'user'
 });
 
 maki.define('Example', {
   attributes: {
     name:    { type: String , max: 80 },
     slug:    { type: String , max: 80 , id: true },
-    content: { type: String }
-  }
+    content: { type: String },
+    screenshot: { type: Maki.types.File }
+  },
+  source: 'data/examples.json',
+  icon: 'idea'
 });
 
 maki.define('Dashboard', {
@@ -36,13 +40,15 @@ maki.define('Dashboard', {
         // _id: { $in: dashboard._people }
       }
     }
-  }
+  },
+  icon: 'dashboard'
 });
 
 maki.define('Widget', {
   attributes: {
     name: { type: String , max: 80 }
-  }
+  },
+  icon: 'setting'
 });
 
 maki.serve(['http']).start();

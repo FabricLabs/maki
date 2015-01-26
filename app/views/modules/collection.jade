@@ -2,19 +2,45 @@
 table.ui.table.segment.sortable
   thead
     tr
+      td
+        input(type="checkbox")
       each field in fields
         td #{field}
+      td
 
   tbody
     each item in collection
-      tr
+      tr(data-model="#{resource.name}", data-id="#{item[ idField ]}")
+        td
+          input(type="checkbox")
         each field in fields
+          - var f = resource.attributes[ field ]
           td
-            if (field == idField)
-              a(href="/#{resource.collection}/#{item[ field ]}") #{item[ field ]}
+            if (field == idField || field == nameField)
+              a(href="/#{resource.collection}/#{item[ idField ]}") #{item[ nameField ]}
+            else if (f && f._type === 'file')
+              a(href="/files/#{item[ field ]}") #{item[ field ]}
             else
               | #{item[ field ]}
+        td
+          i.link.icon.remove(data-action="remove-item")
 
   tfoot
     tr
       td #{collection.length} items
+      
+script.
+  $(window).load(function() {
+    $('*[data-action=remove-item]').click(function( e ) {
+      e.preventDefault();
+      
+      var $item = $( this ).parent().parent();
+      
+      console.log( $item );
+      
+      $.ajax({ method: 'delete', url: '/#{resource.collection}/' + $item.data('id') , success: function(data) {
+        console.log(data);
+      } });
+      return false;
+    })
+  });

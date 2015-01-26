@@ -1,28 +1,23 @@
-.ui.grid
-  .row
-    .ui.pointing.large.menu.navbar.page.grid(ng-controller="headerController")
-      a.brand.item(href="/")
-        i.icon.maki.left
-        | #{config.service.name}
+.ui.main.tiered.menu.large(ng-controller="headerController")
+  .menu
+    a.item(href="/")
+      i.icon.lab.left
+      | #{config.service.name}
 
-      //- block for prepend/append/replace-able menu items
-      block mainMenu
-        a.item(href="/", title="#{config.service.name} Homepage", ng-class="{ active: isActive('/')}")
-          i.home.icon
-          |  Home
-        a.item(href="/examples", title="Projects using Maki", ng-class="{ active: isActive('/examples')}")
-          i.rocket.icon
-          |  Examples
-        a.item(href="/people", title="People on this Maki, an example resource.", ng-class="{ active: isActive('/people')}")
-          i.user.icon
-          |  People
-        .right.menu
-          if (user)
-            .item.ui.buttons
-              a.ui.button(href="/people/#{user.slug}", ng-class="{ active: isActive('/people/#{user.slug}')}") #{user.username}
-              a.ui.button(href="/logout") Log Out
-          else
-            .item.ui.buttons
-              a.ui.button(href="/login", ng-class="{ active: isActive('/login') }") Log In
-              .or
-              a.ui.teal.button(href="/register", ng-class="{ active: isActive('/register') }") Sign Up &raquo;
+    //- block for prepend/append/replace-able menu items
+    block mainMenu
+      .right.menu
+        a.item(href="https://github.com/martindale/maki")
+          i.fork.icon
+          |  Code &raquo;
+
+  .ui.sub.menu
+    a.item(href="/", title="#{config.service.name} Homepage", ng-class="{ active: isActive('/')}")
+      i.home.icon
+      |  Home
+    each resource in resources
+      if (!resource.internal)
+        a.item(href="#{resource.routes.query}")
+          if (resource.options.icon)
+            i.icon(class="#{resource.options.icon}")
+          | #{resource.plural}
