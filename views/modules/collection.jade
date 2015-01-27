@@ -21,7 +21,11 @@ table.ui.table.segment.sortable
             else if (f && f._type === 'file')
               a(href="/files/#{item[ field ]}") #{item[ field ]}
             else
-              | #{item[ field ]}
+              //- TODO: handle this much higher in the stack
+              if (f && f.render === 'markdown')
+                | !{ markdown( item[ field ] ) }
+              else
+                | #{item[ field ]}
         td
           i.link.icon.remove(data-action="remove-item")
 
