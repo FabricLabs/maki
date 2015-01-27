@@ -1,34 +1,36 @@
-mixin fieldFor( attrs , field )
+mixin fieldFor( attrs , field , parentName )
   - var keys = Object.keys( attrs )
   if (~keys.indexOf( field ))
     - var f = attrs[ field ]
+    - f._name = (parentName) ? parentName + '[' + field + ']' : field
 
     .field(class=((f && f.required) ? 'required' : undefined ))
       label #{f.alias || field}
       
       if (f && f._type == 'composite')
+        - delete f._name;
         - var fieldCount = Object.keys( f ).length
         - var translit = ['one', 'two', 'three']
         div(class="#{ translit[ fieldCount - 1 ] } fields")
           for prop in Object.keys( f )
             - var child = f[ prop ]
-            +fieldFor( f , prop )
+            +fieldFor( f , prop , f.alias || field )
             
       else if (f && f._type == 'lookup')
         .ui.category.search.icon.input(data-field-name="#{field}")
           i.search.icon
           //- TODO: lookup for artificial fields!
           //-input.prompt(type="text", name="#{field}", placeholder="Look for #{ resources[ f._ref ].collection }...")
-          input.prompt(type="text", name="#{field}", placeholder="Look for...")
+          input.prompt(type="text", name="#{f._name}", placeholder="Look for...")
           .results
       else if (f && f._type == 'textarea')
-        textarea(name="#{field}", rows="#{f._rows}", required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) ) #{f._default}
+        textarea(name="#{f._name}", rows="#{f._rows}", required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) ) #{f._default}
       else if (f && f._type == 'option')
-        select.ui.dropdown(name="#{field}")
+        select.ui.dropdown(name="#{f._name}")
           for option in f.enum
             option(value="#{option}") #{option}
       else
-        input(type="#{f._type}", name="#{field}", value=((f && f._default) ? f._default : undefined ), required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) )
+        input(type="#{f._type}", name="#{f._name}", value=((f && f._default) ? f._default : undefined ), required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) )
 
 form.ui.form.segment(action="/#{resource.collection}", method="post", enctype="multipart/form-data")
   for field in fields
