@@ -4,7 +4,7 @@ mixin fieldFor( attrs , field )
     - var f = attrs[ field ]
 
     .field(class=((f && f.required) ? 'required' : undefined ))
-      label #{f.alias || field} #{f._type}
+      label #{f.alias || field}
       
       if (f && f._type == 'composite')
         - var fieldCount = Object.keys( f ).length
@@ -17,7 +17,9 @@ mixin fieldFor( attrs , field )
       else if (f && f._type == 'lookup')
         .ui.category.search.icon.input(data-field-name="#{field}")
           i.search.icon
-          input.prompt(type="text", name="#{field}", placeholder="Look for #{ resources[ f.ref ].collection }...")
+          //- TODO: lookup for artificial fields!
+          //-input.prompt(type="text", name="#{field}", placeholder="Look for #{ resources[ f._ref ].collection }...")
+          input.prompt(type="text", name="#{field}", placeholder="Look for...")
           .results
       else if (f && f._type == 'textarea')
         textarea(name="#{field}", rows="#{f._rows}", required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) ) #{f._default}
