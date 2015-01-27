@@ -22,7 +22,7 @@ table.ui.table.segment.sortable
               a(href="/files/#{item[ field ]}") #{item[ field ]}
             else
               //- TODO: handle this much higher in the stack
-              if (f.render && f.render === 'markdown')
+              if (f && f.render === 'markdown')
                 | !{ markdown( item[ field ] ) }
               else
                 | #{item[ field ]}
