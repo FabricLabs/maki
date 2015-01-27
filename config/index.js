@@ -10,9 +10,10 @@ module.exports = {
   service: {
     name: process.env.MAKI_SERVICE_NAME || 'Maki' ,
     authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200' ,
-    namespace: NAMESPACE,
+    namespace: NAMESPACE ,
     mission: process.env.MAKI_SERVICE_MISSION || 'A simple framework for hand-rolling your web application.',
     description: process.env.MAKI_SERVICE_DESCRIPTION || 'Maki is an "architecture as a library" project, allowing you to focus on building your project rather than laboring over architecture decisions.',
+    source: 'https://github.com/martindale/maki',
     points: [
       {
         header: 'Hand-rolled.',
