@@ -66,7 +66,14 @@ maki.define('Dashboard', {
 
 maki.define('Widget', {
   attributes: {
-    name: { type: String , max: 80 }
+    name: { type: String , max: 80 },
+    stuff: {
+      foo: String ,
+      bar: { type: String , enum: ['lol', 'wut'] }
+    },
+    tinker: {
+      type: 'Mixed'
+    }
   },
   icon: 'setting'
 });
