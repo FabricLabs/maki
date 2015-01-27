@@ -18,7 +18,7 @@ block content
             p.description
               | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
           if (point.action)
-            .ui.bottom.attached.button(href="#{point.action.link}") !{point.action.text}
+            a.ui.bottom.attached.button(href="#{point.action.link}") !{point.action.text}
 
   .ui.stackable.three.column.grid
     .column
