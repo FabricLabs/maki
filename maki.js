@@ -78,4 +78,7 @@ maki.define('Widget', {
   icon: 'setting'
 });
 
-maki.serve(['http']).start();
+var Analytics = require('maki-analytics');
+var analytics = new Analytics({ id: 'UA-57746323-2' });
+
+maki.use( analytics ).serve(['http']).start();
