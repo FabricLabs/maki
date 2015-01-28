@@ -48,7 +48,7 @@ maki.define('Release', {
   }
 });
 
-maki.define('Dashboard', {
+/* maki.define('Dashboard', {
   attributes: {
       name: { type: String , max: 80 , name: true , slug: true , required: true }
     , _people: { type: require('mongoose').SchemaTypes.ObjectId, ref: 'Person' }
@@ -62,7 +62,7 @@ maki.define('Dashboard', {
     }
   },
   icon: 'dashboard'
-});
+}); */
 
 maki.define('Widget', {
   attributes: {
