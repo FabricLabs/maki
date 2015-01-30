@@ -28,7 +28,7 @@ module.exports = {
         description: 'Go on then.  Get logged in.  You\'re _groovy_.',
         action: {
           text: 'Log In &raquo;',
-          link: ''
+          link: '/sessions'
         }
       }
     ]

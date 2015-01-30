@@ -3,6 +3,23 @@ var config = require('./config');
 var Maki = require('./lib/Maki');
 var maki = new Maki( config );
 
+var Sessions = require('maki-sessions');
+var sessions = new Sessions({
+  resource: 'Person'
+});
+maki.use( sessions );
+
+maki.define('Person', {
+  attributes: {
+    username: { type: String , max: 80 , required: true , slug: true },
+    hash:     { type: String , restricted: true },
+    salt:     { type: String , restricted: true },
+    email:    { type: String , max: 80 , restricted: true },
+    created:  { type: Date , default: Date.now }
+  },
+  icon: 'user'
+});
+
 maki.define('Example', {
   attributes: {
     name:    { type: String , max: 80 },
