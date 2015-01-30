@@ -48,6 +48,7 @@
     "jsonpath-object-transform": "git://github.com/dvdln/jsonpath-object-transform",
     "less-middleware": "git://github.com/martindale/less.js-middleware#maki",
     "lodash": "^2.4.1",
+    "maki-analytics": "git://github.com/martindale/maki-analytics",
     "maki-jsonrpc": "^0.1.1",
     "maki-mongoose-hooks": "^0.2.0",
     "maki-queue": "0.0.1",
