@@ -3,6 +3,12 @@ var config = require('./config');
 var Maki = require('./lib/Maki');
 var maki = new Maki( config );
 
+var Sessions = require('maki-sessions');
+var sessions = new Sessions({
+  resource: 'Person'
+});
+maki.use( sessions );
+
 maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
@@ -11,9 +17,6 @@ maki.define('Person', {
     email:    { type: String , max: 80 , restricted: true },
     created:  { type: Date , default: Date.now }
   },
-  plugins: [
-    require('passport-local-mongoose')
-  ],
   icon: 'user'
 });
 
@@ -48,7 +51,7 @@ maki.define('Release', {
   }
 });
 
-maki.define('Dashboard', {
+/* maki.define('Dashboard', {
   attributes: {
       name: { type: String , max: 80 , name: true , slug: true , required: true }
     , _people: { type: require('mongoose').SchemaTypes.ObjectId, ref: 'Person' }
@@ -62,7 +65,7 @@ maki.define('Dashboard', {
     }
   },
   icon: 'dashboard'
-});
+}); */
 
 maki.define('Widget', {
   attributes: {

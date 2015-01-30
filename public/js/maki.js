@@ -133,6 +133,9 @@ $(window).on('ready', function() {
   
   // Semantic UI crap
   $('select.dropdown').dropdown();
+  $('.message .close').on('click', function() {
+    $(this).closest('.message').fadeOut();
+  });
 
   $.ajax({
     type: 'OPTIONS',

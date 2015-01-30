@@ -16,16 +16,20 @@ config.database.name = 'maki-test';
 var Maki = require('../lib/Maki');
 var maki = new Maki( config );
 
+/*var Sessions = require('maki-sessions');
+var sessions = new Sessions({
+  resource: 'Person'
+});
+
+maki.use( sessions );*/
+
 maki.define('Person', {
   name: 'Person',
   attributes: {
     username: { type: String , max: 80 , required: true , id: true },
     description: { type: String , max: 500 },
     hash: { type: String , default: 'asdf', required: true , restricted: true }
-  },
-  plugins: [
-    require('passport-local-mongoose')
-  ]
+  }
 });
 
 maki.define('Example', {
