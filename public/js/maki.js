@@ -130,6 +130,9 @@ $(window).on('ready', function() {
   // don't create links that aren't anchor tags.  that's what they're for.
   $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
   $('a[href="'+window.location.pathname+'"]').addClass('active');
+  
+  // Semantic UI crap
+  $('select.dropdown').dropdown();
 
   $.ajax({
     type: 'OPTIONS',
