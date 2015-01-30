@@ -51,7 +51,8 @@ maki.define('Release', {
   }
 });
 
-var Analytics = require('maki-analytics');
+/*var Analytics = require('maki-analytics');
 var analytics = new Analytics({ id: 'UA-57746323-2' });
 
-maki.use( analytics ).serve(['http']).start();
+maki.use( analytics ).serve(['http']).start();*/
+maki.serve(['http']).start();
