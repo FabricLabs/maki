@@ -16,6 +16,13 @@ config.database.name = 'maki-test';
 var Maki = require('../lib/Maki');
 var maki = new Maki( config );
 
+/*var Sessions = require('maki-sessions');
+var sessions = new Sessions({
+  resource: 'Person'
+});
+
+maki.use( sessions );*/
+
 maki.define('Person', {
   name: 'Person',
   attributes: {
