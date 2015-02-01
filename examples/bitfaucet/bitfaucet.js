@@ -125,7 +125,7 @@ var Index = bitfaucet.define('Index', {
 //
 // There is almost certainly a more scalable way of doing this (a cache), but
 // this is left as an exercise to the reader.
-Faucet.post('init', function( faucet , next ) {
+Faucet.post('get', function( faucet , next ) {
   // Get balance from this faucet's instance of btcClient().  
   // Underlying, this is an RPC call to the backing bitcoind instance.
   faucet.btcClient().getBalance('*', 1, function(err, balance, resHeaders) {
