@@ -12,6 +12,10 @@ maki.use( sessions );
 maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
+    name:     {
+      family: { type: String , max: 80 },
+      given: { type: String , max: 80 }
+    },
     hash:     { type: String , restricted: true },
     salt:     { type: String , restricted: true },
     email:    { type: String , max: 80 , restricted: true },
