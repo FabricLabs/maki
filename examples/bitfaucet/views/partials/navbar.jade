@@ -1,9 +1,30 @@
-.ui.grid
-  .row
-    .ui.pointing.large.menu.navbar.page.grid(ng-controller="headerController")
-      a.brand.item(href="/")
-        i.icon.maki.left
-        | BitFaucet
+.ui.main.tiered.menu.large(ng-controller="headerController")
+  .menu
+    a.item(href="/")
+      i.icon.lab.left
+      | #{config.service.name}
 
-      //- block for prepend/append/replace-able menu items
-      block mainMenu
+    //- block for prepend/append/replace-able menu items
+    block mainMenu
+      .right.menu
+        if (user)
+          a.item(href="/people/#{user.slug}") #{user.username}
+          a.item(href="/sessions/#{session.hash}?method=delete") Logout
+        else
+          a.item(href="/sessions")
+            i.user.icon
+            | Login &raquo;
+
+  .ui.sub.menu
+    a.item(href="/", title="#{config.service.name} Homepage", ng-class="{ active: isActive('/')}")
+      i.home.icon
+      |  Home
+    each resource in resources
+      if (!resource.internal)
+        a.item(href="#{resource.routes.query}")
+          if (resource.options.icon)
+            i.icon(class="#{resource.options.icon}")
+          | #{resource.plural}
+    a.item(href="#{ config.service.source }")
+      i.fork.icon
+      | Code &raquo;
