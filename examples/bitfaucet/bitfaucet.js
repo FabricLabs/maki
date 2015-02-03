@@ -13,6 +13,14 @@ var bitfaucet = new Maki();
 // In our case, we need a Bitcoin client.
 var bitcoin = require('bitcoin');
 
+// Now, let's use sessions so we can provide messages to the user.
+var Passport = require('maki-passport-local');
+var passport = new Passport();
+
+// Maki plugins are easy; in this case, we want to use it before any other
+// things are defined.
+maki.use( passport );
+
 // ## Resource Definitions  
 // Maki starts with definitions of "Resources" that your application exposes.
 // Our first Resource is, well, a "Faucet".
@@ -22,12 +30,12 @@ var Faucet = bitfaucet.define('Faucet', {
     // Attributes can have enforced types, validators, behaviors...  
     // Most of these should be self-descriptive.  For a full reference, check
     // [the documentation]().
-    name:    { type: String , default: 'Default' , required: true },
-    balance: { type: String , default: 0 , required: true },
-    host:    { type: String , default: 'localhost', required: true },
+    name:    { type: String , default: 'Default' , required: true , max: 80 },
+    balance: { type: Number , default: 0 , required: true },
+    host:    { type: String , default: 'localhost', required: true , max: 120 },
     port:    { type: Number , default: 8332, required: true },
-    user:    { type: String , default: 'default' },
-    pass:    { type: String , default: 'default' },
+    user:    { type: String , default: 'default', max: 40 },
+    pass:    { type: String , default: 'default', max: 40 },
     timeout: { type: Number , default: 30000 }
   },
   // ### Resource Methods
@@ -57,7 +65,7 @@ var Pour = bitfaucet.define('Pour', {
     _faucet: { type: require('mongoose').SchemaTypes.ObjectId , required: true },
     address: { type: String , max: 80 },
     amount:  { type: String , max: 80 },
-    ip:      { type: String , private: true },
+    ip:      { type: String , private: true , max: 16 },
     date:    { type: Date , default: Date.now , restricted: true },
     txid:    { type: String },
     comment: { type: String },

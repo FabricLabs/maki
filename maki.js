@@ -3,11 +3,11 @@ var config = require('./config');
 var Maki = require('./lib/Maki');
 var maki = new Maki( config );
 
-var Sessions = require('maki-sessions');
-var sessions = new Sessions({
+var Passport = require('maki-passport-local');
+var passport = new Passport({
   resource: 'Person'
 });
-maki.use( sessions );
+maki.use( passport );
 
 maki.define('Person', {
   attributes: {
