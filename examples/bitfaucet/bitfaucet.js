@@ -112,7 +112,10 @@ var Index = bitfaucet.define('Index', {
   },
   // This is a static Resource, so don't attempt to persist it to the database.
   // This is useful for content pages that can't be interacted with.
-  static: true
+  static: true,
+  // This is also a special internal Resource, so it won't show up in some
+  // menus (such as the top-level navigation).
+  internal: true
 })
 
 // ## Resource Hooks
