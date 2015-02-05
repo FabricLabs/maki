@@ -16,7 +16,8 @@ You'll need [node.js](http://nodejs.org) to build a Maki application.   Addition
 1. Install Maki: `npm install martindale/maki`
 2. Create your app, perhaps in `yourapp.js`:
   ```javascript
-  var myApp = new require('maki');
+  var Maki = require('maki');
+  var myApp = new Maki();
   
   myApp.define('Widget', {
     attributes: {
