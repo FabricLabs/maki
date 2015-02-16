@@ -53,7 +53,6 @@
     "maki-queue": "0.0.1",
     "maki-service-websockets": "git://github.com/martindale/maki-service-websockets#develop",
     "maki-sessions": "0.0.1",
-    "maki-types-file": "0.0.0",
     "marked": "^0.3.2",
     "moment": "^2.8.4",
     "mongoose": "~3.8.1",
