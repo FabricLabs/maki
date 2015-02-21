@@ -38,12 +38,12 @@ script.
     $('*[data-action=remove-item]').click(function( e ) {
       e.preventDefault();
       
+      // TODO: only remove item when socket event received!
       var $item = $( this ).parent().parent();
-      
-      console.log( $item );
-      
       $.ajax({ method: 'delete', url: '/#{resource.collection}/' + $item.data('id') , success: function(data) {
-        console.log(data);
+        $item.slideUp('slow', function() {
+          $item.remove();
+        });
       } });
       return false;
     })
