@@ -1,4 +1,4 @@
-.ui.main.tiered.menu.large(ng-controller="headerController")
+.ui.main.tiered.menu.large
   .menu
     a.item(href="/")
       i.icon.lab.left
@@ -7,6 +7,9 @@
     //- block for prepend/append/replace-able menu items
     block mainMenu
       .right.menu
+        a.item.tooltipped(class="btn btn-default", href="bitcoin:1EBdAcEhP4Qn7sihJoCqinLC8A14zqHJ7R", title="If you have a bitcoin wallet installed and configured, this will launch it.") 
+          i.icon.bitcoin(alt="Bitoin", title="Donate Bitcoin")
+          | Donate &raquo;
         if (user)
           a.item(href="/people/#{user.slug}") #{user.username}
           a.item(href="/sessions/#{session.hash}?method=delete") Logout
@@ -25,6 +28,6 @@
           if (resource.options.icon)
             i.icon(class="#{resource.options.icon}")
           | #{resource.plural}
-    a.item(href="#{ config.service.source }")
+    a.item.tooltipped(href="#{ config.service.source }", title="View the Source, Luke!  Source code for this site.")
       i.fork.icon
       | Code &raquo;
