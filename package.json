@@ -60,7 +60,7 @@
     "mongoose-slug": "^1.3.1",
     "monq": "^0.3.1",
     "multer": "^0.1.6",
-    "node-torrent-stream": "git://github.com/unusualbob/node-torrent-stream",
+    "node-torrent-stream": "git://github.com/unusualbob/node-torrent-stream#master",
     "node-uuid": "^1.4.1",
     "path-to-regexp": "~0.2.1",
     "pem": "^1.4.1",
