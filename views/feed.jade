@@ -1,0 +1,14 @@
+doctype xml
+rss(version="2.0")
+  channel
+    title #{config.service.name} #{resource.plural}
+    //-link #{link}
+    description #{tagline}
+    link(href="http://#{config.service.authority}/feed", rel="self", type="application/rss+xml") 
+    for item in collection
+      item
+        title #{item.title}
+        link http://#{config.service.authority}/#{resource.collection}/#{item.slug}
+        guid(isPermaLink="true") http://#{config.service.authority}/#{resource.collection}/#{item.slug}
+        description #{markdown(item.description)}
+        pubDate #{moment(item.published).format('ddd, DD MMM YYYY HH:mm:ss ZZ')}
