@@ -2,6 +2,7 @@ mixin fieldFor( attrs , field , parentName )
   - var keys = Object.keys( attrs )
   if (~keys.indexOf( field ))
     - var f = attrs[ field ]
+    - if (f.render && f.render.create === false) return;
     - f._name = (parentName) ? parentName + '[' + field + ']' : field
 
     .field(class=((f && f.required) ? 'required' : undefined ))
