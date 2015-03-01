@@ -137,6 +137,7 @@ $(window).on('ready', function() {
   $('.message .close').on('click', function() {
     $(this).closest('.message').fadeOut();
   });
+  $('.tabular.menu .item').tab();
 
   $.ajax({
     type: 'OPTIONS',
