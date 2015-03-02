@@ -1,3 +1,11 @@
+var loc = window.location;
+var sockets;
+if (loc.protocol === 'https:') {
+  sockets = 'wss';
+} else {
+  sockets = 'ws';
+}
+
 // staged back-off strategy for websockets
 var retryTimes = [ 50, 250, 1000, 2500, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000 ]; //in ms
 var retryIndex = 0;
@@ -49,7 +57,7 @@ var maki = {
       connect: function() {
         maki.sockets.disconnect();
         
-        var path = 'ws://' + window.location.host + window.location.pathname;
+        var path = sockets + '://' + window.location.host + window.location.pathname;
         maki.socket = new WebSocket( path );
         maki.socket.onclose = function onClose() {
           console.log('lost connection, reconnect... ');
