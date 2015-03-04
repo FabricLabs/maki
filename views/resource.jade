@@ -18,6 +18,9 @@ block content
         a.ui.button(href="/#{resource.collection}/#{item[ resource.fields.id ]}") edit
 
   - var fields = Object.keys(resource.keys) || []
+  - fields = fields.filter(function(x) {
+  -   return (resource.attributes[ x ]._type !== 'password'); 
+  - })
   - if (resource.fields.name !== '_id') {
   -   delete resource.keys['_id']
   - }
