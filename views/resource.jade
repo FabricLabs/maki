@@ -19,6 +19,7 @@ block content
 
   - var fields = Object.keys(resource.keys) || []
   - fields = fields.filter(function(x) {
+  -   if (!resource.attributes[ x ]) return true;
   -   return (resource.attributes[ x ]._type !== 'password'); 
   - })
   - if (resource.fields.name !== '_id') {
