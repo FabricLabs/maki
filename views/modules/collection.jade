@@ -4,7 +4,7 @@ table.ui.table.segment.sortable
     tr
       td
         input(type="checkbox")
-      each field in fields
+      each field in viewFields
         td #{field}
       td
 
@@ -13,7 +13,7 @@ table.ui.table.segment.sortable
       tr(data-model="#{resource.name}", data-id="#{item[ idField ]}")
         td
           input(type="checkbox")
-        each field in fields
+        each field in viewFields
           - var f = resource.attributes[ field ]
           td
             if (field == idField || field == nameField)

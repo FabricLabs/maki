@@ -18,7 +18,7 @@ block content
         a.ui.button(href="/#{resource.collection}/#{item[ resource.fields.id ]}") edit
 
   - var fields = Object.keys(resource.keys) || []
-  - fields = fields.filter(function(x) {
+  - var viewFields = fields.filter(function(x) {
   -   if (!resource.attributes[ x ]) return true;
   -   return (resource.attributes[ x ]._type !== 'password'); 
   - })

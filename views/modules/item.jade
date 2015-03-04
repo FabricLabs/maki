@@ -2,12 +2,12 @@
 table.ui.table.segment.sortable
   thead
     tr
-      each field in fields
+      each field in viewFields
         td #{field}
 
   tbody
     tr
-      each field in fields
+      each field in viewFields
         - var f = resource.attributes[ field ]
         td
           if (field == idField || field == nameField)
