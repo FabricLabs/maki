@@ -6,5 +6,37 @@ form.ui.form.segment(action="/sessions", method="post")
   .field
     label(for="password") Password
     input.ui.left.labeled.input(type="password", name="password")
+      
+  .field
+    label(for="key") Secure Identity
+    keygen.ui.left.labeled.input(name="key")
 
   button.ui.button(type="submit") Log In &raquo;
+
+block scripts
+  script.
+    $('form[action="/sessions"]').submit(function(e) {
+      var self = this;
+      e.preventDefault();
+      
+      var data = $(e.target).serialize();
+      
+      $.ajaxPrefilter(function(options, originalOptions, xhr) {
+        if ( !options.beforeSend) {
+          options.beforeSend = function (xhr) { 
+            xhr.setRequestHeader('Authentication', 'Basic foo');
+          }
+        }
+      });
+      
+      $.ajax({
+        type: 'POST',
+        url: '/sessions',
+        data: data,
+        success: function() {
+          window.location = '/';
+        }
+      });
+      
+      return false;
+    });
