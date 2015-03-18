@@ -161,7 +161,7 @@ describe('http', function(){
       .post('/people')
       .set('Accept', 'application/json')
       .send({ username: 'test-user-'+randomNum })
-      .expect(200)
+      .expect(303)
       .end(function(err, res) {
         if (err) throw err;
         done();
@@ -176,7 +176,7 @@ describe('http', function(){
       data: { username: username },
       headers: { accept: 'application/json' }
     }).on('complete', function(data, res) {
-      assert( res.statusCode , 303 );
+      assert( res.statusCode , 200 );
       done();
     });
 
@@ -227,7 +227,7 @@ describe('http', function(){
       .post('/people')
       .set('Accept', 'application/json')
       .send({ username: username })
-      .expect(200)
+      .expect(303)
       .end(function(err, res) {
         if (err) throw err;
 
