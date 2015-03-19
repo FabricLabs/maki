@@ -14,12 +14,12 @@ var bitfaucet = new Maki();
 var bitcoin = require('bitcoin');
 
 // Now, let's use sessions so we can provide messages to the user.
-var Passport = require('maki-passport-local');
+var Passport = require('maki-sessions');
 var passport = new Passport();
 
 // Maki plugins are easy; in this case, we want to use it before any other
 // things are defined.
-maki.use( passport );
+bitfaucet.use( passport );
 
 // ## Resource Definitions  
 // Maki starts with definitions of "Resources" that your application exposes.
