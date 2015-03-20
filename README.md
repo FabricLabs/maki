@@ -29,17 +29,6 @@ You'll need [node.js](http://nodejs.org) to build a Maki application.   Addition
   ```
 3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
 
-## Extended Start
-In addition to the above instructions, the first thing you'll want to to is separate your app's presentation from Maki's.
-
-```
-maki bootstrap <yourAppName>
-```
-
-This will work if the Maki package is installed globally, via `npm install maki -g`.  Bootstrapping, notably, is an entirely optional process – without a bootstrapped local directory, Maki applications will default to the internal behavior (which is intended to be a set of sane defaults).
-
-A "bootstrapped" Maki application is one in which the local directory has been configured to provide overrides, such as `app/views/layouts/default.jade`, that extend or replace Maki's default behavior.  The Maki library will utilize these customizations in favor of its internal behaviors for building applications.
-
 ### Configuration
 
 Maki-built apps do not require any special configuration.  However, it is intended to be a platform for customization – it will look in your project's folder for customizations (such as a change to the HTTP port) based on the pattern exposed by [its Default Directory Structure](#default-directory-structure).
