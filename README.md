@@ -29,25 +29,6 @@ You'll need [node.js](http://nodejs.org) to build a Maki application.   Addition
   ```
 3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
 
-### Configuration
-
-Maki-built apps do not require any special configuration.  However, it is intended to be a platform for customization – it will look in your project's folder for customizations (such as a change to the HTTP port) based on the pattern exposed by [its Default Directory Structure](#default-directory-structure).
-
-For example, add this file to `./config/index.js` to change the HTTP port:
-```javascript
-module.exports = { services: { http: { port: 8080 } } };
-```
-
-...or this file to `./app/views/index.jade` to change what the index page looks like:
-```jade
-extends layouts/default
-
-block content
-  h1 Hello, world!
-```
-
-Maki is zero-configuration by default, but will use your changes where available as an extension to its own internal, default behaviors.  See below for further documentation on the options and default behaviors.
-
 ## Plugins & Modules
 Maki aims to be as lightweight as possible while still offering a base stack that implements #1.  We've split out as many components as possible, and offer a list of plugins that can be used to add functionality to any Maki-powered app.
 
@@ -71,15 +52,46 @@ Maki aims to be as lightweight as possible while still offering a base stack tha
 | [maki-assets](https://github.com/martindale/maki-assets) | [![NPM Package](https://img.shields.io/npm/v/maki-assets.svg?style=flat-square)](https://www.npmjs.org/package/maki-assets) | [![Build Status](https://img.shields.io/travis/martindale/maki-assets.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-assets) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-assets.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-assets) |
 | [maki-client](https://github.com/martindale/maki-client) | [![NPM Package](https://img.shields.io/npm/v/maki-client.svg?style=flat-square)](https://www.npmjs.org/package/maki-client) | [![Build Status](https://img.shields.io/travis/martindale/maki-client.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-client) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-client.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-client) |
 
-
-
-
 ## Documentation
-Maki exposes an extremely simple interface to a powerful set of features.  These features are easy to understand, as they stem from a basic set of principles and philosophies.  We'll start with some simple definitions.
+
+### Configuration
+
+Maki-built apps do not require any special configuration.  However, it is intended to be a platform for customization – it will look in your project's folder for customizations (such as a change to the HTTP port) based on the pattern exposed by [its Default Directory Structure](#default-directory-structure).
+
+For example, add this file to `./config/index.js` to change the HTTP port:
+```javascript
+module.exports = { services: { http: { port: 8080 } } };
+```
+
+...or this file to `./app/views/index.jade` to change what the index page looks like:
+```jade
+extends layouts/default
+
+block content
+  h1 Hello, world!
+```
+
+Maki is zero-configuration by default, but will use your changes where available as an extension to its own internal, default behaviors.  For example, if you'd like to customize the default view for the "Widget" resource (as defined above), you can simply create a view in `views/widgets.jade`:
+
+```jade
+extends layouts/default
+
+block content
+  h1 My Customized Widget List
+  
+  ul
+    for widget in widgets
+      li #{widget.name}
+```
+
+Filenames and local variables will be automatically set based on the internal names of those resources, which default to a lower-cased plural and singular name.  For example, the list view for Widgets will be `widgets`, while the singular will be `widget`; the corresponding views at `widgets.jade`, `widget.jade`, and local variables named `widgets` and `widget` respectively.
+
+
+See below for further documentation on the options and default behaviors.
+
 
 ### Why?
-In a traditional application – for example, a web application – a front-end engineer might change the interaction pattern of a particular interface control in such a way that the server interface might no longer be sufficient.  In said traditional application, server-side changes are necessary to support the front-end engineers.  With Maki, **interface elements can be changed freely and be predictably bound to server resources.
-
+In a traditional application – for example, a web application – a front-end engineer might change the interaction pattern of a particular interface control in such a way that the server interface might no longer be sufficient.  In said traditional application, server-side changes are necessary to support the front-end engineers.  With Maki, interface elements can be changed freely and be predictably bound to server resources.
 
 ### Definitions
 In general, we'll be using the proper noun form of these definitions when referring to them explicitly.
