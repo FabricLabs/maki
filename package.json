@@ -70,6 +70,7 @@
     "redis": "^0.12.1",
     "serve-static": "^1.6.4",
     "spdy": "^1.28.1",
+    "speakingurl": "^1.1.0",
     "streamifier": "^0.1.0",
     "ws": "~0.4.31"
   },
