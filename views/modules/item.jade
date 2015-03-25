@@ -12,6 +12,8 @@ table.ui.table.segment.sortable
         td
           if (field == idField || field == nameField)
             a(href="/#{resource.collection}/#{item[ idField ]}") #{item[ nameField ]}
+          else if (f && f._type === 'lookup')
+            a(href="/#{ resources[ f._ref ].collection }/#{ item.slug }") #{ item[ field ] }
           else if (f && f._type === 'file')
             a(href="/files/#{item[ field ]}") #{item[ field ]}
           else
