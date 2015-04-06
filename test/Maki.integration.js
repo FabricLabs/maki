@@ -214,9 +214,6 @@ describe('http', function(){
         done();
       });
     });
-
-
-
   });
 
   it('should return a created resource from an appropriate location', function( done ) {
