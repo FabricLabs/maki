@@ -56,11 +56,8 @@ function getRandomInt(min, max) {
 
 before(function(ready) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-  maki.start(function() {
-    setTimeout(function() {
-      ready();
-    }, 250);
-  });
+  maki.start();
+  maki.on('ready', ready );
 });
 
 describe('Maki', function() {
