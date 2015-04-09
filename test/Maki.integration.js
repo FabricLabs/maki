@@ -57,7 +57,6 @@ function getRandomInt(min, max) {
 before(function(ready) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   maki.start(function() {
-    console.log('setup done!');
     setTimeout(function() {
       ready();
     }, 250);
@@ -162,7 +161,7 @@ describe('http', function(){
       .post('/people')
       .set('Accept', 'application/json')
       .send({ username: 'test-user-'+randomNum })
-      .expect(200)
+      .expect(303)
       .end(function(err, res) {
         if (err) throw err;
         done();
@@ -177,7 +176,7 @@ describe('http', function(){
       data: { username: username },
       headers: { accept: 'application/json' }
     }).on('complete', function(data, res) {
-      assert( res.statusCode , 303 );
+      assert( res.statusCode , 200 );
       done();
     });
 
@@ -215,9 +214,6 @@ describe('http', function(){
         done();
       });
     });
-
-
-
   });
 
   it('should return a created resource from an appropriate location', function( done ) {
@@ -228,7 +224,7 @@ describe('http', function(){
       .post('/people')
       .set('Accept', 'application/json')
       .send({ username: username })
-      .expect(200)
+      .expect(303)
       .end(function(err, res) {
         if (err) throw err;
 

@@ -16,7 +16,8 @@ You'll need [node.js](http://nodejs.org) to build a Maki application.   Addition
 1. Install Maki: `npm install martindale/maki`
 2. Create your app, perhaps in `yourapp.js`:
   ```javascript
-  var myApp = new require('maki');
+  var Maki = require('maki');
+  var myApp = new Maki();
   
   myApp.define('Widget', {
     attributes: {
@@ -28,16 +29,30 @@ You'll need [node.js](http://nodejs.org) to build a Maki application.   Addition
   ```
 3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
 
-## Extended Start
-In addition to the above instructions, the first thing you'll want to to is separate your app's presentation from Maki's.
+## Plugins & Modules
+Maki aims to be as lightweight as possible while still offering a base stack that implements #1.  We've split out as many components as possible, and offer a list of plugins that can be used to add functionality to any Maki-powered app.
 
-```
-maki bootstrap <yourAppName>
-```
+### Core Modules
+| Name              | Version  |   Build Status | Coverage |
+|-------------------|----------|----------------|----------|
+| [maki-queue](https://github.com/martindale/maki-queue) | [![NPM Package](https://img.shields.io/npm/v/maki-queue.svg?style=flat-square)](https://www.npmjs.org/package/maki-queue) | [![Build Status](https://img.shields.io/travis/martindale/maki-queue.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-queue) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-queue.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-queue) |
+| [maki-mongoose-hooks](https://github.com/martindale/maki-mongoose-hooks) | [![NPM Package](https://img.shields.io/npm/v/maki-mongoose-hooks.svg?style=flat-square)](https://www.npmjs.org/package/maki-mongoose-hooks) | [![Build Status](https://img.shields.io/travis/martindale/maki-mongoose-hooks.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-mongoose-hooks) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-mongoose-hooks.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-mongoose-hooks) |
+| [maki-service-websockets](https://github.com/martindale/maki-service-websockets) | [![NPM Package](https://img.shields.io/npm/v/maki-service-websockets.svg?style=flat-square)](https://www.npmjs.org/package/maki-service-websockets) | [![Build Status](https://img.shields.io/travis/martindale/maki-service-websockets.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-service-websockets) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-service-websockets.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-service-websockets) |
+| [maki-forms](https://github.com/martindale/maki-forms) | [![NPM Package](https://img.shields.io/npm/v/maki-forms.svg?style=flat-square)](https://www.npmjs.org/package/maki-forms) | [![Build Status](https://img.shields.io/travis/martindale/maki-forms.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-forms) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-forms.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-forms) |
 
-This will work if the Maki package is installed globally, via `npm install maki -g`.  Bootstrapping, notably, is an entirely optional process – without a bootstrapped local directory, Maki applications will default to the internal behavior (which is intended to be a set of sane defaults).
+### Plugins
+| Name              | Version  |   Build Status | Coverage |
+|-------------------|----------|----------------|----------|
+| [maki-sessions](https://github.com/martindale/maki-sessions) | [![NPM Package](https://img.shields.io/npm/v/maki-sessions.svg?style=flat-square)](https://www.npmjs.org/package/maki-sessions) | [![Build Status](https://img.shields.io/travis/martindale/maki-sessions.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-sessions) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-sessions.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-sessions) |
+| [maki-passport-local](https://github.com/martindale/maki-passport-local) | [![NPM Package](https://img.shields.io/npm/v/maki-passport-local.svg?style=flat-square)](https://www.npmjs.org/package/maki-passport-local) | [![Build Status](https://img.shields.io/travis/martindale/maki-passport-local.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-passport-local) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-passport-local.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-passport-local) |
+| [maki-passport-github](https://github.com/martindale/maki-passport-github) | [![NPM Package](https://img.shields.io/npm/v/maki-passport-github.svg?style=flat-square)](https://www.npmjs.org/package/maki-passport-github) | [![Build Status](https://img.shields.io/travis/martindale/maki-passport-github.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-passport-github) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-passport-github.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-passport-github) |
+| [maki-analytics](https://github.com/martindale/maki-analytics) | [![NPM Package](https://img.shields.io/npm/v/maki-analytics.svg?style=flat-square)](https://www.npmjs.org/package/maki-analytics) | [![Build Status](https://img.shields.io/travis/martindale/maki-analytics.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-analytics) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-analytics.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-analytics) |
+| [maki-forms](https://github.com/martindale/maki-forms) | [![NPM Package](https://img.shields.io/npm/v/maki-forms.svg?style=flat-square)](https://www.npmjs.org/package/maki-forms) | [![Build Status](https://img.shields.io/travis/martindale/maki-forms.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-forms) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-forms.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-forms) |
+| [maki-types-file](https://github.com/martindale/maki-types-file) | [![NPM Package](https://img.shields.io/npm/v/maki-types-file.svg?style=flat-square)](https://www.npmjs.org/package/maki-types-file) | [![Build Status](https://img.shields.io/travis/martindale/maki-types-file.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-types-file) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-types-file.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-types-file) |
+| [maki-assets](https://github.com/martindale/maki-assets) | [![NPM Package](https://img.shields.io/npm/v/maki-assets.svg?style=flat-square)](https://www.npmjs.org/package/maki-assets) | [![Build Status](https://img.shields.io/travis/martindale/maki-assets.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-assets) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-assets.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-assets) |
+| [maki-client](https://github.com/martindale/maki-client) | [![NPM Package](https://img.shields.io/npm/v/maki-client.svg?style=flat-square)](https://www.npmjs.org/package/maki-client) | [![Build Status](https://img.shields.io/travis/martindale/maki-client.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-client) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-client.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-client) |
 
-A "bootstrapped" Maki application is one in which the local directory has been configured to provide overrides, such as `app/views/layouts/default.jade`, that extend or replace Maki's default behavior.  The Maki library will utilize these customizations in favor of its internal behaviors for building applications.
+## Documentation
 
 ### Configuration
 
@@ -56,14 +71,27 @@ block content
   h1 Hello, world!
 ```
 
-Maki is zero-configuration by default, but will use your changes where available as an extension to its own internal, default behaviors.  See below for further documentation on the options and default behaviors.
+Maki is zero-configuration by default, but will use your changes where available as an extension to its own internal, default behaviors.  For example, if you'd like to customize the default view for the "Widget" resource (as defined above), you can simply create a view in `views/widgets.jade`:
 
-## Documentation
-Maki exposes an extremely simple interface to a powerful set of features.  These features are easy to understand, as they stem from a basic set of principles and philosophies.  We'll start with some simple definitions.
+```jade
+extends layouts/default
+
+block content
+  h1 My Customized Widget List
+  
+  ul
+    for widget in widgets
+      li #{widget.name}
+```
+
+Filenames and local variables will be automatically set based on the internal names of those resources, which default to a lower-cased plural and singular name.  For example, the list view for Widgets will be `widgets`, while the singular will be `widget`; the corresponding views at `widgets.jade`, `widget.jade`, and local variables named `widgets` and `widget` respectively.
+
+
+See below for further documentation on the options and default behaviors.
+
 
 ### Why?
-In a traditional application – for example, a web application – a front-end engineer might change the interaction pattern of a particular interface control in such a way that the server interface might no longer be sufficient.  In said traditional application, server-side changes are necessary to support the front-end engineers.  With Maki, **interface elements can be changed freely and be predictably bound to server resources.
-
+In a traditional application – for example, a web application – a front-end engineer might change the interaction pattern of a particular interface control in such a way that the server interface might no longer be sufficient.  In said traditional application, server-side changes are necessary to support the front-end engineers.  With Maki, interface elements can be changed freely and be predictably bound to server resources.
 
 ### Definitions
 In general, we'll be using the proper noun form of these definitions when referring to them explicitly.

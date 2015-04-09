@@ -1,3 +1,11 @@
+var loc = window.location;
+var sockets;
+if (loc.protocol === 'https:') {
+  sockets = 'wss';
+} else {
+  sockets = 'ws';
+}
+
 // staged back-off strategy for websockets
 var retryTimes = [ 50, 250, 1000, 2500, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000 ]; //in ms
 var retryIndex = 0;
@@ -49,7 +57,7 @@ var maki = {
       connect: function() {
         maki.sockets.disconnect();
         
-        var path = 'ws://' + window.location.host + window.location.pathname;
+        var path = sockets + '://' + window.location.host + window.location.pathname;
         maki.socket = new WebSocket( path );
         maki.socket.onclose = function onClose() {
           console.log('lost connection, reconnect... ');
@@ -133,9 +141,11 @@ $(window).on('ready', function() {
   
   // Semantic UI crap
   $('select.dropdown').dropdown();
+  $('.tooltipped').popup();
   $('.message .close').on('click', function() {
     $(this).closest('.message').fadeOut();
   });
+  $('.tabular.menu .item').tab();
 
   $.ajax({
     type: 'OPTIONS',
@@ -217,78 +227,4 @@ $(window).on('ready', function() {
     });
     
   });
-});
-
-maki.angular = {
-  controller: function() { return this; },
-  directive:  function() { return this; }
-}
-
-maki.angular.controller('mainController', function( $scope ) {
-  
-  $scope.$on('$destroy', function() {
-     window.onbeforeunload = maki.sockets.disconnect;
-  });
-  
-  // TODO: use pubsub
-  $scope.$on('$locationChangeStart', function(event) {
-    // hack to collapse navbar on navigation
-    $('.navbar-collapse').removeClass('in').addClass('collapse');
-
-    // TODO: unsubscribe, NOT disconnect
-    //maki.sockets.unsubscribe();
-    maki.sockets.disconnect();
-
-  });
-  $scope.$on('$locationChangeSuccess', function(event) {
-    // TODO: use subscribe, and subscribe to all resources on page!
-    maki.sockets.connect();
-    //maki.sockets.subscribe();
-  });
-});
-
-maki.angular.controller('headerController', function( $scope , $location ) {
-  $scope.isActive = function (viewLocation) {
-    return viewLocation === $location.path();
-  };
-});
-
-maki.angular.directive('tooltipped', function() {
-  return {
-      restrict: 'C'
-    , link: function( scope , element ) {
-        $( element ).tooltip({
-          container: 'body'
-        });  
-      }
-  }
-}).directive('code', function() {
-  return {
-    restrict: 'E',
-    link: function( scope , element ) {
-      $( element ).each(function(i, block) {
-        hljs.highlightBlock(block);
-      });
-    }
-  }
-}).directive('headroom', function() {
-  return {
-    restrict: 'EA',
-    scope: {
-      tolerance: '=',
-      offset: '=',
-      classes: '='
-    },
-    link: function(scope, element) {
-      var options = {};
-      angular.forEach(Headroom.options, function(value, key) {
-        options[key] = scope[key] || Headroom.options[key];
-      });
-      var headroom = new Headroom(element[0], options);
-      headroom.init();
-      scope.$on('destroy', function() {
-        headroom.destroy();
-      });
-    }
-  };
 });

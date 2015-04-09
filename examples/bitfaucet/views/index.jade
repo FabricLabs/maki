@@ -1,38 +1,35 @@
 extends layouts/default
 
 block content
-  .ui.header.page.grid.huge
-    .sixteen.wide.column.huge
-      h1 Welcome to BitFaucet!
-      h3 We provide bitcoin from testnet for testing purposes.
-      p &nbsp;
-      
-      center
-        h2(data-bind="faucet.balance") #{ faucets[0].balance }
-          i.icon.bitcoin
-          | available
+  .ui.header
+    h1 Welcome to BitFaucet!
+    h3 We provide bitcoin from testnet for testing purposes.
+    p &nbsp;
+    
+    center
+      h2(data-bind="faucet.balance") #{ faucets[0].balance }
+        i.icon.bitcoin
+        | available
 
-  .ui.page.grid
-    .sixteen.wide.column
-      form.ui.form(action="/pours", method="post")
-        .three.fields
-          .field.two.wide
-            label Network
-            //- NOTE: for this to be styled Semantic 1.0.0 needs to be used.
-            //- currently, we're using the beta, so it appears unstyled, but is
-            //- semantically correct.
-            select.ui.dropdown(name="_faucet")
-              each faucet in faucets
-                option(value="#{faucet._id}") #{faucet.name}
-          .field.two.wide
-            label Amount
-            input(type="number", name="amount", step="any", max="5", min="0", value="1", required)
-          .field.nine.wide
-            label Address
-            input(type="text", name="address", length="35", placeholder="i.e., miWQvs1rZFgBjXsP7nfyYA7tBvG6dHgV9d", required)
-          .field.three.wide
-            label &nbsp;
-            button.ui.blue.submit.button(type="submit") Get Bits &raquo;
+  form.ui.form.large(action="/pours", method="post")
+    .fields
+      .three.wide.field
+        label Network
+        //- NOTE: for this to be styled Semantic 1.0.0 needs to be used.
+        //- currently, we're using the beta, so it appears unstyled, but is
+        //- semantically correct.
+        select.ui.dropdown(name="_faucet")
+          each faucet in faucets
+            option(value="#{faucet._id}") #{faucet.name}
+      .two.wide.field
+        label Amount
+        input(type="number", name="amount", step="any", max="5", min="0", value="1", required)
+      .six.wide.field
+        label Address
+        input(type="text", name="address", length="35", placeholder="i.e., miWQvs1rZFgBjXsP7nfyYA7tBvG6dHgV9d", required)
+      .field
+        label &nbsp;
+        button.ui.blue.submit.button(type="submit") Get Bits &raquo;
 
   .ui.grid
     .row.two
