@@ -40,5 +40,11 @@
     , "uri": "https://github.com/martindale/snarl"
     , "description": "Automatic tracking bot for collaborative music site, plug.dj.  Deprecated by soundtrack.io."
     , "image": "/img/soundtrack.io.png"
+  },
+  {
+      "name": "DECENTRALIZE"
+    , "uri": "https://decentralize.fm"
+    , "description": "DECENTRALIZE is the podcast for the decentralization movement – the hackers, scholars, artists, entrepreneurs, and hobbyists building technologies free of central control."
+    , "image": "/img/soundtrack.io.png"
   }
 ]
