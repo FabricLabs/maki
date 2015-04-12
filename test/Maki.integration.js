@@ -54,13 +54,16 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-before(function(ready) {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-  maki.start();
-  maki.on('ready', ready );
-});
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+maki.start();
 
 describe('Maki', function() {
+
+  before(function(ready) {
+    setTimeout(function() {
+      ready();
+    }, 1900);
+  });
 
   it('should expose a constructor', function(){
     assert(typeof maki, 'function');
@@ -106,6 +109,12 @@ describe('Maki', function() {
 });
 
 describe('http', function(){
+
+  before(function(ready) {
+    setTimeout(function() {
+      ready();
+    }, 1900);
+  });
 
   function nonZeroArray(res) {
     if (!res.body) throw new Error('no body');
