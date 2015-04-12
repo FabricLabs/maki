@@ -110,12 +110,6 @@ describe('Maki', function() {
 
 describe('http', function(){
 
-  before(function(ready) {
-    setTimeout(function() {
-      ready();
-    }, 1900);
-  });
-
   function nonZeroArray(res) {
     if (!res.body) throw new Error('no body');
     if (res.body.length < 1) throw new Error('no resources exposed');
