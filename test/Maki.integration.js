@@ -3,6 +3,7 @@ var expect = require('chai').expect;
 
 var cheerio = require('cheerio');
 var request = require('supertest');
+var async = require('async');
 var rest = require('restler');
 var WebSocket = require('ws');
 var JSONRPC = require('maki-jsonrpc');
@@ -28,7 +29,7 @@ maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 , required: true , id: true },
     description: { type: String , max: 500 },
-    hash: { type: String , default: 'asdf', required: true , restricted: true }
+    hash: { type: String , default: 'asdf', required: true , restricted: true },
   }
 });
 
@@ -40,6 +41,12 @@ maki.define('Example', {
   },
   source: 'test/fixtures/examples.json',
   icon: 'idea'
+});
+
+maki.define('Unfile', {
+  attributes: {
+    content: { type: 'File' }
+  }
 });
 
 function resource( path , options ) {
@@ -286,6 +293,129 @@ describe('http', function(){
       done();
     });
   });
+  
+  it('should allow valid pre methods', function() {
+    function setup() {
+      maki.services.http.pre('create', function() {
+
+      });
+    }
+    expect( setup ).to.not.throw();
+  });
+  
+  it('should allow valid post methods', function() {
+    function setup() {
+      maki.services.http.post('create', function() {
+
+      });
+    }
+    expect( setup ).to.not.throw();
+  });
+
+  it('should not allow invalid pre methods', function() {
+    function setup() {
+      maki.services.http.pre('nope', function() {
+        // never get here...
+      });
+    }
+    expect( setup ).to.throw( Error );
+  });
+
+  it('should not allow invalid post methods', function() {
+    function setup() {
+      maki.services.http.post('nope', function() {
+        // never get here...
+      });
+    }
+    expect( setup ).to.throw( Error );
+  });
+  
+  it('should accept a valid plugin', function() {
+    function setup() {
+      var plugin = {};
+      plugin.extends = {
+        services: {
+          http: function(req, res, next) {
+            return next();
+          }
+        }
+      }
+      maki.use( plugin );
+    }
+    
+    expect( setup ).to.not.throw();
+  });
+  
+  it('should not accept an invalid plugin', function() {
+    function setup() {
+      var plugin = {};
+      plugin.extends = {
+        services: {
+          http: 'invalid'
+        }
+      }
+      maki.use( {} );
+    }
+    
+    expect( setup ).to.throw();
+  });
+  
+  it('should receive uploads', function(done) {
+    var data = require('crypto').randomBytes(256);
+    
+    var opts = {
+      host: 'localhost',
+      port: config.services.http.port,
+      path: '/unfiles',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': data.length
+      }
+    };
+    
+    var req = require('http').request( opts , function(res) {
+      assert.equal( res.statusCode , 303 );
+      done();
+    });
+    req.write( data );
+    req.end();
+  });
+  
+  it('should serve previous uploads', function(done) {
+    var data = require('crypto').randomBytes(256);
+
+    var opts = {
+      host: 'localhost',
+      port: config.services.http.port,
+      path: '/unfiles/randomthing',
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': data.length
+      }
+    };
+
+    var req = require('http').request( opts , function(res) {
+      assert.equal( res.statusCode , 200 );
+      res.setEncoding('utf8');
+      res.on('data', function(chunk) {
+        var file = JSON.parse( chunk );
+        var url = 'http://localhost:' + config.services.http.port + '/unfiles/' + file._id;
+        rest.get( url , {
+          headers: {
+            'Accept': 'application/json'
+          }
+        }).on('complete', function(remoteFile) {
+          done();
+        });
+      });
+    });
+    req.write( data );
+    req.end();
+
+  });
 
 });
 
@@ -320,7 +450,7 @@ describe('spdy', function(){
       assert.equal( res.statusCode , 201 );
       agent.close();
 
-      next()
+      next();
 
     }).end();
   });
@@ -517,7 +647,7 @@ describe('browser with javascript', function() {
 });
 
 describe('cleanup', function() {
-  xit('should clean up after itself', function( done ) {
+  it('should clean up after itself', function( done ) {
     maki.destroy( done );
   });
 });
