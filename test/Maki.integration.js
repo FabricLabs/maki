@@ -247,6 +247,29 @@ describe('http', function(){
           });
       });
   });
+  
+  it('should allow for resources to be successfully destroyed', function(done) {
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    var username = 'test-user-'+randomNum;
+
+    request( maki.app )
+      .post('/people')
+      .set('Accept', 'application/json')
+      .send({ username: username })
+      .expect(303)
+      .end(function(err, res) {
+        if (err) throw err;
+
+        request( maki.app )
+          .delete('/people/' + username )
+          .set('Accept', 'application/json')
+          .expect(204)
+          .end(function(err, res) {
+            if (err) throw err;
+            done();
+          });
+      });
+  });
 
   it('should not expose restricted fields', function(done) {
     var randomNum = getRandomInt( 100000 , 1000000 );
