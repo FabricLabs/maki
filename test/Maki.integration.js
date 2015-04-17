@@ -5,6 +5,7 @@ var cheerio = require('cheerio');
 var request = require('supertest');
 var async = require('async');
 var rest = require('restler');
+var Form = require('form-data');
 var WebSocket = require('ws');
 var JSONRPC = require('maki-jsonrpc');
 
@@ -384,60 +385,53 @@ describe('http', function(){
   });
   
   it('should receive uploads', function(done) {
-    var data = require('crypto').randomBytes(256);
-    
-    var opts = {
-      host: 'localhost',
-      port: config.services.http.port,
-      path: '/unfiles',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': data.length
-      }
-    };
-    
-    var req = require('http').request( opts , function(res) {
+    var data = require('crypto').randomBytes(256).toString('hex');
+    var form = new Form();
+    form.append('content', data);
+    form.submit('http://localhost:' + config.services.http.port + '/unfiles', function(err, res) {
       assert.equal( res.statusCode , 303 );
       done();
     });
-    req.write( data );
-    req.end();
   });
   
   it('should serve previous uploads', function(done) {
-    var data = require('crypto').randomBytes(256);
+    var data = require('crypto').randomBytes(256).toString('hex');
+    var form = new Form();
+    form.append('content', data);
+    form.submit('http://localhost:' + config.services.http.port + '/unfiles', function(err, res) {
+      assert.equal( res.statusCode , 303 );
 
-    var opts = {
-      host: 'localhost',
-      port: config.services.http.port,
-      path: '/unfiles/randomthing',
-      method: 'PUT',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': data.length
-      }
-    };
+      rest.get('http://localhost:' + config.services.http.port + res.headers.location , {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).on('complete', function(remoteFile) {
+        assert.ok( remoteFile.content );
+        done();
+      });
+    });
+  });
+  
+  it('should serve previous uploads as direct downloads', function(done) {
+    var data = require('crypto').randomBytes(256).toString('hex');
+    var form = new Form();
+    form.append('content', data);
+    form.submit('http://localhost:' + config.services.http.port + '/unfiles', function(err, res) {
+      assert.equal( res.statusCode , 303 );
 
-    var req = require('http').request( opts , function(res) {
-      assert.equal( res.statusCode , 200 );
-      res.setEncoding('utf8');
-      res.on('data', function(chunk) {
-        var file = JSON.parse( chunk );
-        var url = 'http://localhost:' + config.services.http.port + '/unfiles/' + file._id;
-        rest.get( url , {
-          headers: {
-            'Accept': 'application/json'
-          }
-        }).on('complete', function(remoteFile) {
+      rest.get('http://localhost:' + config.services.http.port + res.headers.location , {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).on('complete', function(remoteFile) {
+        assert.ok( remoteFile.content );
+        
+        rest.get('http://localhost:' + config.services.http.port + '/files/' + remoteFile.content ).on('complete', function(file) {
+          assert.equal( file , data );
           done();
         });
       });
     });
-    req.write( data );
-    req.end();
-
   });
 
 });

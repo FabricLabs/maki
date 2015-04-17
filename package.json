@@ -79,6 +79,7 @@
     "cheerio": "^0.17.0",
     "coveralls": "^2.11.1",
     "debug-trace": "^0.2.3",
+    "form-data": "^0.2.0",
     "istanbul": "^0.3.0",
     "mocha": "~1.20.1",
     "restler": "^3.2.2",
