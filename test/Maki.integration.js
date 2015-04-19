@@ -3,7 +3,9 @@ var expect = require('chai').expect;
 
 var cheerio = require('cheerio');
 var request = require('supertest');
+var async = require('async');
 var rest = require('restler');
+var Form = require('form-data');
 var WebSocket = require('ws');
 var JSONRPC = require('maki-jsonrpc');
 
@@ -28,7 +30,7 @@ maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 , required: true , id: true },
     description: { type: String , max: 500 },
-    hash: { type: String , default: 'asdf', required: true , restricted: true }
+    hash: { type: String , default: 'asdf', required: true , restricted: true },
   }
 });
 
@@ -40,6 +42,12 @@ maki.define('Example', {
   },
   source: 'test/fixtures/examples.json',
   icon: 'idea'
+});
+
+maki.define('Unfile', {
+  attributes: {
+    content: { type: 'File' }
+  }
 });
 
 function resource( path , options ) {
@@ -240,6 +248,29 @@ describe('http', function(){
           });
       });
   });
+  
+  it('should allow for resources to be successfully destroyed', function(done) {
+    var randomNum = getRandomInt( 100000 , 1000000 );
+    var username = 'test-user-'+randomNum;
+
+    request( maki.app )
+      .post('/people')
+      .set('Accept', 'application/json')
+      .send({ username: username })
+      .expect(303)
+      .end(function(err, res) {
+        if (err) throw err;
+
+        request( maki.app )
+          .delete('/people/' + username )
+          .set('Accept', 'application/json')
+          .expect(204)
+          .end(function(err, res) {
+            if (err) throw err;
+            done();
+          });
+      });
+  });
 
   it('should not expose restricted fields', function(done) {
     var randomNum = getRandomInt( 100000 , 1000000 );
@@ -286,6 +317,122 @@ describe('http', function(){
       done();
     });
   });
+  
+  it('should allow valid pre methods', function() {
+    function setup() {
+      maki.services.http.pre('create', function() {
+
+      });
+    }
+    expect( setup ).to.not.throw();
+  });
+  
+  it('should allow valid post methods', function() {
+    function setup() {
+      maki.services.http.post('create', function() {
+
+      });
+    }
+    expect( setup ).to.not.throw();
+  });
+
+  it('should not allow invalid pre methods', function() {
+    function setup() {
+      maki.services.http.pre('nope', function() {
+        // never get here...
+      });
+    }
+    expect( setup ).to.throw( Error );
+  });
+
+  it('should not allow invalid post methods', function() {
+    function setup() {
+      maki.services.http.post('nope', function() {
+        // never get here...
+      });
+    }
+    expect( setup ).to.throw( Error );
+  });
+  
+  it('should accept a valid plugin', function() {
+    function setup() {
+      var plugin = {};
+      plugin.extends = {
+        services: {
+          http: function(req, res, next) {
+            return next();
+          }
+        }
+      }
+      maki.use( plugin );
+    }
+    
+    expect( setup ).to.not.throw();
+  });
+  
+  it('should not accept an invalid plugin', function() {
+    function setup() {
+      var plugin = {};
+      plugin.extends = {
+        services: {
+          http: 'invalid'
+        }
+      }
+      maki.use( {} );
+    }
+    
+    expect( setup ).to.throw();
+  });
+  
+  it('should receive uploads', function(done) {
+    var data = require('crypto').randomBytes(256).toString('hex');
+    var form = new Form();
+    form.append('content', data);
+    form.submit('http://localhost:' + config.services.http.port + '/unfiles', function(err, res) {
+      assert.equal( res.statusCode , 303 );
+      done();
+    });
+  });
+  
+  it('should serve previous uploads', function(done) {
+    var data = require('crypto').randomBytes(256).toString('hex');
+    var form = new Form();
+    form.append('content', data);
+    form.submit('http://localhost:' + config.services.http.port + '/unfiles', function(err, res) {
+      assert.equal( res.statusCode , 303 );
+
+      rest.get('http://localhost:' + config.services.http.port + res.headers.location , {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).on('complete', function(remoteFile) {
+        assert.ok( remoteFile.content );
+        done();
+      });
+    });
+  });
+  
+  it('should serve previous uploads as direct downloads', function(done) {
+    var data = require('crypto').randomBytes(256).toString('hex');
+    var form = new Form();
+    form.append('content', data);
+    form.submit('http://localhost:' + config.services.http.port + '/unfiles', function(err, res) {
+      assert.equal( res.statusCode , 303 );
+
+      rest.get('http://localhost:' + config.services.http.port + res.headers.location , {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).on('complete', function(remoteFile) {
+        assert.ok( remoteFile.content );
+        
+        rest.get('http://localhost:' + config.services.http.port + '/files/' + remoteFile.content ).on('complete', function(file) {
+          assert.equal( file , data );
+          done();
+        });
+      });
+    });
+  });
 
 });
 
@@ -320,7 +467,7 @@ describe('spdy', function(){
       assert.equal( res.statusCode , 201 );
       agent.close();
 
-      next()
+      next();
 
     }).end();
   });
@@ -517,7 +664,7 @@ describe('browser with javascript', function() {
 });
 
 describe('cleanup', function() {
-  xit('should clean up after itself', function( done ) {
+  it('should clean up after itself', function( done ) {
     maki.destroy( done );
   });
 });
