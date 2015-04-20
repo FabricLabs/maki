@@ -1,0 +1,7 @@
+/* MAKI STYLES */
+/* Generally, overrides or customizations not handled by the UI library */
+/* (semantic-ui, at the time of writing) */
+/* make cards on the front page equal height */
+.stackable.column.grid .card .description {
+  min-height: 4em;
+}

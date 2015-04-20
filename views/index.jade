@@ -4,9 +4,9 @@ block content
   .ui.header
     h1.huge Hello, #{config.service.name}.
       a.ui.label(href="https://github.com/martindale/maki/tree/master")
-    h2 !{ markdown( config.service.mission ) }
+    h2 #{ config.service.mission }
     
-    p !{ markdown( config.service.description ) }
+    p !{ markdown( config.service.description ).replace(/<p>(.*)<\/p>/, '$1') }
     
   .ui.stackable.three.column.grid
     for point in config.service.points
@@ -15,8 +15,7 @@ block content
           .content
             h2.header #{ point.header }
             //- TODO: use marked config, not a regex, to fix errant <p> tags
-            p.description
-              | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
+            p.description !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
           if (point.action)
             a.ui.bottom.attached.button(href="#{point.action.link}") !{point.action.text}
 

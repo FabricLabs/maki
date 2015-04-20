@@ -8,7 +8,7 @@
     block mainMenu
       .right.menu
         a.item.tooltipped(class="btn btn-default", href="bitcoin:1EBdAcEhP4Qn7sihJoCqinLC8A14zqHJ7R", title="If you have a bitcoin wallet installed and configured, this will launch it.") 
-          i.icon.bitcoin(alt="Bitoin", title="Donate Bitcoin")
+          i.icon.bitcoin(title="Donate Bitcoin")
           | Donate &raquo;
         if (user)
           a.item(href="/people/#{user.slug}") #{user.username}
@@ -19,7 +19,7 @@
             | Login &raquo;
 
   .ui.sub.menu
-    a.item(href="/", title="#{config.service.name} Homepage", ng-class="{ active: isActive('/')}")
+    a.item(href="/", title="#{config.service.name} Homepage")
       i.home.icon
       |  Home
     each resource in resources
