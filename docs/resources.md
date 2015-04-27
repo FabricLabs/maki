@@ -267,5 +267,22 @@ maki.define('Example', {
 });
 ```
 
+#### Population
+Not unlike [Requirements](#requirements), Resources with nested objects can have
+`populate()` called on it.
+
+```javascript
+maki.define('Example', {
+  requires: {
+    'Release': {
+      populate: '_person'
+    }
+  }
+});
+```
+This is passed directly to the internal query, and will be attached to the
+required subdocuments.
+
+
 [procure]: https://www.npmjs.com/package/procure
 [json patch]: https://tools.ietf.org/html/rfc6902
