@@ -237,5 +237,35 @@ maki.define('Release', {
 `markdown` is currently the only supported renderer.  Future versions of Maki
 will likely include the ability to pass a function in this field.
 
+#### Requirements
+Any resource can have additional requirements when requested via a non-
+programmatic endpoint (such as a rendered HTML view).  You can them via the 
+`requires` property:
+
+```javascript
+maki.define('Example', {
+  requires: {
+    'Release': {
+      filter: { isExample: true }
+    }
+  }
+});
+```
+
+You can also supply a function, which will be executed at query time, with
+`this` supplied as the context:
+
+```javascript
+maki.define('Example', {
+  requires: {
+    'Release': {
+      filter: function() {
+        return { _example: this._id }
+      }
+    }
+  }
+});
+```
+
 [procure]: https://www.npmjs.com/package/procure
 [json patch]: https://tools.ietf.org/html/rfc6902
