@@ -56,6 +56,52 @@ length (for type `String`).
 
 Similarly, `min` can be used to specify a minimum.
 
+#### Render
+You can prevent a field from rendering in various contexts by providing a map of
+boolean values and the Maki method upon which to restrict that attribute.
+
+```javascript
+maki.define('Person', {
+  attributes: {
+    name: { type: String , max: 140 },
+    created: { type: Date , default: Date.now , render: {
+      create: false
+    } }
+  }
+});
+```
+
+#### Populate
+You can choose to auto-populate Resource attributes on specific methods, such as
+`.query` and `.get`.  Supply an array of either strings for the method name, or
+an object with additional parameters, including a list of fields to include.
+
+##### Simple Population
+```javascript
+maki.define('Widget', {
+  attributes: {
+    name: { type: String , max: 140 },
+    _owner: { type: ObjectId , ref: 'Person', populate: ['get'] }
+  }
+});
+```
+
+##### Field-limited Population
+```javascript
+maki.define('Widget', {
+  attributes: {
+    name: { type: String , max: 140 },
+    _owner: { type: ObjectId , ref: 'Person', populate: [
+      {
+        method: 'get',
+        fields: { username: 1 , slug: 1 }
+      }
+    ] }
+  }
+});
+```
+
+
 #### Special Types
 Certain special types of Resource attributes exist.  These control some behavior
 unique to these types.
