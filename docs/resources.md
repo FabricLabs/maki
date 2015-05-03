@@ -56,6 +56,21 @@ length (for type `String`).
 
 Similarly, `min` can be used to specify a minimum.
 
+#### Render
+You can prevent a field from rendering in various contexts by providing a map of
+boolean values and the Maki method upon which to restrict that attribute.
+
+```javascript
+maki.define('Person', {
+  attributes: {
+    name: { type: String , max: 140 },
+    created: { type: Date , default: Date.now , render: {
+      create: false
+    } }
+  }
+});
+```
+
 #### Special Types
 Certain special types of Resource attributes exist.  These control some behavior
 unique to these types.
