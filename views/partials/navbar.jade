@@ -1,7 +1,7 @@
 .ui.main.tiered.menu.large
   .menu
     a.item(href="/")
-      i.icon.lab.left
+      i.icon.left(class="#{ config.service.icon || 'lab' }")
       | #{config.service.name}
 
     //- block for prepend/append/replace-able menu items
