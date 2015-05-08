@@ -3,7 +3,6 @@ extends layouts/default
 block content
   .ui.header
     h1.huge Hello, #{config.service.name}.
-      a.ui.label(href="https://github.com/martindale/maki/tree/master")
     h2 !{ markdown( config.service.mission ) }
     
     p !{ markdown( config.service.description ) }
