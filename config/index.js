@@ -2,7 +2,7 @@
    meaningful values to the rest of the application.
    This is done using the module.exports function,
    which sets them when require('./thisfile') is run. */
-   
+
 var NAMESPACE = process.env.MAKI_SERVICE_NAMESPACE || 'maki';
 var DATABASE  = process.env.MAKI_DATABASE_NAME || NAMESPACE;
 
@@ -39,7 +39,7 @@ module.exports = {
   },
   services: {
     http: {
-      port: process.env.MAKI_HTTP_PORT || 9200 ,
+      port: process.env.MAKI_HTTP_PORT || 9210 ,
       host: process.env.MAKI_HTTP_HOST || 'localhost'
     },
     spdy: {
@@ -47,6 +47,7 @@ module.exports = {
       port: process.env.MAKI_SPDY_PORT || 9643
     }
   },
+  // TODO: make this always the same as the namespace
   database: {
     name: DATABASE ,
     masters: (process.env.MAKI_DATABASE_MASTERS)

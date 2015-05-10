@@ -63,7 +63,7 @@ function getRandomInt(min, max) {
 }
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-maki.start();
+maki.serve(['http', 'https']).start();
 
 describe('Maki', function() {
 
@@ -248,7 +248,7 @@ describe('http', function(){
           });
       });
   });
-  
+
   it('should allow for resources to be successfully destroyed', function(done) {
     var randomNum = getRandomInt( 100000 , 1000000 );
     var username = 'test-user-'+randomNum;
@@ -317,7 +317,7 @@ describe('http', function(){
       done();
     });
   });
-  
+
   it('should allow valid pre methods', function() {
     function setup() {
       maki.services.http.pre('create', function() {
@@ -326,7 +326,7 @@ describe('http', function(){
     }
     expect( setup ).to.not.throw();
   });
-  
+
   it('should allow valid post methods', function() {
     function setup() {
       maki.services.http.post('create', function() {
@@ -353,7 +353,7 @@ describe('http', function(){
     }
     expect( setup ).to.throw( Error );
   });
-  
+
   it('should accept a valid plugin', function() {
     function setup() {
       var plugin = {};
@@ -366,10 +366,10 @@ describe('http', function(){
       }
       maki.use( plugin );
     }
-    
+
     expect( setup ).to.not.throw();
   });
-  
+
   it('should not accept an invalid plugin', function() {
     function setup() {
       var plugin = {};
@@ -380,10 +380,10 @@ describe('http', function(){
       }
       maki.use( {} );
     }
-    
+
     expect( setup ).to.throw();
   });
-  
+
   it('should receive uploads', function(done) {
     var data = require('crypto').randomBytes(256).toString('hex');
     var form = new Form();
@@ -393,7 +393,7 @@ describe('http', function(){
       done();
     });
   });
-  
+
   it('should serve previous uploads', function(done) {
     var data = require('crypto').randomBytes(256).toString('hex');
     var form = new Form();
@@ -411,7 +411,7 @@ describe('http', function(){
       });
     });
   });
-  
+
   it('should serve previous uploads as direct downloads', function(done) {
     var data = require('crypto').randomBytes(256).toString('hex');
     var form = new Form();
@@ -425,7 +425,7 @@ describe('http', function(){
         }
       }).on('complete', function(remoteFile) {
         assert.ok( remoteFile.content );
-        
+
         rest.get('http://localhost:' + config.services.http.port + '/files/' + remoteFile.content ).on('complete', function(file) {
           assert.equal( file , data );
           done();
