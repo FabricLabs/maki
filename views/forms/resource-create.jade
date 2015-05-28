@@ -18,11 +18,12 @@ mixin fieldFor( attrs , field , parentName )
             +fieldFor( f , prop , f.alias || field )
             
       else if (f && f._type == 'lookup')
-        .ui.category.search.icon.input(data-field-name="#{field}")
-          i.search.icon
-          //- TODO: lookup for artificial fields!
-          //-input.prompt(type="text", name="#{field}", placeholder="Look for #{ resources[ f._ref ].collection }...")
-          input.prompt(type="text", name="#{f._name}", placeholder="Look for...")
+        .ui.category.search(data-field-name="#{field}")
+          .ui.icon.input
+            //- TODO: lookup for artificial fields!
+            //-input.prompt(type="text", name="#{field}", placeholder="Look for #{ resources[ f._ref ].collection }...")
+            input.prompt(type="text", name="#{f._name}", placeholder="Look for...")
+            i.search.icon
           .results
       else if (f && f._type == 'textarea')
         textarea(name="#{f._name}", rows="#{f._rows}", required=((f && f.required) ? 'required' : undefined ), class=((f && f.required) ? 'required' : undefined ) ) #{f._default}
