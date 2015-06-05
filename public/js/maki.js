@@ -147,6 +147,21 @@ $(window).on('ready', function() {
     $(this).closest('.message').fadeOut();
   });
   $('.tabular.menu .item').tab();
+  $('.ui.search')
+    .search({
+      apiSettings: {
+        url: '/search?q={query}'
+      },
+      type: 'category',
+      onSelect: function(result, response) {
+        var self = this;
+        console.log('controller:', self);
+        console.log('selected', result);
+        $(self).children('input').val( result.id );
+
+      }
+    })
+  ;
 
   $.ajax({
     type: 'OPTIONS',
@@ -156,14 +171,6 @@ $(window).on('ready', function() {
     if (!data.config) return console.log('failed to acquire server config; disabling fancy stuff.');
 
     maki.config = data.config;
-
-    // bind things
-    $.fn.api.settings.api.search = '/search?query={value}';
-    $('.search input')
-      .api({
-        action: 'search',
-        stateContext: '.ui.input'
-      });
 
     // server is online!
     maki.$viewport = $('[data-for=viewport]');
