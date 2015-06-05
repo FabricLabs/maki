@@ -56,6 +56,52 @@ length (for type `String`).
 
 Similarly, `min` can be used to specify a minimum.
 
+#### Render
+You can prevent a field from rendering in various contexts by providing a map of
+boolean values and the Maki method upon which to restrict that attribute.
+
+```javascript
+maki.define('Person', {
+  attributes: {
+    name: { type: String , max: 140 },
+    created: { type: Date , default: Date.now , render: {
+      create: false
+    } }
+  }
+});
+```
+
+#### Populate
+You can choose to auto-populate Resource attributes on specific methods, such as
+`.query` and `.get`.  Supply an array of either strings for the method name, or
+an object with additional parameters, including a list of fields to include.
+
+##### Simple Population
+```javascript
+maki.define('Widget', {
+  attributes: {
+    name: { type: String , max: 140 },
+    _owner: { type: ObjectId , ref: 'Person', populate: ['get'] }
+  }
+});
+```
+
+##### Field-limited Population
+```javascript
+maki.define('Widget', {
+  attributes: {
+    name: { type: String , max: 140 },
+    _owner: { type: ObjectId , ref: 'Person', populate: [
+      {
+        method: 'get',
+        fields: { username: 1 , slug: 1 }
+      }
+    ] }
+  }
+});
+```
+
+
 #### Special Types
 Certain special types of Resource attributes exist.  These control some behavior
 unique to these types.
@@ -236,6 +282,53 @@ maki.define('Release', {
 ```
 `markdown` is currently the only supported renderer.  Future versions of Maki
 will likely include the ability to pass a function in this field.
+
+#### Requirements
+Any resource can have additional requirements when requested via a non-
+programmatic endpoint (such as a rendered HTML view).  You can them via the 
+`requires` property:
+
+```javascript
+maki.define('Example', {
+  requires: {
+    'Release': {
+      filter: { isExample: true }
+    }
+  }
+});
+```
+
+You can also supply a function, which will be executed at query time, with
+`this` supplied as the context:
+
+```javascript
+maki.define('Example', {
+  requires: {
+    'Release': {
+      filter: function() {
+        return { _example: this._id }
+      }
+    }
+  }
+});
+```
+
+#### Population
+Not unlike [Requirements](#requirements), Resources with nested objects can have
+`populate()` called on it.
+
+```javascript
+maki.define('Example', {
+  requires: {
+    'Release': {
+      populate: '_person'
+    }
+  }
+});
+```
+This is passed directly to the internal query, and will be attached to the
+required subdocuments.
+
 
 [procure]: https://www.npmjs.com/package/procure
 [json patch]: https://tools.ietf.org/html/rfc6902

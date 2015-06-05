@@ -31,7 +31,8 @@ module.exports = {
           link: '/sessions'
         }
       }
-    ]
+    ],
+    icon: 'lab'
   },
   dns: {
     name: process.env.MAKI_DNS_NAME || 'localhost'

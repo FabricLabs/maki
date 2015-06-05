@@ -18,13 +18,13 @@ You'll need [node.js](http://nodejs.org) to build a Maki application.   Addition
   ```javascript
   var Maki = require('maki');
   var myApp = new Maki();
-  
+
   myApp.define('Widget', {
     attributes: {
       name: String
     }
   });
-  
+
   myApp.start();
   ```
 3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
@@ -46,6 +46,7 @@ Maki aims to be as lightweight as possible while still offering a base stack tha
 | [maki-sessions](https://github.com/martindale/maki-sessions) | [![NPM Package](https://img.shields.io/npm/v/maki-sessions.svg?style=flat-square)](https://www.npmjs.org/package/maki-sessions) | [![Build Status](https://img.shields.io/travis/martindale/maki-sessions.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-sessions) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-sessions.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-sessions) |
 | [maki-passport-local](https://github.com/martindale/maki-passport-local) | [![NPM Package](https://img.shields.io/npm/v/maki-passport-local.svg?style=flat-square)](https://www.npmjs.org/package/maki-passport-local) | [![Build Status](https://img.shields.io/travis/martindale/maki-passport-local.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-passport-local) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-passport-local.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-passport-local) |
 | [maki-passport-github](https://github.com/martindale/maki-passport-github) | [![NPM Package](https://img.shields.io/npm/v/maki-passport-github.svg?style=flat-square)](https://www.npmjs.org/package/maki-passport-github) | [![Build Status](https://img.shields.io/travis/martindale/maki-passport-github.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-passport-github) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-passport-github.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-passport-github) |
+| [maki-passport-soundcloud](https://github.com/martindale/maki-passport-soundcloud) | [![NPM Package](https://img.shields.io/npm/v/maki-passport-soundcloud.svg?style=flat-square)](https://www.npmjs.org/package/maki-passport-soundcloud) | [![Build Status](https://img.shields.io/travis/martindale/maki-passport-soundcloud.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-passport-soundcloud) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-passport-soundcloud.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-passport-soundcloud) |
 | [maki-analytics](https://github.com/martindale/maki-analytics) | [![NPM Package](https://img.shields.io/npm/v/maki-analytics.svg?style=flat-square)](https://www.npmjs.org/package/maki-analytics) | [![Build Status](https://img.shields.io/travis/martindale/maki-analytics.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-analytics) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-analytics.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-analytics) |
 | [maki-forms](https://github.com/martindale/maki-forms) | [![NPM Package](https://img.shields.io/npm/v/maki-forms.svg?style=flat-square)](https://www.npmjs.org/package/maki-forms) | [![Build Status](https://img.shields.io/travis/martindale/maki-forms.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-forms) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-forms.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-forms) |
 | [maki-types-file](https://github.com/martindale/maki-types-file) | [![NPM Package](https://img.shields.io/npm/v/maki-types-file.svg?style=flat-square)](https://www.npmjs.org/package/maki-types-file) | [![Build Status](https://img.shields.io/travis/martindale/maki-types-file.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki-types-file) | [![Coverage Status](https://img.shields.io/coveralls/martindale/maki-types-file.svg?style=flat-square)](https://coveralls.io/r/martindale/maki-types-file) |
@@ -78,7 +79,7 @@ extends layouts/default
 
 block content
   h1 My Customized Widget List
-  
+
   ul
     for widget in widgets
       li #{widget.name}
@@ -175,7 +176,7 @@ var Person = maki.define('Person', {
 
 Person.path('username', function(value) {
   if (value.length < 5) return false;
-  
+
   return true;
 }, 'Invalid username.  Must be > 5 characters.');
 ```
@@ -186,7 +187,7 @@ maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true , validator: function(value) {
       if (value.length < 5) return false;
-      
+
       return true;
     } }
   }
@@ -217,9 +218,9 @@ maki.resources.Person.on('create', function( person ) {
 ```javascript
 maki.resources.Person.post('save', function(done) {
   var person = this;
-  
+
   console.log('just saved a Person:' , person);
-  
+
   done();
 });
 ```
@@ -234,12 +235,12 @@ extends layouts/default
 block content
 
   h1 #{person.name}
-  
+
   h2 Projects
   ul
     each project in projects
       include partials/project
-  
+
 ```
 
 This will allow Maki to collect the "projects" Resource as a subcollection of the Person Resource, or more specifically, only within this View.  The JSON View will _not_ collect Projects, and subsequently spare [precious] server time.
@@ -255,7 +256,7 @@ In pure Javascript (without Maki):
 ```javascript
 var ws = new WebSocket('ws://localhost:9200/people');
 ws.on('open', function() {
-  
+
   var JSONRPCEvent = {
     jsonrpc: '2.0',
     method: 'subscribe',
@@ -263,7 +264,7 @@ ws.on('open', function() {
       channel: '/examples'
     }
   };
-  
+
   ws.send( JSON.stringify( JSONRPCEvent ) );
 });
 ```
@@ -299,8 +300,8 @@ Maki is meant to be understood without context or documentation, and as such the
 │   └── css         # contains the LESS files used to generate the **public** CSS files (currently, autogenerated using asset-rack)
 ├── public          # resources exposed to the client (images, CSS, etc)
 │   ├── css         # CSS
-│   ├── fonts       # Fonts (.woff, etc.)     
-│   ├── img         # Images   
+│   ├── fonts       # Fonts (.woff, etc.)
+│   ├── img         # Images
 │   └── js          # JavaScript  
 └── tests           # Tests.  Write them.
 ```
@@ -313,7 +314,7 @@ I use [pm2](https://github.com/unitech/pm2) (`npm install pm2 -g`) to manage nod
 
 For Maki by itself, `pm2 start maki.js` will produce the following:
 ```bash
-> pm2 start maki.js 
+> pm2 start maki.js
 PM2 Process launched
 ┌──────────┬────┬─────────┬───────┬────────┬───────────┬────────┬─────────────┬─────────────┐
 │ App name │ id │ mode    │ PID   │ status │ restarted │ uptime │      memory │    watching │

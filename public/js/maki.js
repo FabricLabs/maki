@@ -56,7 +56,7 @@ var maki = {
       },
       connect: function() {
         maki.sockets.disconnect();
-        
+
         var path = sockets + '://' + window.location.host + window.location.pathname;
         maki.socket = new WebSocket( path );
         maki.socket.onclose = function onClose() {
@@ -95,7 +95,7 @@ var maki = {
               break;
             }
           } else {
-            
+
           }
         };
         maki.socket.onopen = function onOpen() {
@@ -110,15 +110,15 @@ var maki = {
 
 function DataBinder( objectID ) {
   var pubSub = $({});
-  
+
   var attribute = 'bind-' + objectID;
   var message = objectID + ':change';
-  
+
   $(document).on('change', '[data-' + attribute + ']', function(e) {
     var $input = $(this);
     pubSub.trigger( message , [ $input.data( attribute ) ] , $input.val() );
   });
-  
+
   pubSub.on( message , function(e, property, value) {
     $('[data-' + attribute + '=' + property + ']').each(function() {
       var $bound = $(this);
@@ -138,9 +138,10 @@ $(window).on('ready', function() {
   // don't create links that aren't anchor tags.  that's what they're for.
   $('a:not([href="'+window.location.pathname+'"])').removeClass('active');
   $('a[href="'+window.location.pathname+'"]').addClass('active');
-  
+
   // Semantic UI crap
-  $('select.dropdown').dropdown();
+  $('.dropdown').dropdown();
+  $('.ui.rating').rating();
   $('.tooltipped').popup();
   $('.message .close').on('click', function() {
     $(this).closest('.message').fadeOut();
@@ -153,9 +154,9 @@ $(window).on('ready', function() {
   }).done(function(data) {
     if (!data || !data.resources) return console.log('failed to acquire resource list; disabling fancy stuff.');
     if (!data.config) return console.log('failed to acquire server config; disabling fancy stuff.');
-    
+
     maki.config = data.config;
-    
+
     // bind things
     $.fn.api.settings.api.search = '/search?query={value}';
     $('.search input')
@@ -163,11 +164,11 @@ $(window).on('ready', function() {
         action: 'search',
         stateContext: '.ui.input'
       });
-    
+
     // server is online!
     maki.$viewport = $('[data-for=viewport]');
     maki.sockets.connect();
-    
+
     // exit instead of binding client view handler
     if (!maki.config.views || !maki.config.views.client || maki.config.views.client !== true) return console.log('client view rendering disabled.');
 
@@ -179,25 +180,25 @@ $(window).on('ready', function() {
         if (path) maki.templates[ path ] = resource.templates[ m ];
       });
     });
-    
+
     // bind pushState stuff
     $( document ).on('click', 'a', function(e) {
       e.preventDefault();
       var $a = $(this);
       var href = $a.attr('href');
-      
+
       var template;
       Object.keys(maki.templates).forEach(function(route) {
         // HACK: don't bother matching routes of almost-zero length
         // TODO: fix this
         if (href.length <= 1) return template = 'index';
-        
+
         var string = route;
         var regex = new RegExp( eval( string ) );
         // TODO: do not match '/' –- see bugfix at top of this loop
         if (regex.test( href )) template = maki.templates[ route ];
       });
-      
+
       // TODO: use local factory / caching mechanism
       $.ajax({
           url: href
@@ -210,21 +211,21 @@ $(window).on('ready', function() {
 
         var obj = {};
         obj[ template ] = results;
-        
+
         maki.$viewport.html( Templates[ template ]( obj ) );
-        
+
         $('a.active').removeClass('active');
         $a.addClass('active');
-        
+
         history.pushState({}, '', href );
       });
 
       return false;
     });
-    
+
     $('.message .close').on('click', function() {
       $(this).closest('.message').fadeOut();
     });
-    
+
   });
 });
