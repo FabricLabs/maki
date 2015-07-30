@@ -33,7 +33,14 @@ table.ui.table.segment.sortable
 
   tfoot
     tr
-      td #{collection.length} items
+      td
+        if (pageInfo)
+            div.ui.pagination.menu
+                - var i = 0
+                while i < pageInfo.pageCount
+                    a.active.item(href="/#{resource.plural.toLowerCase()}?page=#{i}")= i++
+        else
+            td #{collection.length} items
       
 script.
   $(window).load(function() {
