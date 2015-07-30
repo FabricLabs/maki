@@ -73,7 +73,8 @@
     "spdy": "^1.28.1",
     "speakingurl": "^1.1.0",
     "streamifier": "^0.1.0",
-    "ws": "~0.4.31"
+    "ws": "~0.4.31",
+    "bluebird": "^2.9.34"
   },
   "devDependencies": {
     "chai": "^1.9.1",
