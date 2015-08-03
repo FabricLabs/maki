@@ -2,7 +2,7 @@
    meaningful values to the rest of the application.
    This is done using the module.exports function,
    which sets them when require('./thisfile') is run. */
-   
+
 var NAMESPACE = process.env.MAKI_SERVICE_NAMESPACE || 'maki';
 var DATABASE  = process.env.MAKI_DATABASE_NAME || NAMESPACE;
 
@@ -36,6 +36,9 @@ module.exports = {
   },
   dns: {
     name: process.env.MAKI_DNS_NAME || 'localhost'
+  },
+  fabric: {
+    port: 1337
   },
   services: {
     http: {
