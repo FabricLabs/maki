@@ -4,7 +4,7 @@ block content
   h1 #{config.service.name} API
   
   h3 Generally
-  p All endpoints serve both JSON and HTML, controlled by the <code>Accept</code> header of your request.  You can force the formatting of any resource using the <code>format</code> parameter: i.e., append <code>?format=json</code> to any URL to retrieve the underlying resource as JSON.
+  p <strong>Formatting:</strong> All endpoints serve both JSON and HTML, controlled by the <code>Accept</code> header of your request.  You can force the formatting of any resource using the <code>format</code> parameter: i.e., append <code>?format=json</code> to any URL to retrieve the underlying resource as JSON.
   p <strong>Events:</strong> Any endpoint can be connected to with a WebSocket, and updates to that resource will be served to you as messages.  These messages will be formatted as JSON-PATCH arrays, wrapped in JSON-RPC with the method name <code>patch</code>.  The <code>channel</code> parameter will correspond to the resource's route.  For more information, see <a href="https://github.com/martindale/maki#pubsub">the Maki documentation on PubSub &amp; Messaging</a>.
   p All endpoints can also be interacted with via the following HTTP verbs:
     pre
