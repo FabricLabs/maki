@@ -1,0 +1,74 @@
+extends layouts/default
+
+block content
+  h1 #{config.service.name} API
+  
+  h3 Generally
+  p All endpoints serve both JSON and HTML, controlled by the `Accept` header of your request.  Furthermore, any endpoint can be connected to with a WebSocket, and updates to that resource will be served to you as messages.
+  p All endpoints can also be interacted with via the following HTTP verbs:
+    pre
+      code.
+        query, get: GET
+        create: POST, PUT
+        update: PATCH
+        delete: DELETE
+          
+  - var methodMap = { query: 'GET', get: 'GET', create: 'POST', update: 'PATCH', destroy: 'DELETE' }
+
+  .ui.stackable.grid
+    .four.wide.column
+      .ui.vertical.fluid.menu
+        for resource in resources
+          a.item(href="/api##{resource.plural.toLowerCase()}")
+            if (resource.options.icon)
+              i.icon(class="#{resource.options.icon}")
+            | #{resource.plural}
+    .twelve.wide.column
+      .ui.cards
+        for resource in resources
+          .ui.fluid.card
+            .content
+              .header
+                if (resource.options.icon)
+                  i.icon(class="#{resource.options.icon}")
+                a(href="##{resource.plural.toLowerCase()}", name="#{resource.plural.toLowerCase()}") #{resource.plural}
+              .description #{resource.description}
+              .description
+                h4 Paths
+                table.ui.table
+                  thead
+                    tr
+                      th Operation
+                      th HTTP Method
+                      th Route
+                  tbody
+                    for method in Object.keys(resource.routes)
+                      tr
+                        td #{method}
+                        td #{methodMap[method]}
+                        td #{resource.routes[method]}
+                  
+                h3 Attributes
+                table.ui.table
+                  thead
+                    tr
+                      th Name
+                      th Type
+                      th Required?
+                      th Allowed Values
+                      th Default
+                      th Min
+                      th Max
+                      th Validator
+                  tbody
+                    for name in Object.keys(resource.attributes)
+                      - var attribute = resource.attributes[name]
+                      tr
+                        td #{name}
+                        td #{(attribute.type && attribute.type.name) ? attribute.type.name : attribute.type}
+                        td #{attribute.required}
+                        td #{attribute.enum}
+                        td #{attribute.default}
+                        td #{attribute.min}
+                        td #{attribute.max}
+                        td #{attribute.validator}
