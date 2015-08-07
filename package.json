@@ -32,6 +32,7 @@
   "dependencies": {
     "async": "~0.7.0",
     "body-parser": "~1.2.2",
+    "browserify": "^11.0.1",
     "coalescent": "^0.5.0-alpha.3",
     "colors": "^1.0.3",
     "connect-busboy": "0.0.2",
