@@ -64,6 +64,7 @@
     "monq": "^0.3.1",
     "multer": "^0.1.6",
     "nedb": "^1.1.2",
+    "net-browserify": "^0.2.0",
     "node-torrent-stream": "git://github.com/unusualbob/node-torrent-stream#master",
     "node-uuid": "^1.4.1",
     "path-to-regexp": "~0.2.1",
