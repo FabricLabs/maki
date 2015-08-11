@@ -28,6 +28,28 @@ You'll need [node.js](http://nodejs.org) to build a Maki application.   Addition
   ```
 3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
 
+## Behaviors
+Maki applications allow you to construct pipelines, as follows:
+
+```javascript
+// same as above
+var Widget = myApp.define('Widget', { attributes: { name: String } });
+
+
+Widget.pre('create', function(next, done) {
+  var widget = this;
+  // do something before creation...
+  // call next() to continue creation, or done() to complete.  Pass done(err) to
+  // abort the pipeline!  Useful for custom validation rules. :)
+});
+
+Widget.post('create', function() {
+  var widget = this;
+  // do something after creation!  This too is a pipeline – the tasks are
+  // executed in the order they are injected.
+});
+```
+
 ## Plugins & Modules
 Maki aims to be as lightweight as possible while still offering a base stack that implements #1.  We've split out as many components as possible, and offer a list of plugins that can be used to add functionality to any Maki-powered app.
 
