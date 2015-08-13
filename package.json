@@ -41,7 +41,7 @@
     "fast-json-patch": "^0.3.6",
     "flashify": "^0.1.2",
     "gridfs-stream": "^0.5.3",
-    "jade": "^1.7.0",
+    "jade": "git://github.com/martindale/jade#extends-expressions",
     "jade-browser": "0.0.14",
     "json-patch": "^0.4.3",
     "jsonpath-object-transform": "git://github.com/dvdln/jsonpath-object-transform",
@@ -83,6 +83,7 @@
     "debug-trace": "^0.2.3",
     "form-data": "^0.2.0",
     "istanbul": "^0.3.0",
+    "maki-cms-local": "0.0.1",
     "mocha": "~1.20.1",
     "restler": "^3.2.2",
     "supertest": "~0.13.0"
