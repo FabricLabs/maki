@@ -17,15 +17,15 @@ module.exports = {
     points: [
       {
         header: 'Deploy Everywhere',
-        description: 'Maki can build desktop and <strong>native</strong> mobile apps, directly from your web app.  All with the same codebase.',
+        description: 'Maki can build web, desktop, <em>and</em> native mobile apps, directly from your definitions.  With consistent interactions across them all.',
         action: {
           text: 'Read the Docs &raquo;',
           link: '/docs'
         }
       },
       {
-        header: 'Self-Documenting',
-        description: 'Once you\'ve defined your resources, the API builds itself!  It works the same way everywhere.',
+        header: 'Consistent, Transparent API',
+        description: 'Once you\'ve defined your resources, the API builds itself!  It works the same everywhere – even real-time updates over sockets.',
         action: {
           text: 'See the API &raquo;',
           link: '/api'
@@ -33,7 +33,7 @@ module.exports = {
       },
       {
         header: 'Plugin Ecosystem',
-        description: 'There\'s already <em>tons</em> of plugins for Maki that implement common application functionality.  Missing something?  Easy to make.',
+        description: 'There\'s already a plethora of plugins for Maki that implement common application functionality.  They\'re easy to build, too.',
         action: {
           text: 'Browse the Plugins &raquo;',
           link: '/plugins'
