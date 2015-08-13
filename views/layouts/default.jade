@@ -27,21 +27,22 @@ html.no-js
     base(href="/")
 
   body
-    .ui.page.grid
-      .row
-        block navbar
-          include ../partials/navbar
+    block page
+      .ui.page.grid
+        .row
+          block navbar
+            include ../partials/navbar
 
-      .row
-        .column.content(data-for="viewport")
-        
-          include ../partials/flash
-        
-          block content
+        .row
+          .column.content(data-for="viewport")
+          
+            include ../partials/flash
+          
+            block content
 
-      .row
-        .ui.one.column.stackable.center.aligned
-          p
-            small Built with <a href="http://github.com/martindale/maki">Maki</a>.
+        .row
+          .ui.one.column.stackable.center.aligned
+            p
+              small Built with <a href="http://github.com/martindale/maki">Maki</a>.
 
     block scripts

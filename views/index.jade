@@ -1,5 +1,92 @@
 extends layouts/default
 
+block page
+  .pusher
+    .ui.inverted.vertical.masthead.center.aligned.segment
+      .ui.container
+        .ui.large.secondary.inverted.pointing.menu
+          a.toc.item
+            i.sidebar.icon
+          .item
+            img.tooltipped(src="/img/maki-icon.png", title="The hand-rolled, carefully crafted goodness that is Maki.", data-variation="inverted", style="max-height: 2em; max-width: 2em; margin-bottom: -0.75em; margin-right: -0.5em;")
+          a.item.active(href="/")
+            | Maki
+          a.item(href="/examples")
+            | Examples
+          a.item(href="/docs")
+            | Docs
+          a.item(href="/plugins")
+            | Plugins
+          .right.item
+            a.ui.inverted.button(href="https://github.com/martindale/maki")
+              i.icon.github
+              | GitHub
+      .ui.text.container
+        h1.ui.inverted.header
+          | Code less.
+        h2
+          | #{config.service.name}, !{config.service.mission}
+        a.ui.huge.primary.button(href="#subscribe")
+          | Get Started
+          i.right.arrow.icon
+
+    
+    .ui.vertical.stripe.segment
+      .ui.middle.aligned.stackable.grid.container
+        .ui.equal.width.stackable.internally.celled.grid
+          .center.aligned.row
+            for point in config.service.points
+              .column
+                h3.header #{ point.header }
+                //- TODO: use marked config, not a regex, to fix errant <p> tags
+                p.description
+                  | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
+                if (point.action)
+                  a.ui.huge.fluid.button(href="#{point.action.link}") !{point.action.text}
+
+    .ui.vertical.stripe.quote.segment
+      .ui.equal.width.stackable.internally.celled.grid
+        .center.aligned.row
+          .column
+            h3 "This feels like the invention of the transistor."
+            p Will Ricketts, SailsJS Contributor
+          .column
+            h3 "Amazon is completely fucked."
+            p
+              img.ui.avatar.image(src="/img/nan.jpg")
+              b Some Talking Head
+              |  Founder, Something
+              
+    .ui.inverted.vertical.footer.segment
+      .ui.container
+        .ui.stackable.inverted.divided.equal.height.stackable.grid
+          .three.wide.column
+            h4.ui.inverted.header About
+            .ui.inverted.link.list
+              a.item(href="#") Protocol
+              a.item(href="#") Whitepaper
+              a.item(href="#") Roadmap
+              a.item(href="#") Contact Us
+          .three.wide.column
+            h4.ui.inverted.header Elsewhere
+            .ui.inverted.link.list
+              a.item(href="#", rel="me")
+                i.icon.github
+                |  GitHub
+              a.item(href="#", rel="me")
+                i.icon.twitter
+                |  Twitter
+              a.item(href="#", rel="me")
+                i.icon.facebook
+                |  Facebook
+              a.item(href="#", rel="me")
+                i.icon.medium
+                |  Medium
+          .seven.wide.column
+            h4.ui.inverted.header Copyleft
+            p We don't care about copyright, and in fact, want you to take anything we have here and run with it – especially if means the forward advancement of the idea.
+
+
 block content
   .ui.header
     h1.huge Hello, #{config.service.name}.

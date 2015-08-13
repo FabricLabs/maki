@@ -11,13 +11,13 @@ module.exports = {
     name: process.env.MAKI_SERVICE_NAME || 'Maki' ,
     authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200' ,
     namespace: NAMESPACE ,
-    mission: process.env.MAKI_SERVICE_MISSION || 'A simple framework for quickly building apps.',
+    mission: process.env.MAKI_SERVICE_MISSION || 'the fastest way to build robust, powerful apps.',
     description: process.env.MAKI_SERVICE_DESCRIPTION || 'Maki allows you to focus on your project, rather than laboring over architecture decisions.  With true isomorphism, you control how your application behaves, and can then customize how your features are exposed on specific platforms.',
     source: 'https://github.com/martindale/maki',
     points: [
       {
-        header: 'Build Once, Deploy Everywhere',
-        description: 'Maki can build desktop and <strong>native</strong> mobile apps directly from your web app.  All with the same code.',
+        header: 'Deploy Everywhere',
+        description: 'Maki can build desktop and <strong>native</strong> mobile apps, directly from your web app.  All with the same codebase.',
         action: {
           text: 'Read the Docs &raquo;',
           link: '/docs'
@@ -33,7 +33,7 @@ module.exports = {
       },
       {
         header: 'Plugin Ecosystem',
-        description: 'There\'s already <em>tons</em> of plugins for Maki that implement common application functionality.',
+        description: 'There\'s already <em>tons</em> of plugins for Maki that implement common application functionality.  Missing something?  Easy to make.',
         action: {
           text: 'Browse the Plugins &raquo;',
           link: '/plugins'
