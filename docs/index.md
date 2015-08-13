@@ -3,7 +3,7 @@
 ### Architecture
 Maki's architecture is Resource-centric.  All aspects of the datastore, its query pipeline, the business logic, and view layer are derived from the definition of the Resources your application exposes.
 
-![Maki Architecture Overview](public/img/maki-architecture.png?raw=true)
+![Maki Architecture Overview](https://raw.githubusercontent.com/martindale/maki/master/public/img/maki-architecture.png)
 
 #### Messaging
 Maki's messaging infrastructure is based on JSON-RPC.  We implement the following methods:
