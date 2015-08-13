@@ -18,18 +18,3 @@ block content
               | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
           if (point.action)
             a.ui.bottom.attached.button(href="#{point.action.link}") !{point.action.text}
-
-  .ui.stackable.three.column.grid
-    .column
-      h3 Resources
-      .ui.list
-        each resource in resources
-          if (!resource.internal)
-            a.item(href="#{resource.routes.query}") #{resource.plural}
-          
-    .column
-      h3 Services
-      
-      .ui.list
-        each service in services
-          a.item(href="#{service.protocol}://#{service.authority}") #{service.name}
