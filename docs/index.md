@@ -1,9 +1,15 @@
+<style type="text/css">
+  img {
+    max-width: 100%;
+  }
+</style>
+
 ## Welcome to Maki.
 
 ### Architecture
 Maki's architecture is Resource-centric.  All aspects of the datastore, its query pipeline, the business logic, and view layer are derived from the definition of the Resources your application exposes.
 
-![Maki Architecture Overview](public/img/maki-architecture.png?raw=true)
+![Maki Architecture Overview](https://raw.githubusercontent.com/martindale/maki/master/public/img/maki-architecture.png)
 
 #### Messaging
 Maki's messaging infrastructure is based on JSON-RPC.  We implement the following methods:
@@ -14,12 +20,12 @@ Maki's messaging infrastructure is based on JSON-RPC.  We implement the followin
 - `subscribe` to add an additional channel to your existing socket.
 - `unsubscribe` to remove a channel from your socket.
 
-### [Resources](/resources)
+### [Resources](/docs/resources)
 Resources are the heart and soul of Maki, which exists solely to provide a
 reasonable framework for automation surrounding their definition, as they apply
 to your application.
 
-### [Services](/services)
+### [Services](/docs/services)
 Resources are exposed by Maki in the form of Services.  A prime example of a
 Service would be the `http` service, which provides Resources to web clients in
 the form of JSON or even HTML.
