@@ -35,7 +35,6 @@ Maki applications allow you to construct pipelines, as follows:
 // same as above
 var Widget = myApp.define('Widget', { attributes: { name: String } });
 
-
 Widget.pre('create', function(next, done) {
   var widget = this;
   // do something before creation...
