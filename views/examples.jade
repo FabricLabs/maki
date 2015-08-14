@@ -4,8 +4,12 @@ block content
   h1 Projects Using Maki
   p Here's a list of projects that are built using Maki, or are using Maki as a reference stack for their own application.
 
-  hr
-
-  ul.media-list
+  .ui.divided.items
     for example in examples
-      include partials/example
+      a.item(href="#{example.uri}")
+        //-if (example.image)
+          .image
+            img(src="#{example.image}")
+        .content
+          .header #{example.name}
+          p.description #{example.description}
