@@ -9,6 +9,12 @@ var passport = new Passport({
 });
 maki.use( passport );
 
+var Identity = require('maki-identity-mnemonic');
+var identity = new Identity({
+  resource: 'Person'
+});
+maki.use( identity );
+
 maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
