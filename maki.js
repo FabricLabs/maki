@@ -9,6 +9,14 @@ var passport = new Passport({
 });
 maki.use( passport );
 
+var CMS = require('maki-cms-local');
+var cms = new CMS({
+  base: '/docs',
+  path: '/docs'
+});
+
+maki.use(cms);
+
 maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
