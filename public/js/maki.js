@@ -140,7 +140,7 @@ $(window).on('ready', function() {
   $('a[href="'+window.location.pathname+'"]').addClass('active');
 
   // Semantic UI crap
-  $('.dropdown').dropdown();
+  $('.dropdown:not(.multiple.search)').dropdown();
   $('.ui.rating').rating();
   $('.tooltipped').popup();
   $('.message .close').on('click', function() {
