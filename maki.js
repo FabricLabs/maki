@@ -63,6 +63,14 @@ maki.define('Release', {
   }
 });
 
+maki.define('Plugin', {
+  attributes: {
+    name: { type: String , max: 80 },
+    version: { type: String , max: 10 },
+    coverage: { type: Number , default: 0 },
+  }
+});
+
 /*var Analytics = require('maki-analytics');
 var analytics = new Analytics({ id: 'UA-57746323-2' });
 
