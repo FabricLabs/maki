@@ -27,7 +27,7 @@ module.exports = {
         header: 'Consistent, Transparent API',
         description: 'Once you\'ve defined your resources, the API builds itself!  It works the same everywhere – even real-time updates over sockets.',
         action: {
-          text: 'See the API &raquo;',
+          text: 'View Sample API &raquo;',
           link: '/api'
         }
       },

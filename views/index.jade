@@ -26,7 +26,7 @@ block page
           | Code less.
         h2
           | #{config.service.name}, !{config.service.mission}
-        a.ui.huge.primary.button(href="#subscribe")
+        a.ui.huge.primary.button(href="https://github.com/martindale/maki#quick-start")
           | Get Started
           i.right.arrow.icon
 
@@ -44,7 +44,7 @@ block page
                 if (point.action)
                   a.ui.huge.fluid.button(href="#{point.action.link}") !{point.action.text}
 
-    .ui.vertical.stripe.quote.segment
+    //-.ui.vertical.stripe.quote.segment
       .ui.equal.width.stackable.internally.celled.grid
         .center.aligned.row
           .column
@@ -62,22 +62,34 @@ block page
         h3.ui.header Powerful Helpers
         p Maki comes with a suite of powerful tools, out of the box.  Each is completely optional and replaceable!
 
-        h2.ui.header RethinkDB, SemanticUI, and React.
-        
         h4.ui.horizontal.header.divider The Power Suite
 
-        h2.ui.header For User Interface: Semantic UI
-        p Define <strong>Behaviors</strong>, not UIs.
-        
-        h2.ui.header Data Binding: ReactJS
-        p One-way data binding from your data layer to your interface layer.
+        p By default, Maki apps are composed with <a href="http://jade-lang.com">Jade</a>, styled with <a href="https://semantic-ui.com">Semantic UI</a>, and bound together by <a href="https://facebook.github.io/flux/">the Flux architecture</a> (as implemented by <a href="https://facebook.github.io/react/">React</a>).
+          pre.jade
+            code.
+              extends layouts/default
               
+              block menu
+                Item(target="/settings") Settings
+              
+              block navigation
+                Item(target="/") Home
+                Item(target="back") Back
+
+              block primary
+                ChatView(src="/rooms/lounge")
+        
+        p This allows you to write your application <em>once</em>, and we can derive native interfaces directly &mdash; by default, provided by <a href="https://facebook.github.io/react-native/">React Native</a>.
+        
+        h2.ui.header Loosely Coupled
+        p Have a better way to do things?  Have a different compile target?  All Maki components are <strong>optional</strong>, and can even be outright removed without disrupting the other components of the system.
+
     .ui.inverted.vertical.footer.segment
       .ui.container
         .ui.stackable.inverted.divided.equal.height.stackable.grid
           .three.wide.column
             h4.ui.inverted.header About
-            .ui.inverted.link.list
+            //-.ui.inverted.link.list
               a.item(href="#") Protocol
               a.item(href="#") Whitepaper
               a.item(href="#") Roadmap
@@ -85,22 +97,21 @@ block page
           .three.wide.column
             h4.ui.inverted.header Elsewhere
             .ui.inverted.link.list
-              a.item(href="#", rel="me")
+              a.item(href="https://github.com/martindale/maki", rel="me")
                 i.icon.github
                 |  GitHub
-              a.item(href="#", rel="me")
+              a.item(href="https://twitter.com/martindale", rel="me")
                 i.icon.twitter
                 |  Twitter
-              a.item(href="#", rel="me")
+              a.item(href="https://facebook.com/eric.martindale", rel="me")
                 i.icon.facebook
                 |  Facebook
-              a.item(href="#", rel="me")
+              //-a.item(href="#", rel="me")
                 i.icon.medium
                 |  Medium
           .seven.wide.column
-            h4.ui.inverted.header Copyleft
-            p We don't care about copyright, and in fact, want you to take anything we have here and run with it – especially if means the forward advancement of the idea.
-
+            h4.ui.inverted.header Copyright
+            p &copy; All Rights Reserved
 
 block content
   .ui.header
