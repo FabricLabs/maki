@@ -69,7 +69,8 @@ maki.define('Plugin', {
     description: { type: String },
     version: { type: String , max: 10 },
     coverage: { type: Number , default: 0 },
-  }
+  },
+  icon: 'puzzle'
 });
 
 /*var Analytics = require('maki-analytics');
