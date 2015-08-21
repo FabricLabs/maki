@@ -66,6 +66,7 @@ maki.define('Release', {
 maki.define('Plugin', {
   attributes: {
     name: { type: String , max: 80 },
+    description: { type: String },
     version: { type: String , max: 10 },
     coverage: { type: Number , default: 0 },
   }
