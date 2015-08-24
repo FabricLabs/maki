@@ -7,6 +7,23 @@
     "image": "/img/decentralize.png"
   },
   {
+    "name": "MailPimp",
+    "uri": "https://github.com/martindale/mailpimp",
+    "source": "https://github.com/martindale/mailpimp",
+    "description": "Open-source replacement for MailChimp.  Create mailing lists, use double opt-in, offer unsubscribes, and send generic mails without relying on a centralized server."
+  },
+  {
+    "name": "Para, the Parallel World",
+    "uri": "http://para.io",
+    "description": "Para is the world's first persistent augmented reality network.  Place virtual objects in the real world that others can interact with.",
+    "image": "http://para.io/img/Lukeville_2.jpg"
+  },
+  {
+    "name": "Aris",
+    "uri": "http://aris.io",
+    "description": "Hyper-personalized education, using machine learning to manage space-repetition reinforcement learning."
+  },
+  {
     "name": "converse",
     "uri": "http://converse.fm/",
     "source": "https://github.com/martindale/converse",
