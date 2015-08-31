@@ -140,7 +140,7 @@ $(window).on('ready', function() {
   $('a[href="'+window.location.pathname+'"]').addClass('active');
 
   // Semantic UI crap
-  $('.dropdown').dropdown();
+  $('.dropdown:not(.multiple.search)').dropdown();
   $('.ui.rating').rating();
   $('.tooltipped').popup();
   $('.message .close').on('click', function() {
@@ -156,14 +156,6 @@ $(window).on('ready', function() {
     if (!data.config) return console.log('failed to acquire server config; disabling fancy stuff.');
 
     maki.config = data.config;
-
-    // bind things
-    $.fn.api.settings.api.search = '/search?query={value}';
-    $('.search input')
-      .api({
-        action: 'search',
-        stateContext: '.ui.input'
-      });
 
     // server is online!
     maki.$viewport = $('[data-for=viewport]');
