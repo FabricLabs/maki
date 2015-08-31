@@ -40,6 +40,7 @@
     "express": "git://github.com/martindale/express#multiple-views",
     "fast-json-patch": "^0.3.6",
     "flashify": "^0.1.2",
+    "fs-extra": "^0.24.0",
     "gridfs-stream": "^0.5.3",
     "jade": "git://github.com/martindale/jade#extends-expressions",
     "jade-browser": "0.0.14",

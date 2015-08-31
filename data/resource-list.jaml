@@ -1,0 +1,10 @@
+extends layouts/default
+
+block content
+  h2 List of {{resource.plural}}
+
+  each {{resource.names.get}} in {{resource.names.query}}
+    a.ui.card.fluid.link(href="/{{resource.names.query}}/#{{{resource.names.get}}._id}")
+      .content
+        h3.header {{resource.name}}: #{{{resource.names.get}}._id}
+        pre #{{{resource.names.get}}}
