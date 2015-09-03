@@ -18,9 +18,11 @@ block page
           a.item(href="/plugins")
             | Plugins
           .right.item
+            script(async, defer, src="https://community.ericmartindale.com/slackin.js?large")
             a.ui.inverted.button(href="https://github.com/martindale/maki")
-              i.icon.github
+              i.icon.alternate.github
               | GitHub
+              i.icon.right.chevron
       .ui.text.container
         h1.ui.inverted.header
           | Code less.
@@ -28,7 +30,7 @@ block page
           | #{config.service.name}, !{config.service.mission}
         a.ui.huge.primary.button(href="https://github.com/martindale/maki#quick-start")
           | Get Started
-          i.right.arrow.icon
+          i.right.chevron.icon
 
     
     .ui.vertical.stripe.segment
