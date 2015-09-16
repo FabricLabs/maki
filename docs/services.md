@@ -6,7 +6,7 @@ Handlers are middlewares for specific operations that take place through a
 specific Service.  You can attach them to a resource as follows:
 
 ```javascript
-maki.define('People', {
+maki.define('Person', {
   attributes: { name: String },
   handlers: {
     html: {
