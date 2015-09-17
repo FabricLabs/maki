@@ -14,7 +14,7 @@ var retryIndex = 0;
 var maki = {
     config: null
   , templates: {}
-  , routes: []
+  , routes: {}
   , socket: null // only one connected socket at a time (for now)
   , sockets: {
       subscriptions: [],
@@ -89,6 +89,9 @@ var maki = {
               case 'patch':
                 // TODO: update in-memory data (two-way binding);
                 console.log( data );
+                
+                // jade.render('index', {});
+
               break;
               default:
                 console.log('unhandled jsonrpc method ' , data.method);
@@ -150,8 +153,14 @@ $(window).on('ready', function() {
 
   $.ajax({
     type: 'OPTIONS',
-    url: '/'
+    url: '/',
+    headers: {
+      Accept: 'application/json'
+    }
   }).done(function(data) {
+    
+    console.log('OPTIONS request fulfilled.  data:', data);
+    
     if (!data || !data.resources) return console.log('failed to acquire resource list; disabling fancy stuff.');
     if (!data.config) return console.log('failed to acquire server config; disabling fancy stuff.');
 
@@ -162,24 +171,29 @@ $(window).on('ready', function() {
     maki.sockets.connect();
 
     // exit instead of binding client view handler
-    if (!maki.config.views || !maki.config.views.client || maki.config.views.client !== true) return console.log('client view rendering disabled.');
+    //if (!maki.config.views || !maki.config.views.client || maki.config.views.client !== true) return console.log('client view rendering disabled.');
 
     maki.resources = data.resources;
     maki.resources.forEach(function(resource) {
       // only support routing for lists and singles
       [ 'query', 'get' ].forEach(function(m) {
         var path = resource.paths[ m ];
-        if (path) maki.templates[ path ] = resource.templates[ m ];
+        if (path) {
+          maki.routes[path] = resource;
+          maki.templates[ path ] = resource.templates[ m ];
+        }
       });
     });
 
     // bind pushState stuff
+    // note that we expect all hyperlinks to be proper <a> tags!
     $( document ).on('click', 'a', function(e) {
       e.preventDefault();
       var $a = $(this);
       var href = $a.attr('href');
 
       var template;
+      var resource;
       Object.keys(maki.templates).forEach(function(route) {
         // HACK: don't bother matching routes of almost-zero length
         // TODO: fix this
@@ -188,23 +202,45 @@ $(window).on('ready', function() {
         var string = route;
         var regex = new RegExp( eval( string ) );
         // TODO: do not match '/' –- see bugfix at top of this loop
-        if (regex.test( href )) template = maki.templates[ route ];
+        if (regex.test(href)) {
+          resource = maki.routes[route];
+          template = maki.templates[route];
+        }
       });
+      
+      if (!jade.templates[template]) {
+        console.log('no known template!');
+        template = 'resource';
+      }
+      
+      console.log('resource:', resource);
 
       // TODO: use local factory / caching mechanism
       $.ajax({
           url: href
         , async: false
-      }).always(function( results ) {
+        , headers: {
+            Accept: 'application/json'
+          }
+      }).always(function(results) {
         if (!results) template = '500';
 
         maki.sockets.unsubscribe( window.location.pathname );
         maki.sockets.subscribe( href );
 
         var obj = {};
-        obj[ template ] = results;
+        obj[ resource.names.query ] = results;
+        obj.resource = resource;
 
-        maki.$viewport.html( Templates[ template ]( obj ) );
+        var locals = _.extend(obj);
+        
+        console.log('rendering', template, locals);
+        
+        var html = jade.render(template, locals);
+
+        console.log('html:', html);
+
+        maki.$viewport.html(html);
 
         $('a.active').removeClass('active');
         $a.addClass('active');
