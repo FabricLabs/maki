@@ -199,9 +199,10 @@ $(window).on('ready', function() {
       var template;
       var resource;
       Object.keys(maki.templates).forEach(function(route) {
+
         // HACK: don't bother matching routes of almost-zero length
         // TODO: fix this
-        if (href.length <= 1) return template = 'index';
+        if (href.length <= 1 || href === '/') return template = 'index';
 
         var string = route;
         var regex = new RegExp( eval( string ) );
@@ -211,8 +212,8 @@ $(window).on('ready', function() {
           template = maki.templates[route];
         }
       });
-      
-      if (!jade.templates[template]) {
+
+      if (!jade.templates[template + '.jade']) {
         console.log('no known template!');
         template = 'resource';
       }
@@ -227,27 +228,45 @@ $(window).on('ready', function() {
       }).always(function(results) {
         if (!results) template = '500';
 
-        maki.sockets.unsubscribe( window.location.pathname );
+        maki.sockets.unsubscribe(window.location.pathname);
         maki.sockets.subscribe( href );
 
         var obj = {};
         if (resource) {
           obj[ resource.names.query ] = results;
           obj.resource = resource;
-          obj.collection = results;
+          
+          if (results instanceof Array) {
+            obj.collection = results;
+          } else {
+            obj.item = results;
+          }
+          
         }
 
-        var locals = _.extend(obj);
-        
-        console.log('rendering', template, locals);
-        
-        // hack!
-        jade.attr = function() { return 'F$%@'; }
-        jade.cls = function() { return 'F$%@'; }
+        var locals = _.extend(obj, {
+          config: maki.config
+        });
+
+        // hacks abound!
+        jade.attr = function(key, val, escaped, terse) {
+          if ('boolean' == typeof val || null == val) {
+            if (val) {
+              return ' ' + (terse ? key : key + '="' + key + '"');
+            } else {
+              return '';
+            }
+          } else if (0 == key.indexOf('data') && 'string' != typeof val) {
+            return ' ' + key + "='" + JSON.stringify(val).replace(/'/g, '&apos;') + "'";
+          } else if (escaped) {
+            return ' ' + key + '="' + jade.escape(val) + '"';
+          } else {
+            return ' ' + key + '="' + val + '"';
+          }
+        };
+        jade.cls = function() { return ' F$%@'; }
         
         var html = jade.render(template, locals);
-
-        console.log('html:', html);
 
         maki.$viewport.html(html);
 
