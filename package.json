@@ -51,7 +51,7 @@
     "maki-forms": "0.0.0",
     "maki-jsonrpc": "^0.1.1",
     "maki-mongoose-hooks": "^0.2.0",
-    "maki-passport-local": "0.0.2",
+    "maki-passport-local": "0.0.4",
     "maki-queue": "0.0.2",
     "maki-service-websockets": "git://github.com/martindale/maki-service-websockets#develop",
     "maki-sessions": "0.0.1",
