@@ -10,6 +10,10 @@ if (loc.protocol === 'https:') {
 var retryTimes = [ 50, 250, 1000, 2500, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000 ]; //in ms
 var retryIndex = 0;
 
+// Jade hacks
+// TODO: automate creation of these
+var markdown = marked;
+
 // stub for a proper class
 var maki = {
     config: null
@@ -212,8 +216,6 @@ $(window).on('ready', function() {
         console.log('no known template!');
         template = 'resource';
       }
-      
-      console.log('resource:', resource);
 
       // TODO: use local factory / caching mechanism
       $.ajax({
@@ -229,9 +231,11 @@ $(window).on('ready', function() {
         maki.sockets.subscribe( href );
 
         var obj = {};
-        obj[ resource.names.query ] = results;
-        obj.resource = resource;
-        obj.collection = results;
+        if (resource) {
+          obj[ resource.names.query ] = results;
+          obj.resource = resource;
+          obj.collection = results;
+        }
 
         var locals = _.extend(obj);
         
@@ -250,7 +254,7 @@ $(window).on('ready', function() {
         $('a.active').removeClass('active');
         $a.addClass('active');
 
-        history.pushState({}, '', href );
+        history.pushState({}, '', href);
       });
 
       return false;
