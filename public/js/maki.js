@@ -231,10 +231,15 @@ $(window).on('ready', function() {
         var obj = {};
         obj[ resource.names.query ] = results;
         obj.resource = resource;
+        obj.collection = results;
 
         var locals = _.extend(obj);
         
         console.log('rendering', template, locals);
+        
+        // hack!
+        jade.attr = function() { return 'F$%@'; }
+        jade.cls = function() { return 'F$%@'; }
         
         var html = jade.render(template, locals);
 
