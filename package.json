@@ -49,6 +49,7 @@
     "less-middleware": "git://github.com/martindale/less.js-middleware#maki",
     "lodash": "^2.4.1",
     "maki-analytics": "git://github.com/martindale/maki-analytics",
+    "maki-auth-simple": "0.0.0",
     "maki-forms": "0.0.0",
     "maki-jsonrpc": "^0.1.1",
     "maki-mongoose-hooks": "^0.2.0",
