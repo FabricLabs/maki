@@ -36,7 +36,10 @@ var Person = maki.define('Person', {
     created:  { type: Date , default: Date.now }
   },
   auth: {
-    'patch': 'admin'
+    'patch': ['admin', function(done) {
+      var person = this;
+      return false;
+    }]
   },
   icon: 'user'
 });
