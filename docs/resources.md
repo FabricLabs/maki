@@ -343,6 +343,13 @@ maki.define('Example', {
 This is passed directly to the internal query, and will be attached to the
 required subdocuments.
 
+#### Indexes
+Indexes (or indices) can be supplied to any Resource via the `indices` option,
+which expects an array of objects, as follows:
+
+```
+indices: [ { fields: ['type', 'id'] , unique: true } ]
+```
 
 [procure]: https://www.npmjs.com/package/procure
 [json patch]: https://tools.ietf.org/html/rfc6902
