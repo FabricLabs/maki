@@ -52,7 +52,7 @@
     "maki-auth-simple": "0.0.1",
     "maki-forms": "0.0.0",
     "maki-jsonrpc": "^0.1.1",
-    "maki-mongoose-hooks": "^0.2.0",
+    "maki-mongoose-hooks": "git://github.com/martindale/maki-mongoose-hooks#nko",
     "maki-passport-local": "0.0.4",
     "maki-queue": "0.0.2",
     "maki-service-websockets": "git://github.com/martindale/maki-service-websockets#develop",
