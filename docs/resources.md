@@ -11,6 +11,20 @@ it makes heuristics in various places much easier.  `Person` in this case will
 become `/people` (automatically!) as a collection, and it contains a list of
 `person` items.  That's pretty neat!
 
+### Bootstrapping
+Applications built with Maki provide sane defaults, but can be completely customized.  The directory structure for customization can be automatically created for you, by simply calling `bootstrap` _after_ your Resources have been defined:
+
+```javascript
+maki.define('Person', {
+  attributes: ...
+});
+
+maki.bootstrap();
+```
+This is a chainable method, so `maki.bootstrap().start();` will also work.
+
+### Attributes
+
 Defining a Resource in Maki has but one requirement, the list of `attributes` it
 provides.  You can think of this like a Type Definition in a more strongly-typed
 language:
@@ -21,7 +35,7 @@ maki.define('Person', {
 });
 ```
 
-The attributes associated with a Resource _will_ enforce type, too!  The names 
+The attributes associated with a Resource _will_ enforce type, too!  The names
 are used to control parameters when interacting with the resource, so choose
 them wisely.
 
@@ -108,7 +122,7 @@ unique to these types.
 
 ##### File
 The `'File'` type will create a specially aliased attribute that exposes a raw
-file stream.  Files can be uploaded to fields labeled `type: 'File'`, and are 
+file stream.  Files can be uploaded to fields labeled `type: 'File'`, and are
 downloadable via a special `Files` resource (exposed over HTTP at `/files`).
 
 These field types are rendered in HTML as file upload input elements, and offer
@@ -144,10 +158,10 @@ var Person = maki.define('Person', {
 
 Person.pre('create', function(done) {
   var person = this;
-  
+
   // trim any whitespace from the individual's name.
   person.name = person.name.trim();
-  
+
   done();
 });
 
@@ -194,7 +208,7 @@ ws.onmessage = function( data ) {
 
 These WebSockets speak JSON-RPC, and specifically expose these methods:
 - `ping`, which should be responded to with a "pong" result.
-- `patch`, which provides an array of operations to execute on a resource (via 
+- `patch`, which provides an array of operations to execute on a resource (via
   [the JSON-PATCH specification][json patch])
 - `subscribe` will expect a `channel` parameter that matches the "collection"
 name of the expected resource (see below).
@@ -285,7 +299,7 @@ will likely include the ability to pass a function in this field.
 
 #### Requirements
 Any resource can have additional requirements when requested via a non-
-programmatic endpoint (such as a rendered HTML view).  You can them via the 
+programmatic endpoint (such as a rendered HTML view).  You can them via the
 `requires` property:
 
 ```javascript
@@ -329,6 +343,13 @@ maki.define('Example', {
 This is passed directly to the internal query, and will be attached to the
 required subdocuments.
 
+#### Indexes
+Indexes (or indices) can be supplied to any Resource via the `indices` option,
+which expects an array of objects, as follows:
+
+```
+indices: [ { fields: ['type', 'id'] , unique: true } ]
+```
 
 [procure]: https://www.npmjs.com/package/procure
 [json patch]: https://tools.ietf.org/html/rfc6902
