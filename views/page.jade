@@ -1,0 +1,8 @@
+extends {process.env.PWD + '/views/layouts/default'}
+
+block scripts
+  script.
+    hljs.initHighlightingOnLoad();
+
+block content
+  #page-content !{content}
