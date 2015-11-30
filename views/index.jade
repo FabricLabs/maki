@@ -1,5 +1,9 @@
 extends layouts/default
 
+block scripts
+  script.
+    hljs.initHighlightingOnLoad();
+
 block page
   .pusher
     .ui.inverted.vertical.masthead.center.aligned.segment
@@ -28,8 +32,13 @@ block page
           | Code less.
         h2
           | #{config.service.name}, !{config.service.mission}
+
+        pre(style="font-size: 1.2em; margin-top: 2em;")
+          code.nohighlight.
+            npm install martindale/maki --save
+          
         a.ui.huge.primary.button(href="https://github.com/martindale/maki#quick-start")
-          | Get Started
+          | Build Your MVP Faster
           i.right.chevron.icon
 
     
