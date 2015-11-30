@@ -1,3 +1,9 @@
+---
+title: Developer Basics
+description: Become a Developer with Maki's introduction to development.
+source: https://github.com/martindale/maki/blob/better-splash/source/tutorials/developer-basics.md
+edit: https://github.com/martindale/maki/edit/better-splash/source/tutorials/developer-basics.md
+---
 # Developer Basics
 You might not consider yourself a developer just yet, but if you're reading this
 you're already well along the way.  We're going to explain a few things that 
