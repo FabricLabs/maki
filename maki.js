@@ -15,12 +15,19 @@ var cms = new CMS({
   path: '/docs'
 });
 
+var tutorials = new CMS({
+  base: '/tutorials',
+  path: '/source/tutorials',
+  view: process.env.PWD + '/views/page'
+});
+
 var Auth = require('maki-auth-simple');
 var auth = new Auth({
   resource: 'Person'
 });
 
 maki.use(cms);
+maki.use(tutorials);
 maki.use(auth);
 
 var Person = maki.define('Person', {
