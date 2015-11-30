@@ -1,3 +1,9 @@
+---
+title: Hello World with Maki
+description: A simple guide to building your first Maki app.
+source: https://github.com/martindale/maki/blob/better-splash/source/tutorials/hello-world.md
+edit: https://github.com/martindale/maki/edit/better-splash/source/tutorials/hello-world.md
+---
 # Hello World with Maki
 Building an average application with Maki is incredibly simple.  We'll get a web
 server set up using [the built-in HTTP service](/docs/services#http), and edit
