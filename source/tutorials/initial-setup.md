@@ -94,7 +94,7 @@ JavaScript "Hello World":
 echo "console.log('Hello, world.');" | node
 ```
 
-If it responds with a simple "Hello, world.", your work is done here.
+If it responds with a simple "Hello, world.", your work here is done.
 
 ## Step 3: Requirements
 Maki currently requires a specific database, so we need to install that too:
