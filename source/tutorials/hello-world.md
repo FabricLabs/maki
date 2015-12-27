@@ -9,7 +9,7 @@ Building an average application with Maki is incredibly simple.  We'll get a web
 server set up using [the built-in HTTP service](/docs/services#http), and edit
 some content on the page to say "Hello world!".
 
-If you're not an experience developer, you should first read [Developer
+If you're not an experienced developer, you should first read [Developer
 Basics](/tutorials/developer-basics) and [Initial
 Setup](/tutorials/initial-setup) to get familiar with the tools we'll be using
 here, including [the terminal](/tutorials/developer-basics#terminal) and [code editors](/tutorials/developer-basics#code-editors).
@@ -25,7 +25,7 @@ npm install martindale/maki # install Maki using NPM
 ```
 
 ### 1. Build the App
-Maki comes with a pre-configured website you can use as a starting point.  To 
+Maki comes with a pre-configured website you can use as a starting point.  To
 use it, we'll need to create an instance of a Maki application.  Let's create a
 new file, `app.js`.
 
@@ -48,7 +48,7 @@ the index page, we'll simply create a new file in `views/index.jade`.  The
 ```bash
 mkdir views
 touch views/index.jade
-``` 
+```
 
 We've just created the `views/` folder and placed a new `index.jade` file inside
 of it.  Let's add some content.  Open `views/index.jade` in your editor, and add
@@ -61,7 +61,7 @@ block content
   h1 Hello, world!
 ```
 
-In the `block` keyword, we've specified that the `content` section should be 
+In the `block` keyword, we've specified that the `content` section should be
 filled out with our HTML.  This uses a simple but powerful markup language known
 as Jade.
 
