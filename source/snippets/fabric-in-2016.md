@@ -58,6 +58,6 @@ for each and every one of us.
 
 [maki-slack]: https://chat.maki.io
 [melody]: https://github.com/martindale/melody
-[components]: https://maki.io/docs/components
+[components]: https://maki.io/snippets/components
 [maki-twitter]: https://twitter.com/MadeWithMaki
 [fabric-twitter]: https://twitter.com/FabricProtocol

@@ -2,7 +2,6 @@
 title: Maki Components
 description: Client-side architecture for a new, distributed web.
 ---
-
 Maki's client-side architecture requires the use of several familiar
 technologies, but combined in a unique way.  We are aiming first and foremost
 for to portability of Maki applications, which includes several features in our
