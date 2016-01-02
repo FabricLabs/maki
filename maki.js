@@ -21,6 +21,12 @@ var tutorials = new CMS({
   view: process.env.PWD + '/views/page'
 });
 
+var snippets = new CMS({
+  base: '/snippets',
+  path: '/source/snippets',
+  view: process.env.PWD + '/views/page'
+});
+
 var Auth = require('maki-auth-simple');
 var auth = new Auth({
   resource: 'Person'
@@ -28,6 +34,7 @@ var auth = new Auth({
 
 maki.use(cms);
 maki.use(tutorials);
+maki.use(snippets);
 maki.use(auth);
 
 var Person = maki.define('Person', {

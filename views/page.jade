@@ -6,4 +6,11 @@ block scripts
 
 block content
   include partials/edit-self
+
+  if (metadata && metadata.title)
+    h1 #{metadata.title}
+    if (metadata.description)
+      h2 #{metadata.description}
+  
+  
   #page-content !{content}
