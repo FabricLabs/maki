@@ -41,7 +41,6 @@ block page
           | Build Your MVP Faster
           i.right.chevron.icon
 
-    
     .ui.vertical.stripe.segment
       .ui.middle.aligned.stackable.grid.container
         .ui.equal.width.stackable.internally.celled.grid
@@ -54,19 +53,6 @@ block page
                   | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
                 if (point.action)
                   a.ui.huge.fluid.button(href="#{point.action.link}") !{point.action.text}
-
-    //-.ui.vertical.stripe.quote.segment
-      .ui.equal.width.stackable.internally.celled.grid
-        .center.aligned.row
-          .column
-            h3 "This feels like the invention of the transistor."
-            p Will Ricketts, SailsJS Contributor
-          .column
-            h3 "Amazon is completely fucked."
-            p
-              img.ui.avatar.image(src="/img/nan.jpg")
-              b Some Talking Head
-              |  Founder, Something
               
     .ui.vertical.stripe.segment
       .ui.text.container
@@ -94,6 +80,18 @@ block page
         
         h2.ui.header Loosely Coupled
         p Have a better way to do things?  Have a different compile target?  All Maki components are <strong>optional</strong>, and can even be outright removed without disrupting the other components of the system.
+
+        
+    .ui.vertical.stripe.quote.segment
+      .ui.equal.width.stackable.internally.celled.grid
+        .center.aligned.row
+          .column
+            h3 "This feels like the invention of the transistor."
+            p Will Ricketts, SailsJS Contributor
+          .column
+            h3 We're building something new.
+            a.ui.huge.primary.button(href="/developers/getting-involved") Come join us.
+              i.icon.right.chevron
 
     .ui.inverted.vertical.footer.segment
       .ui.container
