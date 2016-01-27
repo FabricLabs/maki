@@ -154,6 +154,18 @@ $(window).on('ready', function() {
     $(this).closest('.message').fadeOut();
   });
   $('.tabular.menu .item').tab();
+  $('.ui.search').search({
+    apiSettings: {
+      url: '/search?q={query}'
+    },
+    type: 'category',
+    onSelect: function(result, response) {
+      var self = this;
+      console.log('controller:', self);
+      console.log('selected', result);
+      $(self).children('input').val( result.id );
+    }
+  });
 
   $.ajax({
     type: 'OPTIONS',

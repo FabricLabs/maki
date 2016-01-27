@@ -15,9 +15,15 @@ var cms = new CMS({
   path: '/docs'
 });
 
-maki.use(cms);
+var Auth = require('maki-auth-simple');
+var auth = new Auth({
+  resource: 'Person'
+});
 
-maki.define('Person', {
+maki.use(cms);
+maki.use(auth);
+
+var Person = maki.define('Person', {
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
     name:     {
@@ -29,7 +35,18 @@ maki.define('Person', {
     email:    { type: String , max: 80 , restricted: true },
     created:  { type: Date , default: Date.now }
   },
+  auth: {
+    'patch': ['admin', function(done) {
+      var person = this;
+      return false;
+    }]
+  },
   icon: 'user'
+});
+Person.post('patch', function(done) {
+  var person = this;
+  console.log('person updated:', person);
+  done();
 });
 
 maki.define('Example', {
