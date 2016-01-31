@@ -13,9 +13,13 @@ html.no-js
     link(rel="stylesheet", href="/css/highlight/maki.css")
     link(rel="stylesheet", href="/css/maki.css")
     link(rel="stylesheet", href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Open+Sans:300italic,400,300,700")
+      
+    link(rel="import", href="/polymer/polymer.html")
+    link(rel="import", href="/components")
 
     script(src="/js/jquery.js")
     script(src="/js/semantic.min.js")
+    script(src="/js/webcomponents-lite.min.js")
     script(src="/js/lodash.min.js")
 
     script(src="/js/highlight.pack.js")
@@ -29,14 +33,14 @@ html.no-js
   body
     .ui.page.grid
       .row
-        block navbar
-          include ../partials/navbar
+        #navigation(style="width:100%;")
+          maki-navbar
 
       .row
         .column.content(data-for="viewport")
         
           include ../partials/flash
-        
+
           block content
 
       .row
