@@ -31,19 +31,5 @@ html.no-js
     base(href="/")
 
   body
-    .ui.page.grid
-      .row
-        #navigation(style="width:100%;")
-          maki-navbar
-
-      .row
-        .column.content(data-for="viewport")
-        
-          include ../partials/flash
-
-          block content
-
-      .row
-        .ui.one.column.stackable.center.aligned
-          small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
-    block scripts
+    maki-application
+      include ../page

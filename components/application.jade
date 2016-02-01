@@ -1,6 +1,17 @@
 dom-module#maki-application
   template
-    h1 Hello, Maki.
+    .ui.page.grid
+      .row
+        #navigation(style="width:100%;")
+          maki-navbar
+
+      .row
+        .column.content
+          maki-index
+
+      .row
+        .ui.one.column.stackable.center.aligned
+          small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
 
   script.
     Polymer({

@@ -1,0 +1,31 @@
+dom-module#maki-collection(extends="maki-component")
+  template
+    .ui.five.cards
+      template(is="dom-repeat", items="{{items}}")
+        maki-item(src="/people/{{item.id}}", item="{{item}}")
+
+  script.
+    Polymer({
+      is: 'maki-collection',
+      properties: {
+        src: {
+          type: String
+        },
+        items: {
+          type: Array
+        },
+        as: {
+          type: String,
+          value: 'item'
+        }
+      },
+      ready: function() {
+        var self = this;
+        $.getJSON(self.src, function(data) {
+          self.items = data;
+        });
+      },
+      _resourceProperties: function() {
+        
+      }
+    });
