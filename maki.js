@@ -15,12 +15,33 @@ var cms = new CMS({
   path: '/docs'
 });
 
+var tutorials = new CMS({
+  base: '/tutorials',
+  path: '/source/tutorials',
+  view: process.env.PWD + '/views/page'
+});
+
+var snippets = new CMS({
+  base: '/snippets',
+  path: '/source/snippets',
+  view: process.env.PWD + '/views/page'
+});
+
+var developers = new CMS({
+  base: '/developers',
+  path: '/source/developers',
+  view: process.env.PWD + '/views/page'
+});
+
 var Auth = require('maki-auth-simple');
 var auth = new Auth({
   resource: 'Person'
 });
 
 maki.use(cms);
+maki.use(tutorials);
+maki.use(snippets);
+maki.use(developers);
 maki.use(auth);
 
 var Person = maki.define('Person', {
@@ -78,6 +99,16 @@ maki.define('Release', {
       published: new Date( release.published_at )
     };
   }
+});
+
+maki.define('Plugin', {
+  attributes: {
+    name: { type: String , max: 80 },
+    description: { type: String },
+    version: { type: String , max: 10 },
+    coverage: { type: Number , default: 0 },
+  },
+  icon: 'puzzle'
 });
 
 /*var Analytics = require('maki-analytics');
