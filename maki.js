@@ -8,6 +8,8 @@ var passport = new Passport({
   resource: 'Person'
 });
 maki.use( passport );
+maki.use(require('maki-client-level'));
+maki.use(require('maki-client-polymer'));
 
 var CMS = require('maki-cms-local');
 var cms = new CMS({

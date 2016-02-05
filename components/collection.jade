@@ -4,11 +4,22 @@ dom-module#maki-collection(extends="maki-component")
       template(is="dom-repeat", items="{{items}}")
         maki-item(src="/people/{{item.id}}", item="{{item}}")
 
+  script(src="/js/jquery.js")
   script.
     Polymer({
       is: 'maki-collection',
+      listeners: {
+        'datastore:query': '_handleQuery',
+        'datastore:miss': '_handleMiss',
+        'datastore:update': '_applyState',
+        'state:change': '_applyState'
+      },
       properties: {
         src: {
+          type: String,
+          observer: '_sourceChanged'
+        },
+        hash: {
           type: String
         },
         items: {
@@ -19,13 +30,52 @@ dom-module#maki-collection(extends="maki-component")
           value: 'item'
         }
       },
-      ready: function() {
+      _handleQuery: function(e) {
         var self = this;
-        $.getJSON(self.src, function(data) {
-          self.items = data;
+        var maki = document.querySelectorAll('maki-application')[0];
+        var hash = e.detail;
+        maki.datastore.get(hash, { asBuffer: false }, function(err, data) {
+          if (err) console.error(err);
+          if (!data) self.fire('datastore:miss', hash);
+
+          self.fire('datastore:miss', hash);
+          self.fire('state:change', data);
         });
       },
-      _resourceProperties: function() {
-        
+      _handleMiss: function(e) {
+        var self = this;
+        var maki = document.querySelectorAll('maki-application')[0];
+        var hash = e.detail;
+        var path = self.src;
+        console.log('missed path:', path);
+        $.getJSON(self.src, function(data) {
+          console.log('retrieved (from remote)', data);
+          self.fire('state:change', data);
+          maki.datastore.put(hash, data, function(err) {
+            if (err) console.error(err);
+          });
+        });
+      },
+      _applyState: function(e) {
+        var self = this;
+        console.log('applying state', e, e.detail);
+        self.items = e.detail;
+      },
+      _retrieveState: function() {
+      
+      },
+      _sourceChanged: function(source) {
+        var self = this;
+        var maki = document.querySelectorAll('maki-application')[0];
+        maki.worker.onmessage =  function(e) {
+          var hash = e.data;
+          console.log('hash:', hash);
+          self.fire('datastore:query', hash);
+        };
+        maki.worker.postMessage(source);
+      },
+      attached: function() {
+        var self = this;
+        console.log('collection ready', self.src);
       }
     });

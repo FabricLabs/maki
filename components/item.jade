@@ -9,7 +9,7 @@ dom-module#maki-item(extends="maki-component")
       template(if="{{item.action}}")
         a.ui.bottom.attached.button(if="{{item.action}}", href="{{item.action.href}}") {{item.action.text}}
         
-
+  script(src="/js/jquery.js")
   script.
     Polymer({
       is: 'maki-item',

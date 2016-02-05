@@ -6,17 +6,125 @@ dom-module#maki-application
           maki-navbar
 
       .row
-        .column.content
+        .column.content(for="viewport")
           maki-index
 
       .row
         .ui.one.column.stackable.center.aligned
           small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
 
+  script(src="/js/page.js")
+  script(src="/js/bundle.js")
   script.
-    Polymer({
+    window.maki = Polymer({
       is: 'maki-application',
+      properties: {
+        src: {
+          type: String
+        },
+        for: {
+          type: String
+        },
+        route: {
+          type: String
+        },
+        routes: {
+          type: Object
+        },
+        components: {
+          type: Object,
+          //observer: '_componentsChanged'
+        },
+        resources: {
+          type: Object,
+          observer: '_resourcesUpdated'
+        },
+        datastore: {
+          type: Object
+        },
+        worker: { type: Object }
+      },
+      listeners: {
+        'datastore:ready': '_bindDatastore'
+      },
+      _bindDatastore: function() {
+        var self = this;
+        console.log('datastore is ready');
+        
+        self.datastore.put('test', 'something strange', function(err) {
+          console.log('Writing... ', err);
+        });
+
+      },
+      _route: function(ctx) {
+        var self = this;
+
+        var component = 'maki-undefined';
+        for (var route in self.routes) {
+          var regex = self.routes[route];
+          if (regex.test(ctx.path)) {
+            component = self.components[route];
+            break;
+          }
+        }
+
+        var view = document.createElement(component);
+        view.setAttribute('src', ctx.path);
+        
+        console.log(view);
+        
+        var viewport = document.querySelectorAll('[for=viewport]')[0];
+        while (viewport.hasChildNodes()) {
+          viewport.removeChild(viewport.lastChild);
+        }
+        viewport.appendChild(view);
+      },
+      _resourcesUpdated: function(resources) {
+        var self = this;
+        var _route = self._route.bind(self);
+
+        self.routes['/'] = new RegExp(/^\/$/);
+        self.components['/'] = 'maki-index';
+        
+        page('/', _route);
+
+        Object.keys(resources).forEach(function(name) {
+          var resource = resources[name];
+          ['get', 'query'].forEach(function(action) {
+            var route = resource.routes[action];
+            self.routes[route] = new RegExp(eval(resource.paths[action]));
+            self.components[route] = resource.components[action];
+            page(route, _route);
+          });
+        });
+        
+        page();
+      },
+      _componentsChanged: function(components) {
+      
+      },
       created: function() {
-        console.log('Go team. :)');
+        var self = this;
+
+        self.route = window.location.pathname;
+        self.routes = {};
+        self.components = {};
+        self.worker = new Worker('/worker.js');
+        
+        $.ajax({
+          type: 'OPTIONS',
+          url: '/',
+          headers: {
+            'Accept': 'application/json'
+          },
+          success: function(data) {
+            self.config = data.config;
+            self.resources = data.resources;
+            self.datastore = level(data.config.service.namespace);
+            self.datastore.open(function() {
+              self.fire('datastore:ready');
+            });
+          }
+        });
       }
     });
