@@ -5,19 +5,26 @@ dom-module#maki-collection(extends="maki-component")
         maki-item(src="/people/{{item.id}}", item="{{item}}")
 
   script(src="/js/jquery.js")
+  script(src="/js/lodash.min.js")
+  script(src="/js/uuid.js")
+  script(src="/js/jsonrpc.js")
+  script(src="/js/json-patch-duplex.min.js")
   script.
     Polymer({
       is: 'maki-collection',
       listeners: {
-        'datastore:query': '_handleQuery',
-        'datastore:miss': '_handleMiss',
+        'datastore:query':  '_handleQuery',
+        'datastore:miss':   '_handleMiss',
         'datastore:update': '_applyState',
-        'state:change': '_applyState'
+        'state:change':     '_applyState'
       },
       properties: {
         src: {
           type: String,
           observer: '_sourceChanged'
+        },
+        ws: {
+          type: String
         },
         hash: {
           type: String
@@ -30,6 +37,64 @@ dom-module#maki-collection(extends="maki-component")
           value: 'item'
         }
       },
+      _connect: function() {
+        var self = this;
+        var maki = document.querySelectorAll('maki-application')[0];
+        var path = 'ws://localhost:9200' + self.src;
+        
+        console.log('connecting to', path);
+        
+        self.ws = new WebSocket(path);
+        self.ws.onclose = function onClose() {
+          setTimeout(function() {
+            self._connect();
+          }, 500);
+        }
+        self.ws.onmessage = function onMessage(msg) {
+          try {
+            var data = JSON.parse( msg.data );
+          } catch (e) {
+            var data = {};
+          }
+          // experimental JSON-RPC implementation
+          if (data.jsonrpc === '2.0') {
+            switch (data.method) {
+              case 'ping':
+                console.log('was ping, playing pong');
+                self.ws.send(JSON.stringify({
+                  'jsonrpc': '2.0',
+                  'result': 'pong',
+                  'id': data.id
+                }));
+              break;
+              case 'patch':
+                // TODO: update in-memory data (two-way binding);
+                console.log('patch:', data );
+                if (data.params.channel === self.src) {
+                  console.log('go hard in the paint!', self.items, data.params.ops);
+                  jsonpatch.apply(self.items, data.params.ops);
+                  console.log('go hard in the paint!', self.items);
+                }
+              break;
+              default:
+                console.log('unhandled jsonrpc method ' , data.method);
+              break;
+            }
+          } else {
+
+          }
+        }
+        self.ws.onopen = function onOpen() {
+          console.log('open!');
+          // this is redundant, as the connection will already be subscribed
+          // however, we need to modify internal stores, so call it anyways
+          self._subscribe(self.src);
+        }
+
+      },
+      _subscribe: function(path) {
+        console.log('subscribing to:', path);
+      },
       _handleQuery: function(e) {
         var self = this;
         var maki = document.querySelectorAll('maki-application')[0];
@@ -40,6 +105,9 @@ dom-module#maki-collection(extends="maki-component")
 
           self.fire('datastore:miss', hash);
           self.fire('state:change', data);
+          
+          self._connect();
+          
         });
       },
       _handleMiss: function(e) {

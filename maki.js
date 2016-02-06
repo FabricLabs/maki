@@ -58,12 +58,12 @@ var Person = maki.define('Person', {
     email:    { type: String , max: 80 , restricted: true },
     created:  { type: Date , default: Date.now }
   },
-  auth: {
+  /* auth: {
     'patch': ['admin', function(done) {
       var person = this;
       return false;
     }]
-  },
+  }, */
   icon: 'user'
 });
 Person.post('patch', function(done) {

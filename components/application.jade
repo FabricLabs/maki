@@ -14,7 +14,7 @@ dom-module#maki-application
           small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
 
   script(src="/js/page.min.js")
-  script(src="/js/bundle.js")
+  script(src="/js/jquery.js")
   script.
     window.maki = Polymer({
       is: 'maki-application',
@@ -96,6 +96,10 @@ dom-module#maki-application
             self.components[route] = resource.components[action];
             page(route, _route);
           });
+          
+          //var schema = {};
+          //self.schema[name] = Schema(resource.options.attributes); 
+          //console.log(self.schema[name]);
         });
         
         page();
@@ -108,6 +112,7 @@ dom-module#maki-application
 
         self.route = window.location.pathname;
         self.routes = {};
+        self.schema = {};
         self.components = {};
         self.worker = new Worker('/worker.js');
         
