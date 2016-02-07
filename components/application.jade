@@ -1,5 +1,8 @@
 dom-module#maki-application
   template
+    maki-datastore(name="maki")
+    maki-channel(autoconnect, reconnect="true")
+
     .ui.page.grid
       .row
         #navigation(style="width:100%;")
@@ -43,18 +46,6 @@ dom-module#maki-application
           type: Object
         },
         worker: { type: Object }
-      },
-      listeners: {
-        'datastore:ready': '_bindDatastore'
-      },
-      _bindDatastore: function() {
-        var self = this;
-        console.log('datastore is ready');
-        
-        self.datastore.put('test', 'something strange', function(err) {
-          console.log('Writing... ', err);
-        });
-
       },
       _route: function(ctx) {
         var self = this;
@@ -114,7 +105,7 @@ dom-module#maki-application
         self.routes = {};
         self.schema = {};
         self.components = {};
-        self.worker = new Worker('/worker.js');
+        //self.worker = new Worker('/worker.js');
         
         $.ajax({
           type: 'OPTIONS',
@@ -125,10 +116,6 @@ dom-module#maki-application
           success: function(data) {
             self.config = data.config;
             self.resources = data.resources;
-            self.datastore = level(data.config.service.namespace);
-            self.datastore.open(function() {
-              self.fire('datastore:ready');
-            });
           }
         });
       }

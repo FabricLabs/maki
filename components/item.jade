@@ -1,4 +1,4 @@
-dom-module#maki-item(extends="maki-component")
+dom-module#maki-item
   template
     .ui.card
       .image
@@ -24,6 +24,10 @@ dom-module#maki-item(extends="maki-component")
         item: {
           type: Object
         }
+      },
+      created: function() {
+        var self = this;
+        console.log('created!', self.item);
       },
       _srcChanged: function() {
         console.log('source changed for item');

@@ -1,21 +1,26 @@
-dom-module#maki-collection(extends="maki-component")
+dom-module#maki-collection
   template
     .ui.five.cards
       template(is="dom-repeat", items="{{items}}")
-        maki-item(src="/people/{{item.id}}", item="{{item}}")
+        .ui.card
+          .image
+            img(src="/img/maki-logo.png")
+          .content
+            a.header(href="/people/{{item.slug}}") {{item.name}} {{item.username}}
+            p.description {{item.description}}
+          template(if="{{item.action}}")
+            a.ui.bottom.attached.button(if="{{item.action}}", href="{{item.action.href}}") {{item.action.text}}
+        
+        
+        //-maki-item(src="/people/{{item.id}}", item="{{item}}")
 
   script(src="/js/jquery.js")
   script(src="/js/lodash.min.js")
-  script(src="/js/uuid.js")
-  script(src="/js/jsonrpc.js")
-  script(src="/js/json-patch-duplex.min.js")
   script.
     Polymer({
       is: 'maki-collection',
       listeners: {
         'datastore:query':  '_handleQuery',
-        'datastore:miss':   '_handleMiss',
-        'datastore:update': '_applyState',
         'state:change':     '_applyState'
       },
       properties: {
@@ -30,104 +35,42 @@ dom-module#maki-collection(extends="maki-component")
           type: String
         },
         items: {
-          type: Array
+          type: Array,
+          notify: true
         },
         as: {
           type: String,
           value: 'item'
         }
       },
-      _connect: function() {
-        var self = this;
-        var maki = document.querySelectorAll('maki-application')[0];
-        var path = 'ws://localhost:9200' + self.src;
-        
-        console.log('connecting to', path);
-        
-        self.ws = new WebSocket(path);
-        self.ws.onclose = function onClose() {
-          setTimeout(function() {
-            self._connect();
-          }, 500);
-        }
-        self.ws.onmessage = function onMessage(msg) {
-          try {
-            var data = JSON.parse( msg.data );
-          } catch (e) {
-            var data = {};
-          }
-          // experimental JSON-RPC implementation
-          if (data.jsonrpc === '2.0') {
-            switch (data.method) {
-              case 'ping':
-                console.log('was ping, playing pong');
-                self.ws.send(JSON.stringify({
-                  'jsonrpc': '2.0',
-                  'result': 'pong',
-                  'id': data.id
-                }));
-              break;
-              case 'patch':
-                // TODO: update in-memory data (two-way binding);
-                console.log('patch:', data );
-                if (data.params.channel === self.src) {
-                  console.log('go hard in the paint!', self.items, data.params.ops);
-                  jsonpatch.apply(self.items, data.params.ops);
-                  console.log('go hard in the paint!', self.items);
-                }
-              break;
-              default:
-                console.log('unhandled jsonrpc method ' , data.method);
-              break;
-            }
-          } else {
-
-          }
-        }
-        self.ws.onopen = function onOpen() {
-          console.log('open!');
-          // this is redundant, as the connection will already be subscribed
-          // however, we need to modify internal stores, so call it anyways
-          self._subscribe(self.src);
-        }
-
+      _itemsChanged: function(items) {
+        console.log('_itemsChanged', items);
       },
-      _subscribe: function(path) {
-        console.log('subscribing to:', path);
-      },
-      _handleQuery: function(e) {
+      _handleQuery: function(e, key) {
         var self = this;
-        var maki = document.querySelectorAll('maki-application')[0];
-        var hash = e.detail;
-        maki.datastore.get(hash, { asBuffer: false }, function(err, data) {
-          if (err) console.error(err);
+        var datastore = document.querySelectorAll('maki-datastore')[0];
+        
+        console.log('_handleQuery:', e, key);
+
+        datastore._retrieve(key, function(err, data) {
           if (!data) self.fire('datastore:miss', hash);
-
-          self.fire('datastore:miss', hash);
+          if (err) {
+            //console.error('_handleQuery error:', err);
+            data = [];
+          }
           self.fire('state:change', data);
-          
-          self._connect();
-          
-        });
-      },
-      _handleMiss: function(e) {
-        var self = this;
-        var maki = document.querySelectorAll('maki-application')[0];
-        var hash = e.detail;
-        var path = self.src;
-        console.log('missed path:', path);
-        $.getJSON(self.src, function(data) {
-          console.log('retrieved (from remote)', data);
-          self.fire('state:change', data);
-          maki.datastore.put(hash, data, function(err) {
-            if (err) console.error(err);
-          });
         });
       },
       _applyState: function(e) {
         var self = this;
-        console.log('applying state', e, e.detail);
-        self.items = e.detail;
+        var state = e.detail;
+        
+        if (!(state instanceof Array)) {
+          state = [state];
+        }
+        
+        console.log('applying state', e, state);
+        self.items = state;
       },
       _retrieveState: function() {
       
@@ -135,15 +78,28 @@ dom-module#maki-collection(extends="maki-component")
       _sourceChanged: function(source) {
         var self = this;
         var maki = document.querySelectorAll('maki-application')[0];
-        maki.worker.onmessage =  function(e) {
+        console.log('collection sourceChanged:', source);
+        self.fire('datastore:query', source);
+
+        /*maki.worker.onmessage =  function(e) {
           var hash = e.data;
           console.log('hash:', hash);
           self.fire('datastore:query', hash);
         };
-        maki.worker.postMessage(source);
+        maki.worker.postMessage(source);*/
+      },
+      _sync: function() {
+        var self = this;
+        self.fire('datastore:query', self.src);
+      },
+      ready: function() {
+        var self = this;
+        self._sync();
       },
       attached: function() {
         var self = this;
-        console.log('collection ready', self.src);
+        var channel = document.querySelectorAll('maki-channel')[0];
+        console.log('collection is attached:', self.src);
+        channel._subscribe(self.src);
       }
     });

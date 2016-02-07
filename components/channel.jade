@@ -1,0 +1,99 @@
+dom-module#maki-channel
+  script(src="/js/uuid.js")
+  script(src="/js/jsonrpc.js")
+  script.
+    Polymer({
+      is: 'maki-channel',
+      properties: {
+        autoconnect: {
+          type: Boolean
+        },
+        reconnect: {
+          type: Boolean
+        },
+        subscriptions: {
+          type: Array
+        },
+        ws: {
+          type: Object
+        },
+        src: {
+          type: String,
+          //observer: '_srcChanged'
+        },
+      },
+      ready: function() {
+        var self = this;
+        console.log('channel ready:', self.autoconnect, self.reconnect);
+        self._connect();
+      },
+      _send: function(method, params) {
+        var self = this;
+        self.ws.send(JSON.stringify({
+          'jsonrpc': '2.0',
+          'method': method,
+          'params': params,
+          'id': uuid.v4() // TODO: sequence?
+        }));
+      },
+      _subscribe: function(path) {
+        console.log('subscribing to:', path);
+        var self = this;
+        self._send('subscribe', {
+          channel: path
+        });
+      },
+      _connect: function() {
+        var self = this;
+        var maki = document.querySelectorAll('maki-application')[0];
+        var path = 'ws://localhost:9200/'; //+ self.src;
+        
+        console.log('connecting to', path);
+        
+        self.ws = new WebSocket(path);
+        self.ws.onclose = function onClose() {
+          setTimeout(function() {
+            self._connect();
+          }, 500);
+        }
+        self.ws.onmessage = function onMessage(msg) {
+          try {
+            var data = JSON.parse( msg.data );
+          } catch (e) {
+            var data = {};
+          }
+          // experimental JSON-RPC implementation
+          if (data.jsonrpc === '2.0') {
+            switch (data.method) {
+              case 'ping':
+                console.log('was ping, playing pong');
+                self.ws.send(JSON.stringify({
+                  'jsonrpc': '2.0',
+                  'result': 'pong',
+                  'id': data.id
+                }));
+              break;
+              case 'patch':
+                // TODO: update in-memory data (two-way binding);
+                console.log('patch:', data.params.channel , data );
+                console.log('datastore:', datastore);
+                var channel = data.params.channel;
+                var ops = data.params.ops;
+                var datastore = document.querySelectorAll('maki-datastore')[0];
+                
+                datastore._patch(channel, ops);
+              
+              break;
+              default:
+                console.log('unhandled jsonrpc method ' , data.method);
+              break;
+            }
+          } else {
+
+          }
+        }
+        self.ws.onopen = function onOpen() {
+          console.log('open!');
+        }
+      },
+    });
