@@ -118,7 +118,9 @@ dom-module#maki-splash
                   i.icon.medium
                   |  Medium
 
+  script(src="/js/highlight.pack.js")
   script.
+    hljs.initHighlightingOnLoad();
     Polymer({
       is: 'maki-splash'
     });
