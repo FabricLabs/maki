@@ -3,17 +3,15 @@ dom-module#maki-collection
     .ui.five.cards
       template(is="dom-repeat", items="{{items}}")
         .ui.card
-          .image
-            img(src="/img/maki-logo.png")
+          template(if="{{item.image}}")
+            .image
+              img(src="/img/maki-logo.png")
           .content
             a.header(href="/people/{{item.slug}}") {{item.name}} {{item.username}}
             p.description {{item.description}}
           template(if="{{item.action}}")
             a.ui.bottom.attached.button(if="{{item.action}}", href="{{item.action.href}}") {{item.action.text}}
-        
-        
         //-maki-item(src="/people/{{item.id}}", item="{{item}}")
-
   script(src="/js/jquery.js")
   script(src="/js/lodash.min.js")
   script.
@@ -28,30 +26,15 @@ dom-module#maki-collection
           type: String,
           observer: '_sourceChanged'
         },
-        ws: {
-          type: String
-        },
-        hash: {
-          type: String
-        },
         items: {
           type: Array,
           notify: true
         },
-        as: {
-          type: String,
-          value: 'item'
-        }
-      },
-      _itemsChanged: function(items) {
-        console.log('_itemsChanged', items);
       },
       _handleQuery: function(e, key) {
         var self = this;
         var datastore = document.querySelectorAll('maki-datastore')[0];
-        
-        console.log('_handleQuery:', e, key);
-
+        console.log('[MAKI:COLLECTION]','_handleQuery:', e, key);
         datastore._retrieve(key, function(err, data) {
           if (!data) self.fire('datastore:miss', hash);
           if (err) {
@@ -72,34 +55,25 @@ dom-module#maki-collection
         console.log('applying state', e, state);
         self.items = state;
       },
-      _retrieveState: function() {
-      
-      },
       _sourceChanged: function(source) {
         var self = this;
         var maki = document.querySelectorAll('maki-application')[0];
-        console.log('collection sourceChanged:', source);
+        console.log('[MAKI:COLLECTION]', 'collection sourceChanged:', source);
         self.fire('datastore:query', source);
-
-        /*maki.worker.onmessage =  function(e) {
-          var hash = e.data;
-          console.log('hash:', hash);
-          self.fire('datastore:query', hash);
-        };
-        maki.worker.postMessage(source);*/
       },
       _sync: function() {
         var self = this;
+        console.log('[MAKI:COLLECTION]', '_sync');
         self.fire('datastore:query', self.src);
       },
       ready: function() {
         var self = this;
-        self._sync();
+        console.log('[MAKI:COLLECTION]', 'ready');
       },
       attached: function() {
         var self = this;
         var channel = document.querySelectorAll('maki-channel')[0];
-        console.log('collection is attached:', self.src);
+        console.log('[MAKI:COLLECTION]', 'collection is attached:', self.src);
         channel._subscribe(self.src);
       }
     });

@@ -27,24 +27,24 @@ dom-module#maki-datastore
       },
       _retrieve: function(key, cb) {
         var self = this;
-        console.log('_retrieve:', key);
+        console.log('[MAKI:DATASTORE]', '_retrieve looking for:', key);
         self.store.get(key, {
           asBuffer: false
         }, function(err, val) {
           if (err) console.error(err);
           if (!val) return self.fire('datastore:miss', key);
-          console.log('_retrive result:', key, val);
+          console.log('[MAKI:DATASTORE]', '_retrieve result:', key, val);
           return cb(err, val);
         });
       },
       _patch: function(key, ops, cb) {
         var self = this;
-        console.log('datastore:patch:', key, ops);
+        console.log('[MAKI:DATASTORE]', 'datastore:patch:', key, ops);
         self._retrieve(key, function(err, obj) {
           if (err) console.error(err);
-          console.log('applying to:', obj);
+          console.log('[MAKI:DATASTORE]', 'applying to:', obj);
           jsonpatch.apply(obj, ops);
-          console.log('obj now:', obj);
+          console.log('[MAKI:DATASTORE]', 'obj now:', obj);
 
           self._store(key, obj, function(err) {
             if (err) console.error(err);
@@ -56,47 +56,49 @@ dom-module#maki-datastore
         var key = e.detail;
         var datastore = document.querySelectorAll('maki-datastore')[0];
         
-        console.log('_handleMiss', e, detail);
+        console.log('[MAKI:DATASTORE]', '_handleMiss', e, detail);
 
         $.getJSON(key, function(data) {
-          console.log('retrieved (from remote)', data);
+          console.log('[MAKI:DATASTORE]', 'retrieved (from remote)', data);
           if (!data) return;
           datastore._store(key, data, function(err) {
-            if (err) console.error('_handeMiss error:', err);
+            if (err) console.error('[MAKI:DATASTORE]', '_handeMiss error:', err);
           });
         });
       },
       _handleChange: function(e, detail) {
         var self = this;
-        console.log('change:', e, detail);
         var key = detail.key;
         var val = detail.val;
         
-        console.log('stuff:', key, val);
+        console.log('[MAKI:DATSTORE]', '_handleChange', detail);
+        
+        var channel = document.querySelectorAll('maki-channel');
+        /*channel._send('patch', {
+          channel: key,
+          ops: [{ op: 'add',  }]
+        });*/
+
         var elements = document.querySelectorAll('[src="'+key+'"]');
-        console.log('elements:', elements)
         for (var i = 0; i < elements.length; i++) {
           var element = elements[i];
-          console.log('found a bound element:', element);
-          console.log('attaching elements:', val);
-          //element.items = val;
-          element.set('items', val);
+          element._sync();
         }
       },
       ready: function() {
         var self = this;
+        console.log('[MAKI:DATASTORE]', 'open');
         self.store = level(self.name);
         self.store.open(function(err) {
+          console.log('[MAKI:DATASTORE]', 'ready');
           if (err) console.error(err);
           var elements = document.querySelectorAll('[src]');
-          console.log('elements:', elements)
           for (var i = 0; i < elements.length; i++) {
             var element = elements[i];
             if (typeof element._sync === 'function') {
               element._sync();
             }
           }
-          
         });
       }
     });

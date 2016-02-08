@@ -24,7 +24,7 @@ dom-module#maki-channel
       },
       ready: function() {
         var self = this;
-        console.log('channel ready:', self.autoconnect, self.reconnect);
+        console.log('[MAKI:CHANNEL]', 'ready');
         self._connect();
       },
       _send: function(method, params) {
@@ -37,7 +37,7 @@ dom-module#maki-channel
         }));
       },
       _subscribe: function(path) {
-        console.log('subscribing to:', path);
+        console.log('[MAKI:CHANNEL]', 'subscribing to:', path);
         var self = this;
         self._send('subscribe', {
           channel: path
@@ -48,7 +48,7 @@ dom-module#maki-channel
         var maki = document.querySelectorAll('maki-application')[0];
         var path = 'ws://localhost:9200/'; //+ self.src;
         
-        console.log('connecting to', path);
+        console.log('[MAKI:CHANNEL]', 'websocket connecting...');
         
         self.ws = new WebSocket(path);
         self.ws.onclose = function onClose() {
@@ -66,7 +66,7 @@ dom-module#maki-channel
           if (data.jsonrpc === '2.0') {
             switch (data.method) {
               case 'ping':
-                console.log('was ping, playing pong');
+                console.log('[MAKI:CHANNEL]', 'received ping.  playing pong...');
                 self.ws.send(JSON.stringify({
                   'jsonrpc': '2.0',
                   'result': 'pong',
@@ -75,8 +75,7 @@ dom-module#maki-channel
               break;
               case 'patch':
                 // TODO: update in-memory data (two-way binding);
-                console.log('patch:', data.params.channel , data );
-                console.log('datastore:', datastore);
+                console.log('[MAKI:CHANNEL]', 'received `patch` event:', data.params.channel , data );
                 var channel = data.params.channel;
                 var ops = data.params.ops;
                 var datastore = document.querySelectorAll('maki-datastore')[0];
@@ -85,7 +84,7 @@ dom-module#maki-channel
               
               break;
               default:
-                console.log('unhandled jsonrpc method ' , data.method);
+                console.error('[MAKI:CHANNEL]', 'unhandled jsonrpc method ' , data.method);
               break;
             }
           } else {
@@ -93,7 +92,7 @@ dom-module#maki-channel
           }
         }
         self.ws.onopen = function onOpen() {
-          console.log('open!');
+          console.log('[MAKI:CHANNEL]', 'websocket open.');
         }
       },
     });

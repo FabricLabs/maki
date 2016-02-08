@@ -14,6 +14,10 @@ dom-module#maki-application
           maki-navbar
 
       .row
+        .ui.messages
+          .ui.message.hidden#offlineNotification
+            h2.header Offline enabled!
+      .row
         .column.content(for="viewport")
           maki-index
 
@@ -37,11 +41,12 @@ dom-module#maki-application
           type: String
         },
         routes: {
-          type: Object
+          type: Object,
+          value: {}
         },
         components: {
           type: Object,
-          //observer: '_componentsChanged'
+          value: {}
         },
         resources: {
           type: Object,
@@ -66,9 +71,7 @@ dom-module#maki-application
 
         var view = document.createElement(component);
         view.setAttribute('src', ctx.path);
-        
-        console.log(view);
-        
+
         var viewport = document.querySelectorAll('[for=viewport]')[0];
         while (viewport.hasChildNodes()) {
           viewport.removeChild(viewport.lastChild);
@@ -100,16 +103,10 @@ dom-module#maki-application
         
         page();
       },
-      _componentsChanged: function(components) {
-      
-      },
       created: function() {
         var self = this;
 
         self.route = window.location.pathname;
-        self.routes = {};
-        self.schema = {};
-        self.components = {};
         //self.worker = new Worker('/worker.js');
         
         $.ajax({
