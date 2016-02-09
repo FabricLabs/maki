@@ -113,6 +113,23 @@ maki.define('Plugin', {
   icon: 'puzzle'
 });
 
+maki.define('Index', {
+  name: 'Index',
+  template: 'index',
+  components: {
+    query: 'splash',
+    get: 'splash'
+  },
+  routes: {
+    query: '/'
+  },
+  names: {
+    query: 'splash'
+  },
+  static: true,
+  internal: true
+});
+
 /*var Analytics = require('maki-analytics');
 var analytics = new Analytics({ id: 'UA-57746323-2' });
 

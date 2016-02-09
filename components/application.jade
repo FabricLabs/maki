@@ -68,6 +68,8 @@ dom-module#maki-application
             break;
           }
         }
+        
+        console.log('MAKI:APPLICATION', '_route', ctx.path, self.routes, component);
 
         var view = document.createElement(component);
         view.setAttribute('src', ctx.path);
@@ -83,14 +85,19 @@ dom-module#maki-application
         var _route = self._route.bind(self);
 
         self.routes['/'] = new RegExp(/^\/$/);
-        self.components['/'] = 'maki-index';
+        self.components['/'] = (resources.Index && resources.Index.components) ? resources.Index.components.query : 'maki-index';
+        
+        console.log('[MAKI:APPLICATION]', '_resourcesUpdated', resources);
         
         page('/', _route);
 
         Object.keys(resources).forEach(function(name) {
           var resource = resources[name];
+          console.log('[MAKI:APPLICATION]', 'initializing', name);
+          if (resource.internal) return;
           ['get', 'query'].forEach(function(action) {
             var route = resource.routes[action];
+            if (!route) return;
             self.routes[route] = new RegExp(eval(resource.paths[action]));
             self.components[route] = resource.components[action];
             page(route, _route);
