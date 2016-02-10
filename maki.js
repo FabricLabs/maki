@@ -73,6 +73,9 @@ Person.post('patch', function(done) {
 });
 
 maki.define('Example', {
+  components: {
+    query: 'examples'
+  },
   attributes: {
     name:    { type: String , max: 80 },
     slug:    { type: String , max: 80 , id: true },
@@ -115,7 +118,10 @@ maki.define('Plugin', {
 
 maki.define('Index', {
   name: 'Index',
-  template: 'index',
+  template: 'splash',
+  templates: {
+    query: 'splash'
+  },
   components: {
     query: 'splash',
     get: 'splash'
@@ -134,4 +140,6 @@ maki.define('Index', {
 var analytics = new Analytics({ id: 'UA-57746323-2' });
 
 maki.use( analytics ).serve(['http']).start();*/
-maki.start();
+maki.start(function() {
+  console.log('routes:', maki.routes);
+});

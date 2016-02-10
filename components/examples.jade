@@ -1,33 +1,37 @@
-dom-module#maki-collection
+dom-module#maki-examples
   template
     .ui.vertical.segment
       .ui.container
-        h2
-          //-template(if$="{{type.options.icon}}")
-          i(class$="ui icon {{type.options.icon}}")
-          | {{type.plural}}
-        p {{type.description}}
-        code
-          pre {{resource}}
-        
-        .ui.five.cards
-          template(is="dom-repeat", items="{{items}}")
-            .ui.card
-              template(if="{{item.image}}")
-                .image
-                  img(src="/img/maki-logo.png")
-              .content
-                a.header(href="/{{type.names.query}}/{{item.slug}}") {{item.name}} {{item.username}}
-                p.description {{item.description}}
-              template(if="{{item.action}}")
-                a.ui.bottom.attached.button(if="{{item.action}}", href="{{item.action.href}}") {{item.action.text}}
-            //-maki-item(src="/people/{{item.id}}", item="{{item}}")
+        h2 Projects Using Maki
+        p We're really excited to have helped many people build awesome things.  Here's a few of them, including special highlights when they've also shared their code!
 
-  script(src="/js/jquery.js")
-  script(src="/js/lodash.min.js")
+        .ui.icon.message
+          i.icon.lab
+          .content
+            .header Building something cool?
+            p Go ahead and <a href="https://github.com/martindale/maki/edit/master/data/examples.json">add it to the list</a>!  We'd love to highlight what you've built.  <strong>Bonus points for being open source!</strong> 🍺
+
+        .ui.divided.items
+          template(is="dom-repeat", items="{{items}}")
+            .item
+              a.ui.tiny.image(href="{{item.uri}}")
+                template(if="{{item.image}}")
+                  img(src="{{item.image}}")
+                template(else="{{item.source}}")
+                  img(src="/img/image.png")
+              .content
+                .header
+                  a(href="{{item.uri}}") {{item.name}}
+                  template(if="{{item.source}}")
+                    |  
+                    a.ui.label(href="{{item.source}}")
+                      i.icon.code
+                      | Source
+                p.description {{item.description}}
+
   script.
     Polymer({
-      is: 'maki-collection',
+      is: 'maki-examples',
       listeners: {
         'datastore:query':  '_handleQuery',
         'state:change':     '_applyState'
@@ -37,7 +41,7 @@ dom-module#maki-collection
           type: String,
           observer: '_sourceChanged'
         },
-        type: {
+        resource: {
           type: Object
         },
         items: {
@@ -52,7 +56,7 @@ dom-module#maki-collection
         datastore._retrieve(key, function(err, data) {
           if (!data) self.fire('datastore:miss', hash);
           if (err) {
-            console.error('_handleQuery error:', err);
+            //console.error('_handleQuery error:', err);
             data = [];
           }
           self.fire('state:change', data);
@@ -65,14 +69,14 @@ dom-module#maki-collection
         if (!(state instanceof Array)) {
           state = [state];
         }
-
+        
+        console.log('applying state', e, state);
         self.items = state;
       },
       _sourceChanged: function(source) {
         var self = this;
         var maki = document.querySelectorAll('maki-application')[0];
         console.log('[MAKI:COLLECTION]', 'collection sourceChanged:', source);
-        //self.resource = maki.resourceMap[source];
         self.fire('datastore:query', source);
       },
       _sync: function() {

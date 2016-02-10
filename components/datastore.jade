@@ -17,6 +17,8 @@ dom-module#maki-datastore
       },
       _store: function(key, val, cb) {
         var self = this;
+        console.log('[MAKI:DATASTORE]', '_store', typeof val, key, val);
+        if (val instanceof Array && val.length === 0) return;
         self.store.put(key, val, function(err) {
           if (err) console.error(err);
           self.fire('datastore:change', {
