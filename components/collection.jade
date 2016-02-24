@@ -5,7 +5,7 @@ dom-module#maki-collection
         h2
           //-template(if$="{{type.options.icon}}")
           i(class$="ui icon {{type.options.icon}}")
-          | {{type.plural}}
+          a(href="/{{type.names.query}}") {{type.plural}}
         p {{type.description}}
         code
           pre {{resource}}
@@ -23,8 +23,6 @@ dom-module#maki-collection
                 a.ui.bottom.attached.button(if="{{item.action}}", href="{{item.action.href}}") {{item.action.text}}
             //-maki-item(src="/people/{{item.id}}", item="{{item}}")
 
-  script(src="/js/jquery.js")
-  script(src="/js/lodash.min.js")
   script.
     Polymer({
       is: 'maki-collection',
