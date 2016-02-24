@@ -18,14 +18,15 @@ dom-module#maki-channel
           type: Object
         },
         src: {
-          type: String,
-          //observer: '_srcChanged'
+          type: String
         },
       },
       ready: function() {
         var self = this;
         console.log('[MAKI:CHANNEL]', 'ready');
-        self._connect();
+        if (self.autoconnect === true) {
+          self._connect();
+        }
       },
       _send: function(method, params) {
         var self = this;
@@ -43,18 +44,32 @@ dom-module#maki-channel
           channel: path
         });
       },
+      _consume: function() {
+        var self = this;
+        var elements = document.querySelectorAll('[src]');
+        
+        console.log('[MAKI:CHANNEL]', '_consume', elements);
+        
+        for (var i = 0; i < elements.length; i++) {
+          var element = elements[i];
+          self._subscribe(element.src);
+        }
+      },
       _connect: function() {
         var self = this;
         var maki = document.querySelectorAll('maki-application')[0];
-        var path = 'ws://localhost:9200/'; //+ self.src;
+        var protocol = (document.location.protocol === 'http:') ? 'ws://' : 'wss://';
+        var path = protocol + document.location.host; // + self.src;
         
-        console.log('[MAKI:CHANNEL]', 'websocket connecting...');
+        console.log('[MAKI:CHANNEL]', 'websocket connecting to: ', path);
         
         self.ws = new WebSocket(path);
         self.ws.onclose = function onClose() {
-          setTimeout(function() {
-            self._connect();
-          }, 500);
+          if (self.reconnect === true) {
+            setTimeout(function() {
+              self._connect();
+            }, 500);
+          }
         }
         self.ws.onmessage = function onMessage(msg) {
           try {

@@ -56,14 +56,13 @@ dom-module#maki-datastore
       _handleMiss: function(e, detail) {
         var self = this;
         var key = e.detail;
-        var datastore = document.querySelectorAll('maki-datastore')[0];
-        
+
         console.log('[MAKI:DATASTORE]', '_handleMiss', e, detail);
 
         $.getJSON(key, function(data) {
           console.log('[MAKI:DATASTORE]', 'retrieved (from remote)', data);
           if (!data) return;
-          datastore._store(key, data, function(err) {
+          self._store(key, data, function(err) {
             if (err) console.error('[MAKI:DATASTORE]', '_handeMiss error:', err);
           });
         });
@@ -73,34 +72,54 @@ dom-module#maki-datastore
         var key = detail.key;
         var val = detail.val;
         
-        console.log('[MAKI:DATSTORE]', '_handleChange', detail);
+        console.log('[MAKI:DATASTORE]', '_handleChange', detail);
         
         var channel = document.querySelectorAll('maki-channel');
         /*channel._send('patch', {
           channel: key,
           ops: [{ op: 'add',  }]
         });*/
+        
+        var pattern = '[src="'+key+'"]';
+        console.log('[MAKI:DATASTORE]', 'pattern:', pattern);
 
-        var elements = document.querySelectorAll('[src="'+key+'"]');
+        var elements = document.querySelectorAll(pattern);
+        
+        console.log('[MAKI:DATASTORE]', 'elements bound to this key:', key, elements);
+        
         for (var i = 0; i < elements.length; i++) {
           var element = elements[i];
           element._sync();
         }
       },
+      _sync: function() {
+        var elements = document.querySelectorAll('[src]');
+        
+        console.log('[MAKI:DATASTORE]', '_sync', elements);
+        
+        for (var i = 0; i < elements.length; i++) {
+          var element = elements[i];
+          if (typeof element._sync === 'function') {
+            console.log('[MAKI:DATASTORE]', 'syncing', element);
+            element._sync();
+          }
+        }
+      },
+      attached: function() {
+        var self = this;
+        console.log('[MAKI:DATASTORE]', 'attached');
+      },
       ready: function() {
         var self = this;
-        console.log('[MAKI:DATASTORE]', 'open');
+        console.log('[MAKI:DATASTORE]', 'ready');
         self.store = level(self.name);
         self.store.open(function(err) {
-          console.log('[MAKI:DATASTORE]', 'ready');
+          console.log('[MAKI:DATASTORE]', 'open');
+          var event = new Event('datastore:open')
+          window.dispatchEvent(event);
+
           if (err) console.error(err);
-          var elements = document.querySelectorAll('[src]');
-          for (var i = 0; i < elements.length; i++) {
-            var element = elements[i];
-            if (typeof element._sync === 'function') {
-              element._sync();
-            }
-          }
+          self._sync();
         });
       }
     });
