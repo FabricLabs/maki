@@ -74,7 +74,7 @@ Person.post('patch', function(done) {
 
 maki.define('Example', {
   components: {
-    query: 'examples'
+    query: 'maki-examples'
   },
   attributes: {
     name:    { type: String , max: 80 },
@@ -123,8 +123,8 @@ maki.define('Index', {
     query: 'splash'
   },
   components: {
-    query: 'splash',
-    get: 'splash'
+    query: 'maki-splash',
+    get: 'maki-splash'
   },
   routes: {
     query: '/'

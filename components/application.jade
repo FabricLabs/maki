@@ -86,29 +86,26 @@ dom-module#maki-application
         var component = 'maki-undefined';
         for (var route in self.routes) {
           var regex = self.routes[route];
+          var viewport = document.querySelectorAll('[for=viewport]')[0];
+          
+          console.log('[MAKI:APPLICATION]', 'testing', regex, 'against', ctx.path);
+          
           if (regex.test(ctx.path)) {
+            console.log('[MAKI:APPLICATION]', 'picking', route, 'from', ctx.path);
             component = self.components[route];
+            view = document.createElement(component);
+            view.type = self.resourceMap[route];
+            view.type.route = route;
             break;
           }
         }
         
-        // TODO: use Polymer to manage this
-        var not = document.querySelectorAll(':not([href="'+ctx.path+'"])');
-        var is = document.querySelectorAll('[href="'+ctx.path+'"]');
-        for (var i = 0; i < not.length; i++) {
-          not[i].classList.remove('active');
-        }
-        for (var i = 0; i < is.length; i++) {
-          is[i].classList.add('active');
-        }
+        console.log('[MAKI:APPLICATION]', 'settled on rendering:', view.type.route, view);
+        //console.log('[MAKI:APPLICATION]', 'type.static:', view.type.static);
+        //console.log('[MAKI:APPLICATION]', 'setting and appending...');
         
-        console.log('[MAKI:APPLICATION]', '_route', ctx.path, self.routes, component);
-
-        var view = document.createElement(component);
         view.setAttribute('src', ctx.path);
-        view.type = self.resourceMap[ctx.path];
 
-        var viewport = document.querySelectorAll('[for=viewport]')[0];
         while (viewport.hasChildNodes()) {
           viewport.removeChild(viewport.lastChild);
         }
@@ -118,30 +115,34 @@ dom-module#maki-application
         var self = this;
         var _route = self._route.bind(self);
 
-        self.routes['/'] = new RegExp(/^\/$/);
-        self.components['/'] = (resources.Index && resources.Index.components) ? resources.Index.components.query : 'maki-index';
         self.resourceMap = {};
-        
-        console.log('[MAKI:APPLICATION]', '_resourcesUpdated', resources);
-        
-        page('/', _route);
 
+        console.log('[MAKI:APPLICATION]', '_resourcesUpdated', resources);
+
+        var order = ['Person', 'Post', 'Index'];
         Object.keys(resources).forEach(function(name) {
           var resource = resources[name];
           console.log('[MAKI:APPLICATION]', 'initializing', name);
-          if (resource.internal) return;
           ['get', 'query'].forEach(function(action) {
+            console.log('[MAKI:APPLICATION]', 'looking for', action, 'in', resource.routes);
             var route = resource.routes[action];
             if (!route) return;
+
+            console.log('[MAKI:APPLICATION]', 'components are:', resource.components);
+
             self.routes[route] = new RegExp(eval(resource.paths[action]));
             self.components[route] = resource.components[action];
             self.resourceMap[route] = resource;
             page(route, _route);
           });
         });
-        
+
+        self.routes['/'] = new RegExp(/^\/$/);
+        self.components['/'] = (resources.Index && resources.Index.components) ? resources.Index.components.query : 'maki-index';
+
+        page('/', _route);
         page('*', _route);
-        
+
         page();
       },
       created: function() {

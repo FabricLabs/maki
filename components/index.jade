@@ -2,12 +2,12 @@ dom-module#maki-index
   template
     .ui.container
       .ui.header
-        h1.huge Hello, #{config.service.name}.
-        h2 !{ markdown( config.service.mission ) }
+        h1.huge Hello, {{config.service.name}}.
+        h2 {{config.service.mission}}
         
-        p !{ markdown( config.service.description ) }
+        p {{config.service.description}}
         
-      .ui.stackable.three.column.grid
+      //-.ui.stackable.three.column.grid
         for point in config.service.points
           .column
             .ui.fluid.card
@@ -19,7 +19,7 @@ dom-module#maki-index
               if (point.action)
                 a.ui.bottom.attached.button(href="#{point.action.link}") !{point.action.text}
 
-      .ui.stackable.three.column.grid
+      //-.ui.stackable.three.column.grid
         .column
           h3 Resources
           .ui.list
@@ -33,8 +33,10 @@ dom-module#maki-index
           .ui.list
             each service in services
               a.item(href="#{service.protocol}://#{service.authority}") #{service.name}
-
   script.
     Polymer({
-      is: 'maki-index'
+      is: 'maki-index',
+      ready: function() {
+        console.log('[MAKI:INDEX]', 'ready');
+      }
     });
