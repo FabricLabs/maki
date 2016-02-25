@@ -118,7 +118,6 @@ maki.define('Plugin', {
 
 maki.define('Index', {
   name: 'Index',
-  template: 'splash',
   templates: {
     query: 'splash'
   },
@@ -129,11 +128,8 @@ maki.define('Index', {
   routes: {
     query: '/'
   },
-  names: {
-    query: 'splash'
-  },
   static: true,
-  internal: true
+  //internal: true
 });
 
 /*var Analytics = require('maki-analytics');
