@@ -1,0 +1,128 @@
+dom-module#maki-identities
+  template
+    maki-datastore(name="identity", private)
+    .ui.three.doubling.cards
+      template(is="dom-repeat", items="{{identities}}")
+        .ui.card
+          .image
+            img(src="/img/stevie.jpg")
+          .content
+            .header
+              //- TODO: break into its own component
+              maki-field(path="/name")
+                template(is="dom-if", if="{{item.name}}")
+                  .value {{item.name}}
+                template(is="dom-if", if="{{!item.name}}")
+                  .value anonymous
+          .ui.two.bottom.attached.buttons
+            template(is="dom-if", if="{{item.name}}")
+              .ui.button(on-tap="_beginEditing") change name
+            template(is="dom-if", if="{{!item.name}}")
+              .ui.bottom.attached.button(on-tap="_beginEditing") set name
+            .ui.button(on-tap="_delete") delete
+  script.
+    Polymer({
+      is: 'maki-identities',
+      properties: {
+        identities: {
+          type: Array
+        }
+      },
+      _handleChange: function(e) {
+        var self = this;
+        if (e.which === 13) {
+          e.preventDefault();
+          self._lockName();
+        }
+
+        var field = $('maki-field[path="/name"] .value');
+        var value = field.html();
+        
+        var identity = self.identity;
+        
+        console.log('[MAKI:IDENTITIES]', identity);
+        identity.name = value;
+
+        var db = document.querySelectorAll('maki-identity maki-datastore')[0];
+        db._patch('/identities', [
+          { op: 'replace', path: '/0', value: identity }
+        ], function(err) {
+          console.log('db._patch back:', err);
+        });
+
+      },
+      _beginEditing: function() {
+        var self = this;
+        var field = $('maki-field[path="/name"] .value');
+        var handler = _.debounce(self._handleChange, 250);
+        field.keypress(handler.bind(self));
+        self._unlockName();
+        field.focus();
+      },
+      _unlockName: function() {
+        var self = this;
+        var field = $('maki-field[path="/name"] .value');
+        field.attr('contenteditable', true);
+      },
+      _lockName: function() {
+        var self = this;
+        var field = $('maki-field[path="/name"] .value');
+        field.attr('contenteditable', false);
+      },
+      _list: function() {
+        var self = this;
+        console.log('identity datastore open, initializing work...');
+        var db = document.querySelectorAll('maki-datastore[name=identity]')[0];
+        var melody = document.querySelectorAll('melody-application')[0];
+
+        db._retrieve('/identities', function(err, identities) {
+          console.log('[MAKI:IDENTITIES]', 'retrieved:', err, identities);
+          if (err) console.error(err);
+          self.identities = identities;
+          self.identity = identities[0];
+          melody.identity = identities[0];
+        });
+      },
+      _store: function(identity) {
+        var self = this;
+        console.log('[MAKI:IDENTITIES]', '_storeIdentity', identity);
+        // TODO: only if autoregister enabled...
+        var db = document.querySelectorAll('maki-datastore[name=identity]')[0];
+        var key = '/identities/' + identity.key.public.toString();
+        
+        var clone = _.cloneDeep(identity);
+        clone.key.public = identity.key.public.toString();
+
+        db._store(key, clone, function(err) {
+          console.log('identity registered!', err);
+        });
+      },
+      _register: function(identity) {
+        var self = this;
+        console.log('[MAKI:IDENTITIES]', '_storeIdentity', identity);
+        // TODO: only if autoregister enabled...
+        var db = document.querySelectorAll('maki-datastore[name=melody]')[0];
+        var key = '/identities/' + identity.key.public.toString();
+
+        var clone = _.cloneDeep(identity);
+        clone.key.public = identity.key.public.toString();
+
+        delete clone.key.private;
+        
+        db._store(key, clone, function(err) {
+          console.log('identity registered!', err);
+        });
+      },
+      _generate: function(done) {
+        // TODO: do this in a Web Worker to prevent UI jank
+        var Mnemonic = require('bitcore-mnemonic');
+        var mnemonic = new Mnemonic();
+        done(null, mnemonic);
+      },
+      ready: function() {
+        var self = this;
+        var db = document.querySelectorAll('maki-identities maki-datastore')[0];
+        console.log('[MAKI:IDENTITIES]', 'ready');
+        document.addEventListener('datastore:identity:open', self._list.bind(self), false);
+      }
+    });
