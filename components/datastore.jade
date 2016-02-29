@@ -9,6 +9,9 @@ dom-module#maki-datastore
         },
         store: {
           type: Object
+        },
+        private: {
+          type: Boolean
         }
       },
       listeners: {
@@ -18,13 +21,14 @@ dom-module#maki-datastore
       _store: function(key, val, cb) {
         var self = this;
         console.log('[MAKI:DATASTORE]', '_store', typeof val, key, val);
-        if (val instanceof Array && val.length === 0) return;
+        if (val instanceof Array && val.length === 0) return cb('Empty array not allowed.');
         self.store.put(key, val, function(err) {
           if (err) console.error(err);
           self.fire('datastore:change', {
             key: key,
             val: val
           });
+          return cb(err);
         });
       },
       _retrieve: function(key, cb) {
@@ -34,9 +38,9 @@ dom-module#maki-datastore
           asBuffer: false
         }, function(err, val) {
           if (err) console.error(err);
-          if (!val) return self.fire('datastore:miss', key);
-          console.log('[MAKI:DATASTORE]', '_retrieve result:', key, val);
-          return cb(err, val);
+          if (val) return cb(null, val);
+          self.fire('datastore:miss', key);
+          return cb('datastore:miss');
         });
       },
       _patch: function(key, ops, cb) {
@@ -58,6 +62,8 @@ dom-module#maki-datastore
         var key = e.detail;
 
         console.log('[MAKI:DATASTORE]', '_handleMiss', e, detail);
+        console.log('private:', self.private);
+        if (self.private) return;
 
         $.getJSON(key, function(data) {
           console.log('[MAKI:DATASTORE]', 'retrieved (from remote)', data);
@@ -116,7 +122,9 @@ dom-module#maki-datastore
         self.store.open(function(err) {
           console.log('[MAKI:DATASTORE]', 'open');
           var event = new Event('datastore:open')
-          window.dispatchEvent(event);
+          document.dispatchEvent(event);
+          var event = new Event('datastore:'+self.name+':open')
+          document.dispatchEvent(event);
 
           if (err) console.error(err);
           self._sync();
