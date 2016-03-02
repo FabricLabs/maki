@@ -48,7 +48,7 @@ dom-module#maki-collection
         var datastore = document.querySelectorAll('maki-datastore')[0];
         console.log('[MAKI:COLLECTION]','_handleQuery:', e, key);
         datastore._retrieve(key, function(err, data) {
-          if (!data) self.fire('datastore:miss', hash);
+          if (!data) self.fire('datastore:miss', key);
           if (err) {
             console.error('_handleQuery error:', err);
             data = [];

@@ -47,6 +47,8 @@ maki.use(developers);
 maki.use(auth);
 
 var Person = maki.define('Person', {
+  icon: 'user',
+  description: 'People are the most important part of Maki, and this is where we list them.  We\'re not users, we\'re _people_, damnit.',
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
     name:     {
@@ -64,7 +66,6 @@ var Person = maki.define('Person', {
       return false;
     }]
   }, */
-  icon: 'user'
 });
 Person.post('patch', function(done) {
   var person = this;
@@ -73,6 +74,9 @@ Person.post('patch', function(done) {
 });
 
 maki.define('Example', {
+  icon: 'idea',
+  description: 'A list of applications Made With Maki.',
+  source: 'data/examples.json',
   components: {
     query: 'maki-examples'
   },
@@ -82,11 +86,12 @@ maki.define('Example', {
     content: { type: String },
     screenshot: { type: 'File' }
   },
-  source: 'data/examples.json',
-  icon: 'idea'
 });
 
 maki.define('Release', {
+  icon: 'tags',
+  description: 'Officially tagged releases of the Maki library.',
+  source: 'https://api.github.com/repos/martindale/maki/releases',
   attributes: {
     name: { type: String , max: 80 },
     tag: { type: String , max: 80 },
@@ -94,8 +99,6 @@ maki.define('Release', {
     published: { type: Date },
     notes: { type: String , render: 'markdown' }
   },
-  source: 'https://api.github.com/repos/martindale/maki/releases',
-  icon: 'tags',
   map: function( release ) {
     return {
       name: release.name,
@@ -107,13 +110,14 @@ maki.define('Release', {
 });
 
 maki.define('Plugin', {
+  icon: 'puzzle',
+  description: 'Modules that extend the default Maki behaviors.',
   attributes: {
     name: { type: String , max: 80 },
     description: { type: String },
     version: { type: String , max: 10 },
     coverage: { type: Number , default: 0 },
   },
-  icon: 'puzzle'
 });
 
 maki.define('Index', {
