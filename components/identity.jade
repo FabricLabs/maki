@@ -123,7 +123,7 @@ dom-module#maki-identity
         var self = this;
         console.log('[MAKI:IDENTITY]', '_identityChanged', identity, old);
         self.isLoggedIn = true;
-        if (identity.name) {
+        if (identity && identity.name) {
           self.isNamed = true;
         }
         $('.modal#identity-confirm').modal('hide');
@@ -231,9 +231,12 @@ dom-module#maki-identity
       },
       _logout: function() {
         var self = this;
-        delete self.identity;
+        self.identity = null;
         self.isLoggedIn = false;
-        self.fire('identity', self.identity);
+        
+        console.log('[MAKI:IDENTITY]', '_logout', self.identity);
+        
+        self.fire('identity', null);
       },
       ready: function() {
         var self = this;
