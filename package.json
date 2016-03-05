@@ -70,6 +70,7 @@
     "node-torrent-stream": "git://github.com/unusualbob/node-torrent-stream#master",
     "node-uuid": "^1.4.1",
     "path-to-regexp": "~0.2.1",
+    "peer": "^0.2.8",
     "pem": "^1.4.1",
     "pluralize": "^1.0.0",
     "procure": "^0.1.4",
