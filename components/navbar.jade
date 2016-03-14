@@ -1,0 +1,31 @@
+dom-module#maki-navbar
+  template
+    .ui.large.secondary.inverted.pointing.menu
+      a.toc.item
+        i.sidebar.icon
+      a.item(href="/")
+        img.tooltipped(src="/img/maki-icon.png", title="The hand-rolled, carefully crafted goodness that is Maki.", data-variation="inverted", style="max-height: 2em; max-width: 2em; margin-bottom: -0.75em; margin-right: -0.5em;")
+      a.item(href="/")
+        i.icon.left(class="#{ config.service.icon || 'lab' }")
+        | #{config.service.name}
+      each resource in resources
+        if (!resource.internal)
+          a.item(href="#{resource.routes.query}")
+            if (resource.options.icon)
+              i.icon(class="#{resource.options.icon}")
+            | #{resource.plural}
+
+      //- block for prepend/append/replace-able menu items
+      block mainMenu
+        .right.menu
+          a.item.tooltipped(class="btn btn-default", href="bitcoin:1EBdAcEhP4Qn7sihJoCqinLC8A14zqHJ7R", title="If you have a bitcoin wallet installed and configured, this will launch it.") 
+            i.icon.bitcoin(alt="Bitcoin", title="Donate Bitcoin")
+            | Donate &raquo;
+          a.item.tooltipped(href="#{ config.service.source }", title="View the Source, Luke!  Source code for this site.")
+            i.fork.icon
+            | Code &raquo;
+
+  script.
+    Polymer({
+      is: 'maki-navbar'
+    });

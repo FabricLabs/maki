@@ -50,6 +50,9 @@
     "lodash": "^2.4.1",
     "maki-analytics": "git://github.com/martindale/maki-analytics",
     "maki-auth-simple": "0.0.1",
+    "maki-client-level": "^0.1.0",
+    "maki-client-polymer": "git://github.com/martindale/maki-client-polymer",
+    "maki-cms-local": "0.0.2",
     "maki-forms": "0.0.0",
     "maki-jsonrpc": "^0.1.1",
     "maki-mongoose-hooks": "git://github.com/martindale/maki-mongoose-hooks#nko",
@@ -76,6 +79,7 @@
     "spdy": "^1.28.1",
     "speakingurl": "^1.1.0",
     "streamifier": "^0.1.0",
+    "walk": "^2.3.9",
     "ws": "~0.4.31"
   },
   "devDependencies": {

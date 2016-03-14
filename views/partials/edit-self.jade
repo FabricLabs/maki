@@ -1,0 +1,9 @@
+.ui.right.floated.mini.buttons
+  if (metadata && metadata.edit && metadata.source)
+    a.ui.button.tooltipped(href="#{metadata.edit}", title="Launch an editor to change content on this page.")
+      i.icon.pencil
+      | edit this page
+    .or
+    a.ui.button.tooltipped(href="#{metadata.source}", title="View the original content used to generate this page.")
+      i.icon.code
+      | view the source

@@ -8,11 +8,31 @@ var passport = new Passport({
   resource: 'Person'
 });
 maki.use( passport );
+maki.use(require('maki-client-level'));
+maki.use(require('maki-client-polymer'));
 
 var CMS = require('maki-cms-local');
 var cms = new CMS({
   base: '/docs',
   path: '/docs'
+});
+
+var tutorials = new CMS({
+  base: '/tutorials',
+  path: '/source/tutorials',
+  view: process.env.PWD + '/views/page'
+});
+
+var snippets = new CMS({
+  base: '/snippets',
+  path: '/source/snippets',
+  view: process.env.PWD + '/views/page'
+});
+
+var developers = new CMS({
+  base: '/developers',
+  path: '/source/developers',
+  view: process.env.PWD + '/views/page'
 });
 
 var Auth = require('maki-auth-simple');
@@ -21,6 +41,9 @@ var auth = new Auth({
 });
 
 maki.use(cms);
+maki.use(tutorials);
+maki.use(snippets);
+maki.use(developers);
 maki.use(auth);
 
 var Person = maki.define('Person', {
@@ -35,12 +58,12 @@ var Person = maki.define('Person', {
     email:    { type: String , max: 80 , restricted: true },
     created:  { type: Date , default: Date.now }
   },
-  auth: {
+  /* auth: {
     'patch': ['admin', function(done) {
       var person = this;
       return false;
     }]
-  },
+  }, */
   icon: 'user'
 });
 Person.post('patch', function(done) {
@@ -50,6 +73,9 @@ Person.post('patch', function(done) {
 });
 
 maki.define('Example', {
+  components: {
+    query: 'maki-examples'
+  },
   attributes: {
     name:    { type: String , max: 80 },
     slug:    { type: String , max: 80 , id: true },
@@ -80,8 +106,36 @@ maki.define('Release', {
   }
 });
 
+maki.define('Plugin', {
+  attributes: {
+    name: { type: String , max: 80 },
+    description: { type: String },
+    version: { type: String , max: 10 },
+    coverage: { type: Number , default: 0 },
+  },
+  icon: 'puzzle'
+});
+
+maki.define('Index', {
+  name: 'Index',
+  templates: {
+    query: 'splash'
+  },
+  components: {
+    query: 'maki-splash',
+    get: 'maki-splash'
+  },
+  routes: {
+    query: '/'
+  },
+  static: true,
+  //internal: true
+});
+
 /*var Analytics = require('maki-analytics');
 var analytics = new Analytics({ id: 'UA-57746323-2' });
 
 maki.use( analytics ).serve(['http']).start();*/
-maki.start();
+maki.start(function() {
+  console.log('routes:', maki.routes);
+});

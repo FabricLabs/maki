@@ -2,10 +2,28 @@ extends layouts/default
 
 block content
   h1 Projects Using Maki
-  p Here's a list of projects that are built using Maki, or are using Maki as a reference stack for their own application.
+  p We're really excited to have helped many people build awesome things.  Here's a few of them, including special highlights when they've also shared their code!
 
-  hr
+  .ui.icon.message
+    i.icon.lab
+    .content
+      .header Building something cool?
+      p Go ahead and <a href="https://github.com/martindale/maki/edit/master/data/examples.json">add it to the list</a>!  We'd love to highlight what you've built.  <strong>Bonus points for being open source!</strong> 🍺
 
-  ul.media-list
+  .ui.divided.items
     for example in examples
-      include partials/example
+      .item
+        a.ui.tiny.image(href="#{example.uri}")
+          if (example.image)
+            img(src="#{example.image}")
+          else
+            img(src="/img/image.png")
+        .content
+          .header
+            a(href="#{example.uri}") #{example.name}
+            if (example.source)
+              |  
+              a.ui.label(href="#{example.source}")
+                i.icon.code
+                | Source
+          p.description #{example.description}

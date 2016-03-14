@@ -1,0 +1,91 @@
+dom-module#maki-collection
+  template
+    .ui.vertical.segment
+      .ui.container
+        h2
+          //-template(if$="{{type.options.icon}}")
+          i(class$="ui icon {{type.options.icon}}")
+          a(href="/{{type.names.query}}") {{type.plural}}
+        p {{type.description}}
+        code
+          pre {{resource}}
+        
+        .ui.five.cards
+          template(is="dom-repeat", items="{{items}}")
+            .ui.card
+              template(if="{{item.image}}")
+                .image
+                  img(src="/img/maki-logo.png")
+              .content
+                a.header(href="/{{type.names.query}}/{{item.slug}}") {{item.name}} {{item.username}}
+                p.description {{item.description}}
+              template(if="{{item.action}}")
+                a.ui.bottom.attached.button(if="{{item.action}}", href="{{item.action.href}}") {{item.action.text}}
+            //-maki-item(src="/people/{{item.id}}", item="{{item}}")
+
+  script.
+    Polymer({
+      is: 'maki-collection',
+      listeners: {
+        'datastore:query':  '_handleQuery',
+        'state:change':     '_applyState'
+      },
+      properties: {
+        src: {
+          type: String,
+          observer: '_sourceChanged'
+        },
+        type: {
+          type: Object
+        },
+        items: {
+          type: Array,
+          notify: true
+        },
+      },
+      _handleQuery: function(e, key) {
+        var self = this;
+        var datastore = document.querySelectorAll('maki-datastore')[0];
+        console.log('[MAKI:COLLECTION]','_handleQuery:', e, key);
+        datastore._retrieve(key, function(err, data) {
+          if (!data) self.fire('datastore:miss', hash);
+          if (err) {
+            console.error('_handleQuery error:', err);
+            data = [];
+          }
+          self.fire('state:change', data);
+        });
+      },
+      _applyState: function(e) {
+        var self = this;
+        var state = e.detail;
+        
+        if (!(state instanceof Array)) {
+          state = [state];
+        }
+
+        self.items = state;
+      },
+      _sourceChanged: function(source) {
+        var self = this;
+        var maki = document.querySelectorAll('maki-application')[0];
+        console.log('[MAKI:COLLECTION]', 'collection sourceChanged:', source);
+        //self.resource = maki.resourceMap[source];
+        self.fire('datastore:query', source);
+      },
+      _sync: function() {
+        var self = this;
+        console.log('[MAKI:COLLECTION]', '_sync');
+        self.fire('datastore:query', self.src);
+      },
+      ready: function() {
+        var self = this;
+        console.log('[MAKI:COLLECTION]', 'ready');
+      },
+      attached: function() {
+        var self = this;
+        var channel = document.querySelectorAll('maki-channel')[0];
+        console.log('[MAKI:COLLECTION]', 'collection is attached:', self.src);
+        channel._subscribe(self.src);
+      }
+    });

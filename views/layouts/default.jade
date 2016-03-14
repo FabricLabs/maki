@@ -12,34 +12,25 @@ html.no-js
     link(rel="stylesheet", href="/css/semantic.min.css")
     link(rel="stylesheet", href="/css/highlight/maki.css")
     link(rel="stylesheet", href="/css/maki.css")
-    link(rel="stylesheet", href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Open+Sans:300italic,400,300,700")
+      
+    link(rel="import", href="/polymer/polymer.html")
+    link(rel="import", href="/components")
 
-    script(src="/js/jquery.js")
-    script(src="/js/semantic.min.js")
-    script(src="/js/lodash.min.js")
-
-    script(src="/js/highlight.pack.js")
-    script(src="/js/uuid.js")
-    script(src="/js/jsonrpc.js")
-    
-    script(src="/js/maki.js")
+    script(src="/js/bundle.js")
 
     base(href="/")
 
   body
-    .ui.page.grid
-      .row
-        block navbar
-          include ../partials/navbar
+    maki-application
+      include ../page
 
-      .row
-        .column.content(data-for="viewport")
-        
-          include ../partials/flash
-        
-          block content
-
-      .row
-        .ui.one.column.stackable.center.aligned
-          small <a href="http://github.com/martindale/maki">Made</a> with care by <a href="http://www.ericmartindale.com/">Eric Martindale</a>.
     block scripts
+      
+    script.
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-57746323-1', 'auto');
+      ga('send', 'pageview');

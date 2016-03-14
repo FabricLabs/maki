@@ -1,0 +1,35 @@
+dom-module#maki-item
+  template
+    .ui.card
+      .image
+        img(src="/img/maki-logo.png")
+      .content
+        a.header(href="{{item.href}}") {{item.name}}
+        p.description {{item.description}}
+      template(if="{{item.action}}")
+        a.ui.bottom.attached.button(if="{{item.action}}", href="{{item.action.href}}") {{item.action.text}}
+        
+  script(src="/js/jquery.js")
+  script.
+    Polymer({
+      is: 'maki-item',
+      properties: {
+        src: {
+          type: String,
+          //observer: '_srcChanged'
+        },
+        hash: {
+          type: String
+        },
+        item: {
+          type: Object
+        }
+      },
+      created: function() {
+        var self = this;
+        console.log('created!', self.item);
+      },
+      _srcChanged: function() {
+        console.log('source changed for item');
+      }
+    });
