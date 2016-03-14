@@ -27,11 +27,20 @@ dom-module#maki-peer-manager
       _broadcast: function(msg) {
         var self = this;
         console.log('[MAKI:PEER-MANAGER]', '_broadcast', msg);
+        if (typeof msg !== 'string') {
+          msg = JSON.stringify(msg);
+        }
+        
         Object.keys(self.connections).forEach(function(id) {
           var conn = self.connections[id];
           console.log('[MAKI:PEER-MANAGER]', 'connection iterator:', id);
           conn.send(msg);
         });
+      },
+      _relay: function(msg) {
+        var self = this;
+        console.log('[MAKI:PEER-MANAGER]', '_relay', msg);
+        self._broadcast(msg);
       },
       _peerWith: function(id) {
         var self = this;
@@ -47,7 +56,9 @@ dom-module#maki-peer-manager
               console.log('[MAKI:PEER-MANAGER]', 'connection data:', data);
               
               var channel = document.querySelector('maki-channel');
-              channel._handleMessage(data);
+              channel._handleMessage({
+                data: data
+              });
               
             });
             self.connections[id] = conn;
@@ -74,7 +85,7 @@ dom-module#maki-peer-manager
           var peer = self.peers[id];
           if (peer && peer.state !== 'connected') {
             return self._peerWith(id);
-          } 
+          }
         });
 
         //setTimeout(self._connect.bind(self), 2500);
@@ -94,6 +105,8 @@ dom-module#maki-peer-manager
           /*newPeerIDs.forEach(function(id) {
             self._peerWith(id);
           });*/
+          
+          console.log('[MAKI:PEER-MANAGER]', 'peering with:', newPeerIDs[0]);
           
           self._peerWith(newPeerIDs[0]);
           

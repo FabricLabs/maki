@@ -50,13 +50,20 @@ dom-module#maki-channel
       },
       _handleMessage: function(msg) {
         var self = this;
+        console.log('[MAKI:CHANNEL]', '_handleMessage', msg);
+        
         try {
           var data = JSON.parse( msg.data );
         } catch (e) {
           var data = {};
         }
+        
+        console.log('[MAKI:CHANNEL]', '_handleMessage', 'resulting data:', data);
+        
         // experimental JSON-RPC implementation
         if (data.jsonrpc === '2.0') {
+          console.log('[MAKI:CHANNEL]', '_handleMessage', 'valid jsonrpc!');
+          
           switch (data.method) {
             case 'ping':
               console.log('[MAKI:CHANNEL]', 'received ping.  playing pong...');
@@ -71,10 +78,12 @@ dom-module#maki-channel
               console.log('[MAKI:CHANNEL]', 'received `patch` event:', data.params.channel , data );
               var channel = data.params.channel;
               var ops = data.params.ops;
-              var datastore = document.querySelectorAll('maki-datastore')[0];
-              
+              var datastore = document.querySelector('maki-datastore');
+              var manager = document.querySelector('maki-peer-manager');
+
               datastore._patch(channel, ops);
-            
+              manager._relay(data);
+
             break;
             default:
               console.error('[MAKI:CHANNEL]', 'unhandled jsonrpc method ' , data.method);

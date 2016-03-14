@@ -12,11 +12,27 @@ dom-module#maki-datastore
         },
         private: {
           type: Boolean
+        },
+        resources: {
+          type: Object,
+          value: {}
         }
       },
       listeners: {
         'datastore:miss':   '_handleMiss',
         'datastore:change': '_handleChange'
+      },
+      _populate: function(obj, stack) {
+        var self = this;
+        for (var property in obj) {
+          if (obj.hasOwnProperty(property)) {
+            if (typeof obj[property] === 'object') {
+              return self._populate(obj[property], stack);
+            } else {
+              
+            }
+          }
+        }
       },
       _store: function(key, val, cb) {
         var self = this;
