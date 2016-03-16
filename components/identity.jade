@@ -2,61 +2,59 @@ dom-module#maki-identity
   template
     maki-datastore(name="identity", private)
     //- TODO: this should be a /people thing, not an identity
-    template(is="dom-if", if="{{!isLoggedIn}}")
-      .ui.button.item(on-tap="_onboard")
+    template(is="dom-if", if="{{!hasIdentities}}")
+      a.item(on-tap="_onboard")
         i.icon.sign.in
         | Sign In
-        
-    template(is="dom-if", if="{{isLoggedIn}}")
-      a.item(href="/people/{{identity.name}}")
-        template(is="dom-if", if="{{isNamed}}") {{identity.name}}
-        template(is="dom-if", if="{{!isNamed}}") anonymous
-      .ui.button.item(on-tap="_logout")
-        i.icon.sign.out
-        | Sign Out
+    template(is="dom-if", if="{{hasIdentities}}")
+      template(is="dom-if", if="{{!isLoggedIn}}")
+        .ui.dropdown.item
+          i.icon.sign.in
+          | Sign In
+          i.icon.dropdown
+          maki-identity-list.menu
+            template(is="dom-repeat", items="{{identities}}")
+              maki-identity-card.item(identity="{{item}}", on-tap="_selectIdentity") {{item.name}}
+            .green.icon.labeled.item(on-tap="_onboard")
+              i.icon.leaf
+              | Start Fresh
+      template(is="dom-if", if="{{isLoggedIn}}")
+        //-a.item(href="/settings")
+          i.icon.setting
+        a.item(href="/people/{{identity.name}}")
+          template(is="dom-if", if="{{isNamed}}") {{identity.name}}
+          template(is="dom-if", if="{{!isNamed}}") anonymous
+        .ui.button.item(on-tap="_logout")
+          i.icon.sign.out
+          | Sign Out
 
     maki-modal.ui.modal#identity-confirm
-      .header With which identity?
+      .header Welcome to the Identity Library.
       .content
         .description
-          .ui.four.cards
-            template(is="dom-repeat", items="{{identities}}")
-              maki-identity-card.ui.card(identity="{{item}}")
-            .ui.card
-              .image
-                img(src="/img/image.png")
-              .content
-              .ui.bottom.attached.labeled.button(on-tap="_generate") Create New
-                i.icon.chevron.right
+          p Identities are secure ways to tell people who we are.  Once you have one, you can take it with you anywhere.
+          .ui.two.massive.buttons
+            .ui.blue.labeled.icon.button(on-tap="_importFromSeed")
+              i.icon.eyedropper
+              | Import From Seed
+            .or
+            .ui.green.right.labeled.icon.button(on-tap="_displayGeneratorModal")
+              i.icon.leaf
+              | Clean Start
       .actions
-        .ui.right.labeled.icon.button(on-tap="_closeSelectionModal") Nevermind, don't sign in.
-          i.cancel.icon
-            
-    form.ui.modal#identity-name
-      .header What should we call you?
-      .content
-        .description
-          .ui.large.form
-            .field
-              label Your Name
-              input(type="text", placeholder="SomeUsername", value="{{identity.name}}")
-          p Other people will see this, so pick something good.
-      .actions
-        button.ui.positive.right.labeled.icon.button(type="submit", on-tap="_setName") Set Name and Sign In
-          i.right.chevron.icon
+        .ui.right.labeled.icon.button(on-tap="_closeSelectionModal") Some other time.
+          i.remove.icon
 
     maki-modal.ui.modal#identity-create
-      .header Who are you?
+      .header Identity Generator
       .content
         .description
-          p It doesn't look like we've seen you before.
-          h3 {{words}}
-          p
-            strong Please write this down and keep it in a safe place!
-            |  We can't recover this for you, and without it, you'll lose everything.
+          maki-step-ladder
+          .clearing
+
       .actions
-        .ui.positive.right.labeled.icon.button(on-tap="_displayNameModal") Yep, I've written it down.
-          i.checkmark.icon
+        .ui.cancel.labeled.icon.button.hidden(on-tap="_displayNameModal") Nevermind, I'm done here.
+          i.remove.icon
 
   script(src="/js/lodash.min.js", async)
   script(src="/assets/bitcore.min.js", async)
@@ -80,6 +78,14 @@ dom-module#maki-identity
           type: Boolean,
           value: false
         },
+        autoselect: {
+          type: Boolean,
+          value: false
+        },
+        hasIdentities: {
+          type: Boolean,
+          value: false
+        },
         isNamed: {
           type: Boolean,
           value: false
@@ -88,33 +94,26 @@ dom-module#maki-identity
           type: String
         }
       },
-      _setName: function(e) {
-        e.preventDefault();
-        var self = this;
-        var name = $('.modal#identity-name input').val();
-        console.log('setting name:', name);
-        self.set('identity.name', name);
-        self.isNamed = true;
-        self._save();
-        self._register();
-      },
       _authenticate: function() {
         
-      },
-      _displayCreatedModal: function() {
-        $('.modal#identity-create').modal('setting', 'closable', false).modal('show');
-      },
-      _displayNameModal: function() {
-        var self = this;
-        $('.modal#identity-name').on('submit', self._setName.bind(self));
-        $('.modal#identity-name').modal('show');
-        $('.modal#identity-name input').focus();
       },
       _displaySelectionModal: function() {
         $('.modal#identity-confirm').modal('show');
       },
+      _displayGeneratorModal: function() {
+        $('.modal#identity-create').modal('show');
+      },
+      _closeGeneratorModal: function() {
+        $('.modal#identity-create').modal('hide');
+      },
       _closeSelectionModal: function() {
         $('.modal#identity-confirm').modal('hide');
+      },
+      _initializeDropdown: function() {
+        console.log('[MAKI:IDENTITY]', '_initializeDropdown');
+        $('.ui.dropdown').dropdown({
+          action: 'nothing'
+        });
       },
       _sign: function(input, done) {
         var Message = require('bitcore-message');
@@ -123,11 +122,13 @@ dom-module#maki-identity
         var self = this;
         console.log('[MAKI:IDENTITY]', '_identityChanged', identity, old);
         self.isLoggedIn = true;
+        self.hasIdentities = true;
         if (identity && identity.name) {
           self.isNamed = true;
         }
-        $('.modal#identity-confirm').modal('hide');
+
         self.fire('identity', identity);
+        self._initializeDropdown();
       },
       _onboard: function() {
         var self = this;
@@ -175,20 +176,28 @@ dom-module#maki-identity
         });
         
       },
-      _save: function() {
+      _save: function(cb) {
         var self = this;
         var db = document.querySelectorAll('maki-datastore[name=identity]')[0];
         var identity = self.identity;
 
         db._store('/identities', [identity], function(err) {
           if (err) console.log('err', err);
+          cb(err);
         });
         
         db._store('/identities/' + identity.key.public, identity, function(err) {
         
         });
       },
-      _generate: function() {
+      _initiateGeneration: function() {
+        var self = this;
+        
+        self._closeSelectionModal();
+        self._generate();
+        
+      },
+      _generate: function(cb) {
         var self = this;
         console.log('[MAKI:IDENTITY]', '_generate');
         // TODO: do this in a Web Worker to prevent UI jank
@@ -211,36 +220,78 @@ dom-module#maki-identity
           }
         };
         
-        self._save(self.identity);
-        self._displayCreatedModal();
+        self._save(cb);
+
       },
       _select: function() {
         var self = this;
-        var db = document.querySelectorAll('maki-identity maki-datastore')[0];
+        var db = document.querySelector('maki-datastore[name=identity]');
         var melody = document.querySelectorAll('melody-application')[0];
         
         console.log('[MAKI:IDENTITY]', '_select');
         db._retrieve('/identities', function(err, identities) {
           console.log('[MAKI:IDENTITY]', 'retrieved', identities);
-          if (!identities || !identities.length) {
-            return self._generate();
-          }
-          self.identities = identities;
+          self.identities = identities || [];
           self._displaySelectionModal();
+        });
+      },
+      _selectIdentity: function(e, detail) {
+        var self = this;
+        console.log('[MAKI:IDENTITY]', '_selectIdentity', e, detail);
+        var manager = document.querySelector('maki-identity');
+        e.target.classList.add('loading');
+        manager.identity = e.target.identity;
+        manager._register();
+      },
+      _attach: function() {
+        var self = this;
+        var db = document.querySelector('maki-datastore[name=identity]');
+        var manager = document.querySelector('maki-identity');
+        console.log('[MAKI:IDENTITY]', '_attach');
+        
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/worker.js').then(function(reg) {
+            console.log('[MAKI:IDENTITY]', 'service worker installled!');
+            
+            navigator.serviceWorker.addEventListener('message', function(event) {
+              console.log('[MAKI:IDENTITY]', 'serviceworker message:', event );
+            });
+            
+          }).catch(function(err) {
+            console.log('[MAKI:IDENTITY]', 'service worker failed:', err);
+          });
+        }
+
+        db._retrieve('/identities', function(err, identities) {
+          console.warn('[MAKI:IDENTITY]', 'retrieved', identities);
+          self.identities = identities;
+          if (identities && identities.length) {
+            self.hasIdentities = true;
+            if (self.autoselect) {
+              self.identity = identities[0];
+              manager._register();
+            }
+          }
+          self._initializeDropdown();
         });
       },
       _logout: function() {
         var self = this;
         self.identity = null;
         self.isLoggedIn = false;
-        
         console.log('[MAKI:IDENTITY]', '_logout', self.identity);
-        
         self.fire('identity', null);
+        self._initializeDropdown();
+      },
+      attached: function() {
+        var self = this;
+        console.log('[MAKI:IDENTITY]', 'attached');
+        self._initializeDropdown();
       },
       ready: function() {
         var self = this;
         console.log('[MAKI:IDENTITY]', 'ready');
-        //document.addEventListener('datastore:identity:open', self._select.bind(self), false);
+        document.addEventListener('datastore:identity:open', self._attach.bind(self), false);
+        //self.addEventListener('identity', self._initializeDropdown.bind(self), false);
       }
     });

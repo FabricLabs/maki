@@ -67,7 +67,6 @@ dom-module#maki-datastore
           console.log('[MAKI:DATASTORE]', 'applying to:', obj);
           jsonpatch.apply(obj, ops);
           console.log('[MAKI:DATASTORE]', 'obj now:', obj);
-
           self._store(key, obj, function(err) {
             if (err) console.error(err);
           });
