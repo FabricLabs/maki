@@ -179,7 +179,6 @@ dom-module#maki-identity
             cb();
           }
         });
-        
       },
       _save: function(cb) {
         var self = this;
@@ -287,7 +286,10 @@ dom-module#maki-identity
         self.isLoggedIn = false;
         console.log('[MAKI:IDENTITY]', '_logout', self.identity);
         self.fire('identity', null);
-        self._initializeDropdown();
+        // TODO: why is a delay required here?
+        setTimeout(function() {
+          self._initializeDropdown();
+        }, 50);
       },
       attached: function() {
         var self = this;
