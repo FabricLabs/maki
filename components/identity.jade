@@ -100,17 +100,16 @@ dom-module#maki-identity
       _displaySelectionModal: function() {
         $('.modal#identity-confirm').modal('show');
       },
+      _closeSelectionModal: function() {
+        $('.modal#identity-confirm').modal('hide');
+      },
       _displayGeneratorModal: function() {
         $('.modal#identity-create').modal('show');
       },
       _closeGeneratorModal: function() {
         $('.modal#identity-create').modal('hide');
       },
-      _closeSelectionModal: function() {
-        $('.modal#identity-confirm').modal('hide');
-      },
       _initializeDropdown: function() {
-        console.log('[MAKI:IDENTITY]', '_initializeDropdown');
         $('.ui.dropdown').dropdown({
           action: 'nothing'
         });
@@ -120,15 +119,16 @@ dom-module#maki-identity
       },
       _identityChanged: function(identity, old) {
         var self = this;
-        console.log('[MAKI:IDENTITY]', '_identityChanged', identity, old);
-        self.isLoggedIn = true;
-        self.hasIdentities = true;
+        if (self.identity) {
+          self.isLoggedIn = true;
+        }
+        if (self.identities) {
+          self.hasIdentities = true;
+        }
         if (identity && identity.name) {
           self.isNamed = true;
+          self.fire('identity', identity);
         }
-
-        self.fire('identity', identity);
-        self._initializeDropdown();
       },
       _onboard: function() {
         var self = this;
@@ -136,7 +136,7 @@ dom-module#maki-identity
       },
       _register: function() {
         var self = this;
-        console.log('[MAKI:IDENTITY]', '_register');
+        console.log('[MAKI:IDENTITY]', '_register', 'calling publish...');
         self._publish(function() {
           // TODO: use purely local store
           $.ajax({
@@ -248,12 +248,7 @@ dom-module#maki-identity
         manager.identity = e.target.identity;
         manager._register();
       },
-      _attach: function() {
-        var self = this;
-        var db = document.querySelector('maki-datastore[name=identity]');
-        var manager = document.querySelector('maki-identity');
-        console.log('[MAKI:IDENTITY]', '_attach');
-        
+      _startAgent: function() {
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.register('/worker.js').then(function(reg) {
             console.log('[MAKI:IDENTITY]', 'service worker installled!');
@@ -266,7 +261,13 @@ dom-module#maki-identity
             console.log('[MAKI:IDENTITY]', 'service worker failed:', err);
           });
         }
-
+      },
+      _attach: function() {
+        var self = this;
+        var db = document.querySelector('maki-datastore[name=identity]');
+        var manager = document.querySelector('maki-identity');
+        console.log('[MAKI:IDENTITY]', '_attach');
+        self._startAgent();
         db._retrieve('/identities', function(err, identities) {
           console.warn('[MAKI:IDENTITY]', 'retrieved', identities);
           self.identities = identities;
