@@ -5,6 +5,9 @@ dom-module#maki-channel
     Polymer({
       is: 'maki-channel',
       properties: {
+        namespace: { 
+          type: String
+        },
         autoconnect: {
           type: Boolean
         },
@@ -78,7 +81,7 @@ dom-module#maki-channel
               console.log('[MAKI:CHANNEL]', 'received `patch` event:', data.params.channel , data );
               var channel = data.params.channel;
               var ops = data.params.ops;
-              var datastore = document.querySelector('maki-datastore');
+              var datastore = document.querySelector('maki-datastore[name='+self.namespace+']');
               var manager = document.querySelector('maki-peer-manager');
 
               datastore._patch(channel, ops);
@@ -95,7 +98,7 @@ dom-module#maki-channel
       },
       _connect: function() {
         var self = this;
-        var maki = document.querySelectorAll('maki-application')[0];
+        var maki = document.querySelector('maki-application');
         var protocol = (document.location.protocol === 'http:') ? 'ws://' : 'wss://';
         var path = protocol + document.location.host; // + self.src;
         

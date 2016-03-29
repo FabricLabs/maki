@@ -37,7 +37,8 @@ dom-module#maki-step-ladder
       .ui.bottom.attached.clearing.segment
         h3 Write this down.
         p This is your seed.  It can be used to sign in as you anywhere, any time.  Write it down and put it somewhere very safe.
-        h3 {{words}}
+        pre
+          code {{words}}
         p If you lose your seed, it's gone.  We cannot recover it for you.  Make sure you've really got it.
         a.ui.huge.fluid.green.button(on-tap="_moveToConfigure")
           i.icon.checkmark
