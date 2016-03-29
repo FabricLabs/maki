@@ -54,7 +54,7 @@ dom-module#maki-datastore
           asBuffer: false
         }, function(err, val) {
           if (err) console.error(err);
-          if (val) return cb(null, val);
+          if (val) return cb(null, val) && self.fire('datastore:miss', key);
           self.fire('datastore:miss', key);
           return cb('datastore:miss');
         });
@@ -75,11 +75,10 @@ dom-module#maki-datastore
       _handleMiss: function(e, detail) {
         var self = this;
         var key = e.detail;
-
         console.log('[MAKI:DATASTORE]', '_handleMiss', e, detail);
-        console.log('private:', self.private);
         if (self.private) return;
-
+        
+        // TODO: query network instead of server
         $.getJSON(key, function(data) {
           console.log('[MAKI:DATASTORE]', 'retrieved (from remote)', data);
           if (!data) return;
