@@ -140,8 +140,8 @@ dom-module#maki-identity
         self._publish(function() {
           // TODO: use purely local store
           $.ajax({
-            type: 'POST',
-            url: '/people',
+            type: 'PUT',
+            url: '/people/' + self.identity.name,
             data: {
               name: self.identity.name,
               identity: self.identity.key.public,
@@ -182,7 +182,7 @@ dom-module#maki-identity
       },
       _save: function(cb) {
         var self = this;
-        var db = document.querySelectorAll('maki-datastore[name=identity]')[0];
+        var db = document.querySelector('maki-datastore[name=identity]');
         var identity = self.identity;
 
         db._store('/identities', [identity], function(err) {
@@ -230,7 +230,7 @@ dom-module#maki-identity
       _select: function() {
         var self = this;
         var db = document.querySelector('maki-datastore[name=identity]');
-        var melody = document.querySelectorAll('melody-application')[0];
+        var melody = document.querySelector('melody-application');
         
         console.log('[MAKI:IDENTITY]', '_select');
         db._retrieve('/identities', function(err, identities) {
