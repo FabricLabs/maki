@@ -140,8 +140,8 @@ dom-module#maki-identity
         self._publish(function() {
           // TODO: use purely local store
           $.ajax({
-            type: 'PUT',
-            url: '/people/' + self.identity.name,
+            type: 'POST',
+            url: '/people',
             data: {
               name: self.identity.name,
               identity: self.identity.key.public,
@@ -167,8 +167,8 @@ dom-module#maki-identity
         
         // TODO: use purely local store
         $.ajax({
-          type: 'PUT',
-          url: '/identities/' + clone.key.public,
+          type: 'POST',
+          url: '/identities',
           data: clone,
           headers: {
             Accept: 'application/json'
@@ -274,6 +274,7 @@ dom-module#maki-identity
             self.hasIdentities = true;
             if (self.autoselect) {
               self.identity = identities[0];
+              console.warn('[MAKI:IDENTITY]', 'autoselect _register', self.identity);
               manager._register();
             }
           }
