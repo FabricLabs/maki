@@ -6,7 +6,7 @@ html.no-js
     
     title #{config.service.name}
 
-    meta(name="description", content="#{ (page) ? page.title || config.service.name + ': ' + config.service.mission : config.service.name + ': ' + config.service.mission }")
+    meta(name="description", content="#{ (page) ? page.description || page.title || config.service.name + ': ' + config.service.mission : config.service.name + ': ' + config.service.mission }")
     meta(name="viewport", content="width=device-width, initial-scale=1")
 
     link(rel="stylesheet", href="/css/semantic.min.css")

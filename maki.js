@@ -45,6 +45,8 @@ maki.use(developers);
 maki.use(auth);
 
 var Person = maki.define('Person', {
+  icon: 'user',
+  description: 'The list of people working on Maki, including all extended members of the community.',
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
     name:     {
@@ -71,8 +73,7 @@ var Person = maki.define('Person', {
     query: {
       limit: 1000
     }
-  },
-  icon: 'user'
+  }
 });
 
 Person.post('patch', function(done) {
