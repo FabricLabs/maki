@@ -4,10 +4,29 @@ html.no-js
     meta(charset="utf-8")
     meta(http-equiv="X-UA-Compatible", content="IE=edge")
     
-    title #{config.service.name}
+    - var home = config.service.authority;
+    - var image = (page && page.image) ? page.image : 'https://' + home + '/img/maki.png';
+    - var title = (page && page.title) ? page.title : config.service.name
+    - var description = (page) ? page.description || page.title || config.service.name + ': ' + config.service.mission : config.service.name + ': ' + config.service.mission;
 
-    meta(name="description", content="#{ (page) ? page.title || config.service.name + ': ' + config.service.mission : config.service.name + ': ' + config.service.mission }")
+  
+    title #{title}
+
+    meta(name="description", content="#{description}")
     meta(name="viewport", content="width=device-width, initial-scale=1")
+
+    block meta
+      meta(name="og:title", content="#{title}")
+      meta(name="og:type", content="website")
+      meta(name="og:image", content="#{image}")
+      meta(name="og:url", content="#{home}")
+      meta(name="og:description", content="#{description}")
+      
+      meta(name="twitter:card", content="summary")
+      meta(name="twitter:site", content="@MadeWithMaki")
+      meta(name="twitter:title", content="#{title}")
+      meta(name="twitter:description", content="#{description}")
+      meta(name="twitter:image", content="#{image}")
 
     link(rel="stylesheet", href="/css/semantic.min.css")
     link(rel="stylesheet", href="/css/highlight/maki.css")

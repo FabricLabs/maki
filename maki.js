@@ -45,16 +45,23 @@ maki.use(developers);
 maki.use(auth);
 
 var Person = maki.define('Person', {
+  icon: 'user',
+  description: 'The list of people working on Maki, including all extended members of the community.',
   attributes: {
     username: { type: String , max: 80 , required: true , slug: true },
     name:     {
       family: { type: String , max: 80 },
       given: { type: String , max: 80 }
     },
+    bio: { type: String },
     hash:     { type: String , restricted: true },
     salt:     { type: String , restricted: true },
     email:    { type: String , max: 80 , restricted: true },
-    created:  { type: Date , default: Date.now }
+    created:  { type: Date , default: Date.now },
+    image: {
+      original: { type: String , max: 1024 },
+      avatar: { type: String , max: 1024 },
+    }
   },
   auth: {
     'patch': ['admin', function(done) {
@@ -62,11 +69,25 @@ var Person = maki.define('Person', {
       return false;
     }]
   },
-  icon: 'user'
+  params: {
+    query: {
+      limit: 1000
+    }
+  },
+  fields: {
+    image: 'image',
+    description: 'bio'
+  }
 });
+
 Person.post('patch', function(done) {
   var person = this;
-  console.log('person updated:', person);
+  done();
+});
+
+Person.post('get', function(done) {
+  var person = this;
+  person.name.display = person.username;
   done();
 });
 
@@ -89,7 +110,7 @@ maki.define('Release', {
     published: { type: Date },
     notes: { type: String , render: 'markdown' }
   },
-  source: 'https://api.github.com/repos/martindale/maki/releases',
+  //source: 'https://api.github.com/repos/martindale/maki/releases',
   icon: 'tags',
   map: function( release ) {
     return {

@@ -1,0 +1,19 @@
+extends layouts/default
+
+block content
+  
+  .ui.grid
+    .row
+      .ui.text.container(style="margin-top: 2em;")
+        h1 People: the Maki Community
+        p We are the people working towards <a href="https://slack-files.com/T09HF1HK9-F1827U79U-5cf8742c4f">the Maki Vision</a> by being members of <a href="https://chat.maki.io">the public chat</a>.  Add yourself to this list by <a href="https://chat.maki.io">signing in to Slack</a>, and update it by editing your profile there.
+        p Conveniently, this page also serves as an example resource that can be synchronized with an oracle (or more simply, a trusted API).  Take a <a href="https://github.com/martindale/maki/blob/recognition/tools/slack.sync.people.js">look at the source code</a>!
+        a.ui.right.floated.huge.primary.labeled.button(href="https://chat.maki.io")
+          | Add Yourself
+          i.icon.right.chevron
+    .row
+      h2 #{people.length} People in our Community
+      .ui.five.stackable.cards(style="margin-top: 2em;")
+        - var shuffled = _.shuffle(people);
+        for person in shuffled
+          include partials/person

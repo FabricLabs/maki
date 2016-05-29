@@ -72,6 +72,9 @@ module.exports = {
   sockets: {
     timeout: process.env.MAKI_SOCKETS_TIMEOUT || 30000
   },
+  slack: {
+    token: process.env.MAKI_SLACK_TOKEN || 'https://api.slack.com/docs/oauth-test-tokens'
+  },
   auth: {
     local: {
       enabled: true
