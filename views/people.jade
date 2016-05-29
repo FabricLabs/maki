@@ -12,6 +12,7 @@ block content
           | Add Yourself
           i.icon.right.chevron
     .row
+      h2 #{people.length} People in our Community
       .ui.five.stackable.cards(style="margin-top: 2em;")
         - var shuffled = _.shuffle(people);
         for person in shuffled
