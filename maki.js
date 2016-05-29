@@ -75,6 +75,7 @@ var Person = maki.define('Person', {
     }
   },
   fields: {
+    image: 'image',
     description: 'bio'
   }
 });
