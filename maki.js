@@ -81,6 +81,12 @@ Person.post('patch', function(done) {
   done();
 });
 
+Person.post('get', function(done) {
+  var person = this;
+  person.name.display = person.username;
+  done();
+});
+
 maki.define('Example', {
   attributes: {
     name:    { type: String , max: 80 },

@@ -4,7 +4,7 @@ html.no-js
     meta(charset="utf-8")
     meta(http-equiv="X-UA-Compatible", content="IE=edge")
     
-    title #{config.service.name}
+    title #{(page) ? page.title : config.service.name}
 
     meta(name="description", content="#{ (page) ? page.description || page.title || config.service.name + ': ' + config.service.mission : config.service.name + ': ' + config.service.mission }")
     meta(name="viewport", content="width=device-width, initial-scale=1")
