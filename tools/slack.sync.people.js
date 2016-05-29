@@ -18,7 +18,9 @@ rest.get(url).on('complete', function(people) {
   console.log('people:', people.members);
 
   people.members.forEach(function(person) {
-    rest.post(home + '/people', {
+    var remote = home + '/people/' + person.name;
+    console.log('remote:', remote);
+    rest.put(remote, {
       headers: {
         'Accept': 'application/json'
       },
@@ -35,8 +37,8 @@ rest.get(url).on('complete', function(people) {
           avatar: person.profile.image_192,
         }
       }
-    }).on('complete', function(result) {
-      console.log('person result:', person.name, result);
+    }).on('complete', function(result, response) {
+      console.log('person result:', person.name, result, response.statusCode);
     });
   });
 });
