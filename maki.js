@@ -55,7 +55,11 @@ var Person = maki.define('Person', {
     hash:     { type: String , restricted: true },
     salt:     { type: String , restricted: true },
     email:    { type: String , max: 80 , restricted: true },
-    created:  { type: Date , default: Date.now }
+    created:  { type: Date , default: Date.now },
+    image: {
+      original: { type: String , max: 1024 },
+      avatar: { type: String , max: 1024 },
+    }
   },
   auth: {
     'patch': ['admin', function(done) {
@@ -63,12 +67,16 @@ var Person = maki.define('Person', {
       return false;
     }]
   },
+  params: {
+    query: {
+      limit: 1000
+    }
+  },
   icon: 'user'
 });
 
 Person.post('patch', function(done) {
   var person = this;
-  console.log('person updated:', person);
   done();
 });
 

@@ -1,8 +1,11 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
 var config = require('../config');
 var async = require('async');
 var rest = require('restler');
 var qs = require('querystring');
 
+var home = 'http://localhost:9200';
 var base = 'https://slack.com/api/users.list';
 var params = {
   token: config.slack.token
@@ -15,7 +18,7 @@ rest.get(url).on('complete', function(people) {
   console.log('people:', people.members);
 
   people.members.forEach(function(person) {
-    rest.patch('https://maki.io/people/' + person.name, {
+    rest.post(home + '/people', {
       headers: {
         'Accept': 'application/json'
       },
@@ -26,7 +29,11 @@ rest.get(url).on('complete', function(people) {
           family: person.profile.last_name
         },
         email: person.profile.email,
-        bio: person.profile.title
+        bio: person.profile.title,
+        image: {
+          original: person.profile.image_original,
+          avatar: person.profile.image_192,
+        }
       }
     }).on('complete', function(result) {
       console.log('person result:', person.name, result);
