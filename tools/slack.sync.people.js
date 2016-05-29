@@ -17,7 +17,9 @@ console.log('using URL:', url);
 rest.get(url).on('complete', function(people) {
   console.log('people:', people.members);
 
-  people.members.forEach(function(person) {
+  people.members.filter(function(x) {
+    return (x.deleted === false);
+  }).forEach(function(person) {
     var remote = home + '/people/' + person.name;
     console.log('remote:', remote);
     rest.put(remote, {
