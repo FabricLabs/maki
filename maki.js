@@ -51,6 +51,7 @@ var Person = maki.define('Person', {
       family: { type: String , max: 80 },
       given: { type: String , max: 80 }
     },
+    bio: { type: String },
     hash:     { type: String , restricted: true },
     salt:     { type: String , restricted: true },
     email:    { type: String , max: 80 , restricted: true },
@@ -64,6 +65,7 @@ var Person = maki.define('Person', {
   },
   icon: 'user'
 });
+
 Person.post('patch', function(done) {
   var person = this;
   console.log('person updated:', person);
