@@ -15,11 +15,4 @@ block content
       .ui.five.stackable.cards(style="margin-top: 2em;")
         - var shuffled = _.shuffle(people);
         for person in shuffled
-          .ui.card
-            a.image(href="/people/#{person.slug}")
-              img(src="#{person.image.avatar}")
-            .content
-              a.header(href="/people/#{person.slug}") #{person.username}
-              .meta joined in 
-                abbr.tooltipped(title="#{person.created}") #{person.created.getFullYear()}
-              p #{person.bio}
+          include partials/person
