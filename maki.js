@@ -73,6 +73,9 @@ var Person = maki.define('Person', {
     query: {
       limit: 1000
     }
+  },
+  fields: {
+    description: 'bio'
   }
 });
 
@@ -106,7 +109,7 @@ maki.define('Release', {
     published: { type: Date },
     notes: { type: String , render: 'markdown' }
   },
-  source: 'https://api.github.com/repos/martindale/maki/releases',
+  //source: 'https://api.github.com/repos/martindale/maki/releases',
   icon: 'tags',
   map: function( release ) {
     return {
