@@ -69,15 +69,12 @@ dom-module#maki-step-ladder
           notify: true
         }
       },
-      _startGenerator: function(e) {
+      _createIdentity: function() {
         var self = this;
+        var manager = document.querySelector('maki-identity');
         var button = document.querySelector('.step-view[data-step=generate] .segment .button');
         var step = document.querySelector('.step[data-step=generate]');
         var next = document.querySelector('.step[data-step=secure]');
-        
-        button.classList.add('loading');
-        
-        var manager = document.querySelector('maki-identity');
         manager._generate(function(err, identity) {
           console.log('generate complete:', err);
           button.classList.remove('loading');
@@ -86,15 +83,6 @@ dom-module#maki-step-ladder
           self.words = manager.words;
           self.step = 'secure';
         });
-
-      },
-      _moveToConfigure: function() {
-        var self = this;
-        var step = document.querySelector('.step[data-step=secure]');
-        var next = document.querySelector('.step[data-step=configure]');
-        step.classList.remove('active');
-        next.classList.add('active');
-        self.step = 'configure';
       },
       _setName: function(e) {
         e.preventDefault();
@@ -106,10 +94,16 @@ dom-module#maki-step-ladder
         $('*[data-step=configure] input[name=name]').val('');
         
         console.log('[MAKI:STEP-LADDER]', '_setName', name);
-        
+        // hack.
+        // TODO: fix this
+        manager.identity.name = name;
+        manager.identityFull.name = name;
+        // other old dust.  unsure if necessary.
         manager.set('identity.name', name);
         manager.isNamed = true;
         
+        console.log('[MAKI:STEP-LADDER]', '_setName', 'result:', manager.identity.name);
+
         manager._save(function(err) {
           step.classList.remove('active');
           manager._register();
@@ -117,10 +111,18 @@ dom-module#maki-step-ladder
           self.step = 'generate';
         });
       },
+      _moveToConfigure: function() {
+        var self = this;
+        var step = document.querySelector('.step[data-step=secure]');
+        var next = document.querySelector('.step[data-step=configure]');
+        step.classList.remove('active');
+        next.classList.add('active');
+        self.step = 'configure';
+      },
       _stepChanged: function(step) {
         var self = this;
         console.log('[MAKI:STEP-LADDER]', '_stepChanged', step);
-        
+
         var steps = document.querySelectorAll('.step-view');
         console.log('[MAKI:STEP-LADDER]', 'pages found:', steps);
 
@@ -139,7 +141,15 @@ dom-module#maki-step-ladder
             step.classList.add('active');
           }
         }
+      },
+      _startGenerator: function(e) {
+        var self = this;
+        var button = document.querySelector('.step-view[data-step=generate] .segment .button');
         
+        button.classList.add('loading');
+        
+        self._createIdentity();
+
       },
       attached: function() {
         var self = this;
