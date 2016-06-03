@@ -1,0 +1,87 @@
+//- maki-key-value
+//- keeps a simple key:value mapping
+//- backed by LevelDB
+dom-module#maki-key-value
+  //-script(src="/assets/level.js")
+  script.
+    Polymer({
+      is: 'maki-key-value',
+      properties: {
+        name: {
+          type: String
+        },
+        for: {
+          type: String
+        },
+        level: {
+          type: Object
+        }
+      },
+      _get: function(key, opts, cb) {
+        var self = this;
+        if (typeof opts == 'function') {
+          cb = opts;
+          opts = {};
+        }
+        console.log('[MAKI:KV]', '_get', 'key', key);
+        self.level.get(key, {
+          asBuffer: false
+        }, function(err, val) {
+        
+          console.log('[MAKI:KV]', '_get', 'valfor', key, val);
+        
+          if (err) console.error(err);
+          if (!val) return cb('No such value: ' + key, null);
+          if (opts.convert) {
+            console.log('[MAKI:KV]', '_get', 'converting:', val);
+            try {
+              val = JSON.parse(val);
+            } catch (e) {
+              console.error('[MAKI:KV]', '_get', e);
+            }
+          }
+          console.log('[MAKI:KV]', '_get', key, val);
+          return cb(err, val);
+        });
+      },
+      _set: function(key, val, cb) {
+        var self = this;
+        console.log('[MAKI:KV]', '_set', key, val);
+        
+        if (typeof val !== 'string') {
+          val = JSON.stringify(val);
+        }
+        
+        // TODO: use async.
+        self.level.get(key, {
+          asBuffer: false
+        }, function(err, old) {
+          if (err) console.error(err);
+          self.level.put(key, val, function(err) {
+            if (err) console.error(err);
+            self.fire('key-value:change', {
+              key: key,
+              val: val,
+              old: old
+            });
+            console.log('[MAKI:KV]', '_set', key, val);
+            return cb(err);
+          });
+        });
+      },
+      ready: function() {
+        var self = this;
+        var name = self.name + '-key-value';
+        if (self.for) {
+          name = self.for + ':' + name;
+        }
+        self.level = level(name);
+        self.level.open(function(err) {
+          if (err) console.error(err);
+          var event = new Event('key-value:open');
+          document.dispatchEvent(event);
+          var event = new Event('key-value:'+self.name+':open');
+          document.dispatchEvent(event);
+        });
+      }
+    });
