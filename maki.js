@@ -91,6 +91,36 @@ Person.post('get', function(done) {
   done();
 });
 
+var Topic = maki.define('Topic', {
+  attributes: {
+    id: { type: String , max: 80 , required: true },
+    name: { type: String , max: 80 , required: true , slug: true },
+    description: { type: String },
+    topic: { type: String },
+    created: { type: Date , default: Date.now },
+    stats: {
+      subscribers: { type: Number , default: 0 },
+      messages: { type: Number , default: 0 },
+    }
+  },
+  params: {
+    query: {
+      limit: 1000
+    }
+  },
+});
+
+// TODO: change Maki internals to do this automatically
+// this is a major change, standardizing on `id` as the local identifier field
+// which gets used in all URIs as the path indicator for this resource, as
+// opposed to `slug`, which has been used historically.
+Topic.pre('create', function(next, done) {
+  var topic = this;
+  var speakingurl = require('speakingurl');
+  topic.id = speakingurl(topic.name);
+  next();
+});
+
 maki.define('Example', {
   attributes: {
     name:    { type: String , max: 80 },
