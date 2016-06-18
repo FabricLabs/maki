@@ -6,7 +6,7 @@
     a.header(href="/topics/#{topic.id}") #{topic.name}
     p #{topic.description}
   .extra.content
-    a.ui.right.floated.primary.button
+    a.ui.right.floated.primary.button(href="https://chat.maki.io/?topic=#{topic.id}")
       if (cta)
         | !{cta}
       else
