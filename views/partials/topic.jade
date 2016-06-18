@@ -6,11 +6,10 @@
     a.header(href="/topics/#{topic.id}") #{topic.name}
     p #{topic.description}
   .extra.content
-    if (cta)
-      a.ui.right.floated.primary.button
+    a.ui.right.floated.primary.button
+      if (cta)
         | !{cta}
-    else
-      a.ui.right.floated.button
+      else
         .left.floated.tiny.icons
           i.icon.users
           i.corner.add.icon
