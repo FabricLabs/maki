@@ -1,0 +1,16 @@
+.ui.card
+  .content
+    .ui.tiny.right.floated.label(title="People talking about this")
+      i.icon.user
+      | #{topic.stats.subscribers}
+    a.header(href="/topics/#{topic.id}") #{topic.name}
+    p #{topic.description}
+  .extra.content
+    a.ui.right.floated.primary.button
+      if (cta)
+        | !{cta}
+      else
+        .left.floated.tiny.icons
+          i.icon.users
+          i.corner.add.icon
+    p <strong>Currently:</strong> #{topic.topic}

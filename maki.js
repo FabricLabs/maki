@@ -92,6 +92,7 @@ Person.post('get', function(done) {
 });
 
 var Topic = maki.define('Topic', {
+  icon: 'comment',
   attributes: {
     id: { type: String , max: 80 , required: true },
     name: { type: String , max: 80 , required: true , slug: true },
