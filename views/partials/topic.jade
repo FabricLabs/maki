@@ -1,0 +1,16 @@
+.ui.card
+  .content
+    .ui.tiny.right.floated.label.tooltipped(title="#{topic.stats.subscribers} people talking about #{topic.name}")
+      i.icon.user
+      | #{topic.stats.subscribers}
+    a.header(href="/topics/#{topic.id}") #{topic.name}
+    p #{topic.description}
+  .extra.content
+    a.ui.right.floated.primary.button(href="https://chat.maki.io/?topic=#{topic.id}")
+      if (cta)
+        | !{cta}
+      else
+        .left.floated.tiny.icons
+          i.icon.users
+          i.corner.add.icon
+    p <strong>Currently:</strong> #{topic.topic}
