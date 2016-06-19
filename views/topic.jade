@@ -6,4 +6,14 @@ block content
       .four.wide.column
         include partials/topic
       .twelve.wide.column
-  
+        if (!topic.purpose)
+          .ui.warning.icon.message
+            i.icon.warning.sign
+            .content
+              .header
+                small(style="color: rgba(0,0,0,.4);") &#35;
+                | #{topic.name} is missing a description!
+              p Can you <a href="https://github.com/martindale/maki/issues/new?title=Suggested%20Description%20for%20#{topic.name}&body=I'd%20like%20to%20suggest%20the%20following%20description%20for%20the%20topic%3A%0A%0A%3E%20#{topic.name}%20is%20a%20place%20to%20talk%20about...">come up with a suggestion</a>?
+        pre
+          code.json.
+            #{JSON.stringify(topic, null, '  ')}
