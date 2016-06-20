@@ -1,4 +1,4 @@
-if (messages)
+if (messages && (messages.info || messages.warning || messages.error || messages.success))
   for info in messages.info
     .ui.info.message
       i.icon.close(type="button", data-dismiss="alert")

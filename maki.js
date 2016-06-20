@@ -48,6 +48,8 @@ var Person = maki.define('Person', {
   icon: 'user',
   description: 'The list of people working on Maki, including all extended members of the community.',
   attributes: {
+    _id: { type: String },
+    id: { type: String },
     username: { type: String , max: 80 , required: true , slug: true },
     name:     {
       family: { type: String , max: 80 },
@@ -61,6 +63,9 @@ var Person = maki.define('Person', {
     image: {
       original: { type: String , max: 1024 },
       avatar: { type: String , max: 1024 },
+    },
+    links: {
+      slack: { type: String , max: 40 }
     }
   },
   auth: {
@@ -80,9 +85,10 @@ var Person = maki.define('Person', {
   }
 });
 
-Person.post('patch', function(done) {
+Person.pre('create', function(next, done) {
   var person = this;
-  done();
+  person._id = person.id;
+  next();
 });
 
 Person.post('get', function(done) {
@@ -103,6 +109,18 @@ var Topic = maki.define('Topic', {
     stats: {
       subscribers: { type: Number , default: 0 },
       messages: { type: Number , default: 0 },
+    },
+    links: {
+      slack: { type: String , max: 40 }
+    }
+  },
+  requires: {
+    'Message': {
+      as: 'channel:messages',
+      filter: function() {
+        return { topic: this.id };
+      },
+      populate: 'author'
     }
   },
   params: {
@@ -123,6 +141,39 @@ Topic.pre('create', function(next, done) {
   next();
 });
 
+var Message = maki.define('Message', {
+  icon: 'speech',
+  description: 'Messages about the Topics under discussion.',
+  attributes: {
+    id: { type: String , max: 80 , required: true , slug: true },
+    topic: { type: String },
+    author: { type: String , ref: 'Person' , populate: ['query', 'get'] },
+    content: { type: String },
+    created: { type: Date , default: Date.now },
+    links: {
+      slack: { type: String , max: 40 }
+    }
+  },
+  params: {
+    query: {
+      limit: 1000,
+      order: '-'
+    }
+  },
+});
+
+Message.pre('create', function(next, done) {
+  var message = this;
+  console.log('pre create message:', message);
+  Person.get({
+    'links.slack': message.author
+  }, function(err, person) {
+    console.log('looked up:', person);
+    message.author = person.id;
+    next();
+  });
+});
+
 maki.define('Example', {
   attributes: {
     name:    { type: String , max: 80 },
@@ -135,6 +186,7 @@ maki.define('Example', {
 });
 
 maki.define('Release', {
+  icon: 'tag',
   attributes: {
     name: { type: String , max: 80 },
     tag: { type: String , max: 80 },
@@ -143,7 +195,6 @@ maki.define('Release', {
     notes: { type: String , render: 'markdown' }
   },
   //source: 'https://api.github.com/repos/martindale/maki/releases',
-  icon: 'tags',
   map: function( release ) {
     return {
       name: release.name,

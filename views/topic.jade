@@ -22,6 +22,27 @@ block content
                 small(style="color: rgba(0,0,0,.4);") &#35;
                 | #{topic.name} isn't currently discussing anything!
               p Maybe you can <a href="https://chat.maki.io/?topic=#{topic.id}&amp;message=What's%20the%20first%20thing%20someone%20should%20know%20about%20#{topic.id}%3F">start the conversation</a>?
-        pre
+        
+        //-pre
           code.json.
             #{JSON.stringify(topic, null, '  ')}
+        
+        h3 Latest Messages
+        .ui.comments
+          //-- messages = messages.slice(0, 3);
+          for message in messages
+            include partials/message
+
+          .ui.form.comment
+            .avatar
+              img(src="http://semantic-ui.com/images/avatar/small/joe.jpg")
+            .content
+              .text
+                .ui.fluid.disabled.action.input
+                  input.inline(type="text", placeholder="Start typing", disabled)
+                  .ui.disabled.right.labeled.icon.button
+                    i.share.icon
+                    | send
+                  
+              .actions
+                //-| le emoji

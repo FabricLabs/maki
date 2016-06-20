@@ -1,0 +1,11 @@
+.comment
+  a.avatar(href="/people/#{message.author.id}")
+    img(src="#{message.author.image.avatar}")
+  .content
+    a.author(href="/people/#{message.author.id}") #{message.author.id}
+    .metadata
+      .date(href="/messages/#{message.id}") #{message.created}
+    .text
+      p #{message.content}
+    .actions
+      //-| le emoji

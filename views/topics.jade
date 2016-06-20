@@ -7,10 +7,8 @@ block content
   //- instead of re-calculating it every time.  We might even re-publish our
   //- work to the network as a resource!
   - var shuffled = _.shuffle(topics); // topics is defined by Maki automatically
-  
   - var featured = shuffled.filter(function(x) { return (x.description.length > 0 && x.topic.length > 0 && x.stats.subscribers > 20); }).slice(0, 2);
-  
-  
+
   .ui.stackable.three.column.grid.container
     .sixteen.wide.column
       .row
