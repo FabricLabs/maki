@@ -29,7 +29,7 @@ block content
         
         h3 Latest Messages
         .ui.comments
-          //-- messages = messages.slice(0, 3);
+          - messages = messages.slice(-5);
           for message in messages
             include partials/message
 
