@@ -33,7 +33,8 @@ block content
           for message in messages
             include partials/message
 
-          .ui.form.comment
+          //- TODO: .asHTML() (toJSON -> toHTML) or .as('html')
+          .ui.form.comment.tooltipped(title="Join the community!", data-variation="wide", data-html="<strong>Add your thoughts!</strong>  We're looking forward to connecting with you.")
             .avatar
               img(src="http://semantic-ui.com/images/avatar/small/joe.jpg")
             .content
