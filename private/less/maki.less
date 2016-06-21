@@ -22,14 +22,18 @@
   /* min-height: 15em; */
   padding: 1em 0em;
 }
-.masthead .logo.item img {
+.ui.secondary.menu .item>img:not(.ui) {
   margin-right: 1em;
+  max-height: 2em;
+  max-width: 2em;
+  margin-top: -1em;
+  margin-bottom: -1em;
 }
 .masthead .ui.menu .ui.button {
   margin-left: 0.5em;
 }
 .masthead h1.ui.header {
-  margin-top: 3em;
+  margin-top: 0.5em;
   margin-bottom: 0em;
   font-size: 4em;
   font-weight: normal;
@@ -43,6 +47,9 @@
 }
 .ui.secondary.menu .header.item {
   border-right: 0;
+}
+.ui.inverted.menu .logo.item {
+  font-weight: bold;
 }
 .masthead .ui.secondary.pointing.menu {
   border-bottom: 0;

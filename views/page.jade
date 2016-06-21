@@ -3,14 +3,14 @@ extends {process.env.PWD + '/views/layouts/default'}
 block scripts
   script.
     hljs.initHighlightingOnLoad();
-
-block content
+    
+block masthead
   include partials/edit-self
 
-  if (metadata && metadata.title)
-    h1 #{metadata.title}
-    if (metadata.description)
-      h2 #{metadata.description}
-  
-  
+  if (page && page.title)
+    h1 #{page.title}
+    if (page.description)
+      h2 #{page.description}
+
+block content
   #page-content !{content}

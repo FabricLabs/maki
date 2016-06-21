@@ -4,7 +4,37 @@ block scripts
   script.
     hljs.initHighlightingOnLoad();
 
-block page
+block masthead
+  .ui.center.aligned.inverted.segment
+    h1.ui.inverted.header
+      | Build more, code less.
+    h2.ui.inverted.header
+      | #{config.service.name} is !{config.service.mission}
+
+    a.ui.huge.primary.button(href="/tutorials/hello-world", style="margin-top: 1.5em;")
+      | Create Your First Project
+      i.right.chevron.icon
+
+block content
+  .ui.header
+    h1.huge Hello, #{config.service.name}.
+    h2 !{ markdown( config.service.mission ) }
+    
+    p !{ markdown( config.service.description ) }
+    
+  .ui.stackable.three.column.grid
+    for point in config.service.points
+      .column
+        .ui.fluid.card
+          .content
+            h2.header #{ point.header }
+            //- TODO: use marked config, not a regex, to fix errant <p> tags
+            p.description
+              | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
+          if (point.action)
+            a.ui.bottom.attached.button(href="#{point.action.link}") !{point.action.text}
+
+//-block page
   .pusher
     .ui.inverted.vertical.masthead.center.aligned.segment
       .ui.container
@@ -124,21 +154,3 @@ block page
               //-a.item(href="#", rel="me")
                 i.icon.medium
                 |  Medium
-block content
-  .ui.header
-    h1.huge Hello, #{config.service.name}.
-    h2 !{ markdown( config.service.mission ) }
-    
-    p !{ markdown( config.service.description ) }
-    
-  .ui.stackable.three.column.grid
-    for point in config.service.points
-      .column
-        .ui.fluid.card
-          .content
-            h2.header #{ point.header }
-            //- TODO: use marked config, not a regex, to fix errant <p> tags
-            p.description
-              | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
-          if (point.action)
-            a.ui.bottom.attached.button(href="#{point.action.link}") !{point.action.text}

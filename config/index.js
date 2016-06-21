@@ -40,7 +40,8 @@ module.exports = {
         }
       }
     ],
-    icon: 'lab'
+    icon: 'lab',
+    logo: '/img/maki-icon.png'
   },
   dns: {
     name: process.env.MAKI_DNS_NAME || 'localhost'

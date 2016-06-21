@@ -56,8 +56,11 @@ html.no-js
     block page
       .ui.large.top.fixed.hidden.menu
         .ui.container
-          a.header.item(href="/")
-            i.icon.left(class="#{ config.service.icon || 'lab' }")
+          a.logo.item(href="/")
+            if (config.service.logo)
+              img(src="#{config.service.logo}")
+            else
+              i.icon.left(class="#{ config.service.icon || 'lab' }")
             | #{config.service.name}
           each resource in resources
             if (resource.public)
@@ -66,8 +69,11 @@ html.no-js
                   i.icon(class="#{resource.options.icon}")
                 | #{resource.names.handle}
       .ui.vertical.inverted.sidebar.menu
-        a.header.item(href="/")
-          i.icon.left(class="#{ config.service.icon || 'lab' }")
+        a.logo.item(href="/")
+          if (config.service.logo)
+            img(src="#{config.service.logo}")
+          else
+            i.icon.left(class="#{ config.service.icon || 'lab' }")
           | #{config.service.name}
         each resource in resources
           if (resource.public)
@@ -82,8 +88,11 @@ html.no-js
             .ui.large.secondary.inverted.pointing.menu
               a.toc.item
                 i.sidebar.icon
-              a.header.item(href="/")
-                i.icon.left(class="#{ config.service.icon || 'lab' }")
+              a.logo.item(href="/")
+                if (config.service.logo)
+                  img(src="#{config.service.logo}")
+                else
+                  i.icon.left(class="#{ config.service.icon || 'lab' }")
                 | #{config.service.name}
               each resource in resources
                 if (resource.public)
@@ -99,30 +108,6 @@ html.no-js
         .ui.container.content(data-for="viewport", style="padding-top: 1em;")
           include ../partials/flash
           block content
-  
-      
-      //-.ui.borderless.main.menu
-        .ui.container
-          a.header.item(href="/")
-            i.icon.left(class="#{ config.service.icon || 'lab' }")
-            | #{config.service.name}
-          each resource in resources
-            if (resource.public)
-              a.item(href="#{resource.routes.query}")
-                if (resource.options.icon)
-                  i.icon(class="#{resource.options.icon}")
-                | #{resource.names.handle}
-
-      //-.ui.vertical.inverted.sidebar.menu
-        a.header.item(href="/")
-          i.icon.left(class="#{ config.service.icon || 'lab' }")
-          | #{config.service.name}
-        each resource in resources
-          if (resource.public)
-            a.item(href="#{resource.routes.query}")
-              if (resource.options.icon)
-                i.icon(class="#{resource.options.icon}")
-              | #{resource.names.handle}
 
       //-.ui.page.grid
         //-.row
