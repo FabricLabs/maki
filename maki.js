@@ -147,6 +147,9 @@ var Topic = maki.define('Topic', {
       limit: 1000
     }
   },
+  fields: {
+    description: 'description',
+  }
 });
 
 // TODO: change Maki internals to do this automatically
