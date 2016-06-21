@@ -60,21 +60,21 @@ html.no-js
             i.icon.left(class="#{ config.service.icon || 'lab' }")
             | #{config.service.name}
           each resource in resources
-            if (!resource.internal)
+            if (resource.public)
               a.item(href="#{resource.routes.query}")
                 if (resource.options.icon)
                   i.icon(class="#{resource.options.icon}")
-                | #{resource.plural}
+                | #{resource.names.handle}
       .ui.vertical.inverted.sidebar.menu
         a.header.item(href="/")
           i.icon.left(class="#{ config.service.icon || 'lab' }")
           | #{config.service.name}
         each resource in resources
-          if (!resource.internal)
+          if (resource.public)
             a.item(href="#{resource.routes.query}")
               if (resource.options.icon)
                 i.icon(class="#{resource.options.icon}")
-              | #{resource.plural}
+              | #{resource.names.handle}
               
       .pusher
         .ui.inverted.vertical.masthead.segment
@@ -86,11 +86,11 @@ html.no-js
                 i.icon.left(class="#{ config.service.icon || 'lab' }")
                 | #{config.service.name}
               each resource in resources
-                if (!resource.internal)
+                if (resource.public)
                   a.item(href="#{resource.routes.query}")
                     if (resource.options.icon)
                       i.icon(class="#{resource.options.icon}")
-                    | #{resource.plural}
+                    | #{resource.names.handle}
             .ui.text.container
               block masthead
               
@@ -107,22 +107,22 @@ html.no-js
             i.icon.left(class="#{ config.service.icon || 'lab' }")
             | #{config.service.name}
           each resource in resources
-            if (!resource.internal)
+            if (resource.public)
               a.item(href="#{resource.routes.query}")
                 if (resource.options.icon)
                   i.icon(class="#{resource.options.icon}")
-                | #{resource.plural}
+                | #{resource.names.handle}
 
       //-.ui.vertical.inverted.sidebar.menu
         a.header.item(href="/")
           i.icon.left(class="#{ config.service.icon || 'lab' }")
           | #{config.service.name}
         each resource in resources
-          if (!resource.internal)
+          if (resource.public)
             a.item(href="#{resource.routes.query}")
               if (resource.options.icon)
                 i.icon(class="#{resource.options.icon}")
-              | #{resource.plural}
+              | #{resource.names.handle}
 
       //-.ui.page.grid
         //-.row

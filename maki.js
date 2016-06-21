@@ -167,6 +167,7 @@ Topic.pre('create', function(next, done) {
 var Message = maki.define('Message', {
   icon: 'speech',
   description: 'Messages about the Topics under discussion.',
+  public: false,
   attributes: {
     id: { type: String , max: 80 , required: true , slug: true },
     topic: { type: String , ref: 'Topic' },
