@@ -1,6 +1,11 @@
 extends layouts/default
 
 block masthead
+  - if (page && page.masthead)
+    style.
+      .masthead {
+        background: url('#{page.masthead}');
+      }
 
 block content
   //- TODO: allow "requirements" to set the local variable names

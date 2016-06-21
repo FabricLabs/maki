@@ -1,6 +1,12 @@
 extends layouts/default
 
 block masthead
+  - if (page && page.masthead)
+    style.
+      .masthead {
+        background: url('#{page.masthead}');
+      }
+
   h1 #{topics.length} Topics Under Discussion
   h3 We love to talk.  Fabric and Maki are a huge vision, so there's a lot to talk about.  Come join us.
 
