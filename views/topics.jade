@@ -4,7 +4,8 @@ block masthead
   - if (page && page.masthead)
     style.
       .masthead {
-        background: url('#{page.masthead}');
+        background: url('#{page.masthead}') no-repeat;
+        background-size: cover;
       }
 
   h1 #{topics.length} Topics Under Discussion
