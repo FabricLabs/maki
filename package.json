@@ -37,6 +37,7 @@
     "colors": "^1.0.3",
     "connect-busboy": "0.0.2",
     "cookie-parser": "~1.1.0",
+    "emoji-parser": "^0.1.1",
     "express": "git://github.com/martindale/express#multiple-views",
     "fast-json-patch": "^0.3.6",
     "flashify": "^0.1.2",
