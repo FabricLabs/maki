@@ -47,8 +47,78 @@ html.no-js
 
   body
     block page
-      .ui.page.grid
-        .row
+      .ui.large.top.fixed.hidden.menu
+        .ui.container
+          a.header.item(href="/")
+            i.icon.left(class="#{ config.service.icon || 'lab' }")
+            | #{config.service.name}
+          each resource in resources
+            if (!resource.internal)
+              a.item(href="#{resource.routes.query}")
+                if (resource.options.icon)
+                  i.icon(class="#{resource.options.icon}")
+                | #{resource.plural}
+      .ui.vertical.inverted.sidebar.menu
+        a.header.item(href="/")
+          i.icon.left(class="#{ config.service.icon || 'lab' }")
+          | #{config.service.name}
+        each resource in resources
+          if (!resource.internal)
+            a.item(href="#{resource.routes.query}")
+              if (resource.options.icon)
+                i.icon(class="#{resource.options.icon}")
+              | #{resource.plural}
+              
+      .pusher
+        .ui.inverted.vertical.masthead.segment
+          .ui.container
+            .ui.large.secondary.inverted.pointing.menu
+              a.toc.item
+                i.sidebar.icon
+              a.header.item(href="/")
+                i.icon.left(class="#{ config.service.icon || 'lab' }")
+                | #{config.service.name}
+              each resource in resources
+                if (!resource.internal)
+                  a.item(href="#{resource.routes.query}")
+                    if (resource.options.icon)
+                      i.icon(class="#{resource.options.icon}")
+                    | #{resource.plural}
+            .ui.text.container
+              block masthead
+              
+            div(style="clear: both;")
+                    
+        .ui.container.content(data-for="viewport", style="padding-top: 1em;")
+          include ../partials/flash
+          block content
+  
+      
+      //-.ui.borderless.main.menu
+        .ui.container
+          a.header.item(href="/")
+            i.icon.left(class="#{ config.service.icon || 'lab' }")
+            | #{config.service.name}
+          each resource in resources
+            if (!resource.internal)
+              a.item(href="#{resource.routes.query}")
+                if (resource.options.icon)
+                  i.icon(class="#{resource.options.icon}")
+                | #{resource.plural}
+
+      //-.ui.vertical.inverted.sidebar.menu
+        a.header.item(href="/")
+          i.icon.left(class="#{ config.service.icon || 'lab' }")
+          | #{config.service.name}
+        each resource in resources
+          if (!resource.internal)
+            a.item(href="#{resource.routes.query}")
+              if (resource.options.icon)
+                i.icon(class="#{resource.options.icon}")
+              | #{resource.plural}
+
+      //-.ui.page.grid
+        //-.row
           block navbar
             include ../partials/navbar
 
@@ -65,8 +135,25 @@ html.no-js
               small Built with <a href="http://github.com/martindale/maki">Maki</a>.
 
     block scripts
-      
+
     script.
+      window.addEventListener('load', function() {
+        // fix menu when passed
+        $('.masthead').visibility({
+          once: false,
+          onBottomPassed: function() {
+            console.log('.masthead.onBottomPassed()')
+            $('.fixed.menu').transition('fade in');
+          },
+          onBottomPassedReverse: function() {
+            $('.fixed.menu').transition('fade out');
+          }
+        });
+
+        // create sidebar and attach to menu open
+        $('.ui.sidebar').sidebar('attach events', '.toc.item');
+      });
+
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)

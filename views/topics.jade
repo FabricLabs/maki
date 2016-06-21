@@ -1,5 +1,9 @@
 extends layouts/default
 
+block masthead
+  h1 #{topics.length} Topics Under Discussion
+  h3 We love to talk.  Fabric and Maki are a huge vision, so there's a lot to talk about.  Come join us.
+
 block content
   //- This is a local interpretation of data.  We download the full dataset once
   //- and then, _only_ then, run our processing (in our case, a subdivision of
@@ -9,12 +13,9 @@ block content
   - var shuffled = _.shuffle(topics); // topics is defined by Maki automatically
   - var featured = shuffled.filter(function(x) { return (x.description.length > 0 && x.topic.length > 0 && x.stats.subscribers > 20); }).slice(0, 2);
 
-  .ui.stackable.three.column.grid.container
+  .ui.stackable.grid.container
     .sixteen.wide.column
-      .row
-        h1 #{topics.length} Topics Under Discussion
-        h3 We love to talk.  Fabric and Maki are a huge vision, so there's a lot to talk about.  Come join us.
-
+      .row(style="margin-top: 2em;")
         .ui.info.icon.message
           i.icon.warning
           .content
