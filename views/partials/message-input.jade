@@ -1,0 +1,21 @@
+//- TODO: .asHTML() (toJSON -> toHTML) or .as('html')
+.ui.form.comment.tooltipped(title="Join the community!", data-variation="wide", data-html="<h4>Come join us!</h4><maki-avatar-list src=\"/people\" /><p>Add your thoughts to the conversation by becoming a member.</p><p><a href=\"https://chat.maki.io\" class=\"ui primary right floated button\">Join the community <i class=\"ui icon right chevron\"></i></a></p>")
+  .avatar
+    img(src="http://semantic-ui.com/images/avatar/small/joe.jpg")
+  .content
+    .text
+      .ui.fluid.disabled.action.input
+        input.inline(type="text", placeholder="Start typing", disabled)
+        .ui.disabled.right.labeled.icon.button
+          i.share.icon
+          | send
+
+script.
+  window.addEventListener('load', function() {
+    $('.tooltipped.comment.form').popup({
+      hoverable: true,
+      delay: {
+        hide: 250
+      }
+    });
+  });

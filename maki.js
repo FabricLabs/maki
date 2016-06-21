@@ -82,6 +82,16 @@ var Person = maki.define('Person', {
   fields: {
     image: 'image',
     description: 'bio'
+  },
+  requires: {
+    'Message': {
+      as: 'person:messages',
+      filter: function() {
+        return { author: this.id };
+      },
+      sort: '-created',
+      populate: 'author'
+    }
   }
 });
 
@@ -91,8 +101,16 @@ Person.pre('create', function(next, done) {
   next();
 });
 
+Person.pre('update', function(next, done) {
+  var person = this;
+  console.log('person:pre:update', person);
+  person._id = person.id;
+  next();
+});
+
 Person.post('get', function(done) {
   var person = this;
+  if (!person.name) person.name = {};
   person.name.display = person.username;
   done();
 });
@@ -120,6 +138,7 @@ var Topic = maki.define('Topic', {
       filter: function() {
         return { topic: this.id };
       },
+      sort: '-created',
       populate: 'author'
     }
   },
@@ -146,33 +165,45 @@ var Message = maki.define('Message', {
   description: 'Messages about the Topics under discussion.',
   attributes: {
     id: { type: String , max: 80 , required: true , slug: true },
-    topic: { type: String },
+    topic: { type: String , ref: 'Topic' },
     author: { type: String , ref: 'Person' , populate: ['query', 'get'] },
     content: { type: String },
     created: { type: Date , default: Date.now },
+    reactions: {},
     links: {
       slack: { type: String , max: 40 }
+    },
+    stats: {
+      reactions: { type: Number , default: 0 }
     }
   },
   params: {
     query: {
       limit: 1000,
-      order: '-'
+      sort: '-stats.reactions'
     }
   },
 });
 
-Message.pre('create', function(next, done) {
+function populateAuthor (next, done) {
   var message = this;
   console.log('pre create message:', message);
   Person.get({
     'links.slack': message.author
   }, function(err, person) {
-    console.log('looked up:', person);
+    if (err) console.error(err);
+    if (!person) {
+      return done('No such person: ' + message.author);
+      process.exit();
+    }
+
     message.author = person.id;
     next();
   });
-});
+}
+
+Message.pre('create', populateAuthor);
+Message.pre('update', populateAuthor);
 
 maki.define('Example', {
   attributes: {

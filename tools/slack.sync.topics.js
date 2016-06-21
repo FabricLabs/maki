@@ -64,31 +64,62 @@ rest.get(url).on('complete', function(topics) {
       rest.get(url).on('complete', function(data) {
         console.log('retrieved', data.messages.length, 'messages');
         console.log('sample:', data.messages[0]);
+
         data.messages.filter(function(m) {
+          //return (m.reactions && m.reactions.length);
           return (!m.subtype);
         }).forEach(function(message) {
           var state = JSON.stringify(message);
-          var hash = crypto.createHash('sha256').update(state).digest('hex');
+          var key = [channelID, message.user, message.ts].join(':');
+          var hash = crypto.createHash('sha256').update(key).digest('hex');
           var remote = home + '/messages/' + hash;
 
-          console.log('uploading:', channelID, hash, 'to', remote);
-
           var timestamp = new Date(message.ts * 1000);
-          console.log('timestamp:', timestamp);
+          var reactions = {};
 
-          put(remote, {
+          if (!message.reactions) message.reactions = [];
+          message.reactions.forEach(function(r) {
+            reactions[r.name] = parseInt(r.count);
+          });
+
+          var msg = {
             id: hash,
             topic: channelID,
             author: message.user,
             content: message.text,
             created: timestamp,
+            reactions: reactions,
             links: {
               slack: hash // no IDs given by Slack!  uh-oh!
-            }
-          }, function(err, result) {
+            },
+            stats: {}
+          };
+
+          if (message.reactions && message.reactions.length) {
+            msg.stats.reactions = message.reactions.map(function(x) {
+              return x.count;
+            }).reduce(function(prev, curr, i) {
+              return prev + curr;
+            });
+          }
+
+          //console.log('msg:', msg);
+
+          put(remote, msg, function(err, result) {
             console.log('message result:', result.id, 'has:', result.created);
           });
         });
+      });
+
+
+
+      var base = 'https://slack.com/api/emoji.list';
+      var params = {
+        token: config.slack.token
+      };
+      var url = base + '?' + qs.stringify(params);
+      rest.get(url).on('complete', function(emoji) {
+        console.log('emoji:', emoji);
       });
 
 

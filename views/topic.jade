@@ -1,6 +1,10 @@
 extends layouts/default
 
 block content
+  //- TODO: allow "requirements" to set the local variable names
+  - var favorites = messages.slice(0);
+  - favorites.sort(function(a, b) { return b.stats.reactions - a.stats.reactions; });
+
   .ui.grid.stackable
     .row
       .four.wide.column
@@ -27,23 +31,19 @@ block content
           code.json.
             #{JSON.stringify(topic, null, '  ')}
         
+        if (favorites.length)
+          .ui.message
+            .content
+              .header Highlights
+              .ui.comments
+                - var message = _.shuffle(favorites.slice(0, 3))[0]
+                include partials/message
+        
         h3 Latest Messages
         .ui.comments
-          - messages = messages.slice(-5);
+          - messages.sort(function(a, b) { return b.created - a.created; });
+          - messages = messages.slice(0, 5).reverse();
           for message in messages
             include partials/message
 
-          //- TODO: .asHTML() (toJSON -> toHTML) or .as('html')
-          .ui.form.comment.tooltipped(title="Join the community!", data-variation="wide", data-html="<strong>Add your thoughts!</strong>  We're looking forward to connecting with you.")
-            .avatar
-              img(src="http://semantic-ui.com/images/avatar/small/joe.jpg")
-            .content
-              .text
-                .ui.fluid.disabled.action.input
-                  input.inline(type="text", placeholder="Start typing", disabled)
-                  .ui.disabled.right.labeled.icon.button
-                    i.share.icon
-                    | send
-                  
-              .actions
-                //-| le emoji
+          include partials/message-input
