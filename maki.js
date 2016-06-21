@@ -117,6 +117,7 @@ Person.post('get', function(done) {
 
 var Topic = maki.define('Topic', {
   icon: 'comment',
+  masthead: '/img/sunrise.jpg',
   description: 'Topics being discussed by the Maki community.',
   attributes: {
     id: { type: String , max: 80 , required: true },

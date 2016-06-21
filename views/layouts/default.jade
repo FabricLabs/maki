@@ -5,11 +5,11 @@ html.no-js
     meta(http-equiv="X-UA-Compatible", content="IE=edge")
     
     - var home = config.service.authority;
+    - var title = (page && page.title) ? page.title : config.service.name;
     - var image = (page && page.image) ? page.image : 'https://' + home + '/img/maki.png';
-    - var title = (page && page.title) ? page.title : config.service.name
+    - var masthead = (page && page.masthead) ? page.masthead : null;
     - var description = (page) ? page.description || page.title || config.service.name + ': ' + config.service.mission : config.service.name + ': ' + config.service.mission;
 
-  
     title #{title}
 
     meta(name="description", content="#{description}")
@@ -32,6 +32,13 @@ html.no-js
     link(rel="stylesheet", href="/css/highlight/maki.css")
     link(rel="stylesheet", href="/css/maki.css")
     link(rel="stylesheet", href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Open+Sans:300italic,400,300,700")
+
+    - if (page.masthead)
+      style.
+        .masthead {
+          background: url('#{page.masthead}') no-repeat 50% 50%;
+          background-size: cover;
+        }
 
     script(src="/js/jquery.js")
     script(src="/js/semantic.min.js")
