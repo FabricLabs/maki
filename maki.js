@@ -48,8 +48,8 @@ var Person = maki.define('Person', {
   icon: 'user',
   description: 'The list of people working on Maki, including all extended members of the community.',
   attributes: {
-    _id: { type: String },
-    id: { type: String },
+    _id: { type: String }, // TODO: remove
+    id: { type: String }, // TODO: incorporate into main library
     username: { type: String , max: 80 , required: true , slug: true },
     name:     {
       family: { type: String , max: 80 },

@@ -113,15 +113,14 @@ rest.get(url).on('complete', function(topics) {
 
 
 
-      var base = 'https://slack.com/api/emoji.list';
+      /*var base = 'https://slack.com/api/emoji.list';
       var params = {
         token: config.slack.token
       };
       var url = base + '?' + qs.stringify(params);
       rest.get(url).on('complete', function(emoji) {
         console.log('emoji:', emoji);
-      });
-
+      });*/
 
     });
   });

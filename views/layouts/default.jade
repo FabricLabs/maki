@@ -68,7 +68,7 @@ html.no-js
                 if (resource.options.icon)
                   i.icon(class="#{resource.options.icon}")
                 | #{resource.names.handle}
-      .ui.vertical.inverted.sidebar.menu
+      .ui.vertical.inverted.sidebar.right.large.menu
         .ui.center.aligned.inverted.header
           a(href="/")
             if (config.service.logo)
@@ -90,8 +90,6 @@ html.no-js
         .ui.inverted.vertical.masthead.segment
           .ui.container
             .ui.large.secondary.inverted.pointing.menu
-              a.toc.item
-                i.sidebar.icon
               a.logo.item(href="/")
                 if (config.service.logo)
                   img(src="#{config.service.logo}")
@@ -104,16 +102,17 @@ html.no-js
                     if (resource.options.icon)
                       i.icon(class="#{resource.options.icon}")
                     | #{resource.names.handle}
+              a.right.toc.item
+                i.sidebar.icon
             .ui.text.container
               block masthead
               
             div(style="clear: both;")
-                    
+
         .ui.container.content(data-for="viewport", style="padding-top: 1em;")
           include ../partials/flash
           block content
-            
-        
+
         .ui.inverted.vertical.footer.segment(style="margin-top: 2em;")
           .ui.container
             .ui.stackable.inverted.divided.equal.height.stackable.grid
