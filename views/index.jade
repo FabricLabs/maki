@@ -4,7 +4,84 @@ block scripts
   script.
     hljs.initHighlightingOnLoad();
 
-block page
+block masthead
+  .ui.center.aligned.inverted.segment
+    h1.ui.inverted.header
+      | Build more, code less.
+    h2.ui.inverted.header
+      | #{config.service.name} is !{config.service.mission}
+
+    a.ui.huge.primary.button(href="/tutorials/hello-world", style="margin-top: 1.5em;")
+      | Create Your First Project
+      i.right.chevron.icon
+
+block content
+  .ui.vertical.stripe.segment
+    .ui.text.container
+      h3.ui.horizontal.header.divider Semantic Interface Design
+      p Build applications with the <a href="/snippets/components">Interface Design Language</a> and enjoy harmony.
+      
+      code.header generic-chat.interface:
+      .ui.segment
+        pre.jade.numbered
+          code.
+            extends layouts/default
+
+            block content
+              maki-chat-view(src="/rooms/lounge")
+                
+      img.ui.centered.aligned.image(src="/img/image.png")
+
+      h3.ui.horizontal.header.divider Component Architecture
+      p Components can be built and customized to control the user experience of your application across multiple platforms.
+
+    .ui.two.column.centered.stackable.grid.container(style="margin-top: 2em; margin-bottom: 2em;")
+      .six.wide.column
+        code.header maki-chat-view.component:
+        .ui.segment
+          pre.jade.numbered
+            code.
+              component#maki-chat-view
+                template
+                  maki-chat-messages
+                  maki-chat-input
+      .six.wide.column
+        code.header maki-chat-input.component:
+        .ui.segment
+          pre.jade.numbered
+            code.
+              component#maki-chat-input
+                template
+                  input(type="text", name="content")
+                  button(type="submit", on-tap="submit")
+                behavior
+                  function submit() {
+                    // hooray!
+                  }
+    .ui.three.column.centered.stackable.grid.container(style="margin-top: 2em; margin-bottom: 2em;")
+      .three.wide.column
+        h4 Mobile
+        img.ui.centered.aligned.image(src="/img/image.png")
+      .three.wide.column
+        h4 Desktop
+        img.ui.centered.aligned.image(src="/img/image.png")
+      .three.wide.column
+        h4 Web
+        img.ui.centered.aligned.image(src="/img/image.png")
+
+      
+  .ui.vertical.stripe.quote.segment
+    .ui.equal.width.stackable.internally.celled.grid
+      .center.aligned.row
+        .column
+          h3 "This feels like the invention of the transistor."
+          p Will Ricketts, SailsJS Contributor
+        .column
+          h3 We're building something new.
+          a.ui.huge.primary.button(href="/developers/getting-involved") Come join us.
+            i.icon.right.chevron
+
+//-block page
   .pusher
     .ui.inverted.vertical.masthead.center.aligned.segment
       .ui.container
@@ -27,118 +104,18 @@ block page
             script(async, defer, src="https://community.ericmartindale.com/slackin.js?large")
             a.ui.inverted.button(href="https://github.com/martindale/maki")
               i.icon.alternate.github
-              | GitHub
+              | Developers
               i.icon.right.chevron
       .ui.text.container
         h1.ui.inverted.header
-          | Code less.
+          | Build more, code less.
         h2
-          | #{config.service.name}, !{config.service.mission}
+          | #{config.service.name} is !{config.service.mission}
 
         pre(style="font-size: 1.2em; margin-top: 2em;")
           code.nohighlight.
-            npm install martindale/maki --save
+            npm install martindale/maki
           
         a.ui.huge.primary.button(href="/docs")
-          | Build Your MVP Faster
+          | Create Your First Project
           i.right.chevron.icon
-
-    .ui.vertical.stripe.segment
-      .ui.middle.aligned.stackable.grid.container
-        .ui.equal.width.stackable.internally.celled.grid
-          .center.aligned.row
-            for point in config.service.points
-              .column
-                h3.header #{ point.header }
-                //- TODO: use marked config, not a regex, to fix errant <p> tags
-                p.description
-                  | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
-                if (point.action)
-                  a.ui.huge.fluid.button(href="#{point.action.link}") !{point.action.text}
-              
-    .ui.vertical.stripe.segment
-      .ui.text.container
-        h3.ui.header Powerful Helpers
-        p Maki comes with a suite of powerful tools, out of the box.  Each is completely optional and replaceable!
-
-        h4.ui.horizontal.header.divider The Power Suite
-
-        p By default, Maki apps are composed with <a href="http://jade-lang.com">Jade</a>, styled with <a href="https://semantic-ui.com">Semantic UI</a>, and bound together by <a href="https://facebook.github.io/flux/">the Flux architecture</a> (as implemented by <a href="https://facebook.github.io/react/">React</a>).
-          pre.jade
-            code.
-              extends layouts/default
-              
-              block menu
-                Item(target="/settings") Settings
-              
-              block navigation
-                Item(target="/") Home
-                Item(target="back") Back
-
-              block primary
-                ChatView(src="/rooms/lounge")
-        
-        p This allows you to write your application <em>once</em>, and we can derive native interfaces directly &mdash; by default, provided by <a href="https://facebook.github.io/react-native/">React Native</a>.
-        
-        h2.ui.header Loosely Coupled
-        p Have a better way to do things?  Have a different compile target?  All Maki components are <strong>optional</strong>, and can even be outright removed without disrupting the other components of the system.
-
-        
-    .ui.vertical.stripe.quote.segment
-      .ui.equal.width.stackable.internally.celled.grid
-        .center.aligned.row
-          .column
-            h3 "This feels like the invention of the transistor."
-            p Will Ricketts, SailsJS Contributor
-          .column
-            h3 We're building something new.
-            a.ui.huge.primary.button(href="/developers/getting-involved") Come join us.
-              i.icon.right.chevron
-
-    .ui.inverted.vertical.footer.segment
-      .ui.container
-        .ui.stackable.inverted.divided.equal.height.stackable.grid
-          .six.wide.column
-            h4.ui.inverted.header About
-            p Maki is a labor of love, a result of several years of iterations and re-architectures in pursuit of a clean, hand-rolled framework for building clean, useful applications.  We hope you like it.
-            //-.ui.inverted.link.list
-              a.item(href="#") Protocol
-              a.item(href="#") Whitepaper
-              a.item(href="#") Roadmap
-              a.item(href="#") Contact Us
-          .seven.wide.column
-            h4.ui.inverted.header Copyleft
-            p Maki is copyleft, and encourages you to copy, clone, and <em>create</em>.  After all, without a rich public domain, how else can we innovate?  Much to our chagrin, the software itself is more formally <a href="https://github.com/martindale/maki/blob/master/LICENSE">MIT licensed</a>, while our content is licensed under <a href="http://creativecommons.org/licenses/by/4.0/">CC-BY</a>.
-          .three.wide.column
-            h4.ui.inverted.header Elsewhere
-            .ui.inverted.link.list
-              a.item(href="https://github.com/martindale/maki", rel="me")
-                i.icon.github
-                |  GitHub
-              a.item(href="https://twitter.com/martindale", rel="me")
-                i.icon.twitter
-                |  Twitter
-              a.item(href="https://facebook.com/eric.martindale", rel="me")
-                i.icon.facebook
-                |  Facebook
-              //-a.item(href="#", rel="me")
-                i.icon.medium
-                |  Medium
-block content
-  .ui.header
-    h1.huge Hello, #{config.service.name}.
-    h2 !{ markdown( config.service.mission ) }
-    
-    p !{ markdown( config.service.description ) }
-    
-  .ui.stackable.three.column.grid
-    for point in config.service.points
-      .column
-        .ui.fluid.card
-          .content
-            h2.header #{ point.header }
-            //- TODO: use marked config, not a regex, to fix errant <p> tags
-            p.description
-              | !{ markdown( point.description ).replace(/<p>(.*)<\/p>/, '$1') }
-          if (point.action)
-            a.ui.bottom.attached.button(href="#{point.action.link}") !{point.action.text}

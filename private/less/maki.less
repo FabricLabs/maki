@@ -1,15 +1,26 @@
 /* MAKI STYLES */
 /* Generally, overrides or customizations not handled by the UI library */
 /* (semantic-ui, at the time of writing) */
+.pusher {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.pusher > .footer {
+  flex: 1;
+}
 
 /* make cards on the front page equal height */
 .stackable.column.grid .card .description {
   min-height: 4em;
 }
 
-.masthead .text.container a.primary.button {
+.masthead .text.container>:first-child {
   margin-top: 2em;
-  margin-bottom: 4em;
+}
+.masthead .text.container>:last-child {
+  margin-bottom: 2em;
 }
 
 .hidden.menu {
@@ -17,17 +28,24 @@
 }
 
 .masthead.segment {
-  min-height: 350px;
+  /* min-height: 15em; */
   padding: 1em 0em;
 }
-.masthead .logo.item img {
+.ui.secondary.menu .item>img:not(.ui) {
   margin-right: 1em;
+  max-height: 2em;
+  max-width: 2em;
+  margin-top: -1em;
+  margin-bottom: -1em;
+}
+.ui.menu .logo.item>img:not(.ui) {
+  margin-right:1em;
 }
 .masthead .ui.menu .ui.button {
   margin-left: 0.5em;
 }
 .masthead h1.ui.header {
-  margin-top: 1.5em;
+  margin-top: 0.5em;
   margin-bottom: 0em;
   font-size: 4em;
   font-weight: normal;
@@ -36,10 +54,19 @@
   font-size: 1.7em;
   font-weight: normal;
 }
-
-.ui.vertical.stripe {
-  padding: 8em 0em;
+.masthead .ui.menu {
+  margin: 0;
 }
+.ui.secondary.menu .header.item {
+  border-right: 0;
+}
+.ui.inverted.menu .logo.item {
+  font-weight: bold;
+}
+.masthead .ui.secondary.pointing.menu {
+  border-bottom: 0;
+}
+
 .ui.vertical.stripe h3 {
   font-size: 2em;
 }
@@ -73,11 +100,19 @@
   display: none;
 }
 
+.sidebar .header a {
+  color: white;
+}
+
+.sidebar .header a img {
+  margin: 1em;
+}
+
 @media only screen and (max-width: 700px) {
   .ui.fixed.menu {
     display: none !important;
   }
-  .secondary.pointing.menu .item,
+  .secondary.pointing.menu .item:not(.logo),
   .secondary.pointing.menu .menu {
     display: none;
   }
@@ -85,7 +120,7 @@
     display: block;
   }
   .masthead.segment {
-    min-height: 350px;
+    /*min-height: 350px;*/
   }
   .masthead h1.ui.header {
     font-size: 2em;

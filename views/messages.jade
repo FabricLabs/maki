@@ -1,0 +1,19 @@
+extends layouts/default
+
+block content
+  //- TODO: allow "requirements" to set the local variable names
+  - var favorites = messages.slice(0);
+  - favorites.sort(function(a, b) { return b.stats.reactions - a.stats.reactions; });
+
+  h3 Favorites
+  .ui.comments
+    - favorites = favorites.slice(0, 5);
+    for message in favorites
+      include partials/message
+  
+  h3 Latest Messages
+  .ui.comments
+    - messages.sort(function(a, b) { return b.created - a.created; });
+    - messages = messages.slice(0, 5).reverse();
+    for message in messages
+      include partials/message

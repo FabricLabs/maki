@@ -1,9 +1,57 @@
 extends layouts/default
 
+block masthead
+  - if (page && page.masthead)
+    style.
+      .masthead {
+        background: url('#{page.masthead}') no-repeat;
+        background-size: cover;
+      }
+
 block content
+  //- TODO: allow "requirements" to set the local variable names
+  - var favorites = messages.slice(0);
+  - favorites.sort(function(a, b) { return b.stats.reactions - a.stats.reactions; });
+
   .ui.grid.stackable
     .row
       .four.wide.column
         include partials/topic
       .twelve.wide.column
-  
+        if (!topic.description)
+          .ui.warning.icon.message
+            i.icon.warning.sign
+            .content
+              .header
+                small(style="color: rgba(0,0,0,.4);") &#35;
+                | #{topic.name} is missing a description!
+              p Can you <a href="https://github.com/martindale/maki/issues/new?title=Suggested%20Description%20for%20#{topic.name}&body=I'd%20like%20to%20suggest%20the%20following%20description%20for%20the%20topic%3A%0A%0A%3E%20#{topic.name}%20is%20a%20place%20to%20talk%20about...">come up with a suggestion</a>?  Maybe look over <a href="/topics">some of the other topics</a> for some inspiration.
+        if (!topic.topic)
+          .ui.warning.icon.message
+            i.icon.warning.sign
+            .content
+              .header
+                small(style="color: rgba(0,0,0,.4);") &#35;
+                | #{topic.name} isn't currently discussing anything!
+              p Maybe you can <a href="https://chat.maki.io/?topic=#{topic.id}&amp;message=What's%20the%20first%20thing%20someone%20should%20know%20about%20#{topic.id}%3F">start the conversation</a>?
+        
+        //-pre
+          code.json.
+            #{JSON.stringify(topic, null, '  ')}
+        
+        if (favorites.length)
+          .ui.message
+            .content
+              .header Highlights
+              .ui.comments
+                - var message = _.shuffle(favorites.slice(0, 3))[0]
+                include partials/message
+        
+        h3 Latest Messages
+        .ui.comments
+          - messages.sort(function(a, b) { return b.created - a.created; });
+          - messages = messages.slice(0, 5).reverse();
+          for message in messages
+            include partials/message
+
+          include partials/message-input

@@ -1,8 +1,18 @@
 extends layouts/default
 
-block content
+block masthead
   h1 #{config.service.name} API
-  
+  p This API is automatically provided by #{config.service.name} as a default feature in <a href="https://maki.io">Maki</a>.
+
+block content
+  script.
+    window.addEventListener('load', function() {
+      $('.overlay').visibility({
+        type: 'fixed',
+        offset: 80
+      });
+    });
+
   h3 Generally
   p <strong>Formatting:</strong> All endpoints serve both JSON and HTML, controlled by the <code>Accept</code> header of your request.  You can force the formatting of any resource using the <code>format</code> parameter: i.e., append <code>?format=json</code> to any URL to retrieve the underlying resource as JSON.
   p <strong>Events:</strong> Any endpoint can be connected to with a WebSocket, and updates to that resource will be served to you as messages.  These messages will be formatted as JSON-PATCH arrays, wrapped in JSON-RPC with the method name <code>patch</code>.  The <code>channel</code> parameter will correspond to the resource's route.  For more information, see <a href="https://github.com/martindale/maki#pubsub">the Maki documentation on PubSub &amp; Messaging</a>.
@@ -18,12 +28,13 @@ block content
 
   .ui.stackable.grid
     .four.wide.column
-      .ui.vertical.fluid.menu
-        for resource in resources
-          a.item(href="/api##{resource.plural.toLowerCase()}")
-            if (resource.options.icon)
-              i.icon(class="#{resource.options.icon}")
-            | #{resource.plural}
+      .overlay
+        .ui.labeled.vertical.menu
+          for resource in resources
+            a.item(href="/api##{resource.plural.toLowerCase()}")
+              if (resource.options.icon)
+                i.icon(class="#{resource.options.icon}")
+              | #{resource.plural}
     .twelve.wide.column
       .ui.cards
         for resource in resources

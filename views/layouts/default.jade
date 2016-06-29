@@ -5,11 +5,11 @@ html.no-js
     meta(http-equiv="X-UA-Compatible", content="IE=edge")
     
     - var home = config.service.authority;
+    - var title = (page && page.title) ? page.title : config.service.name;
     - var image = (page && page.image) ? page.image : 'https://' + home + '/img/maki.png';
-    - var title = (page && page.title) ? page.title : config.service.name
+    - var masthead = (page && page.masthead) ? page.masthead : null;
     - var description = (page) ? page.description || page.title || config.service.name + ': ' + config.service.mission : config.service.name + ': ' + config.service.mission;
 
-  
     title #{title}
 
     meta(name="description", content="#{description}")
@@ -33,6 +33,13 @@ html.no-js
     link(rel="stylesheet", href="/css/maki.css")
     link(rel="stylesheet", href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Open+Sans:300italic,400,300,700")
 
+    - if (page && page.masthead)
+      style.
+        .masthead {
+          background: url('#{page.masthead}') no-repeat 50% 50%;
+          background-size: cover;
+        }
+
     script(src="/js/jquery.js")
     script(src="/js/semantic.min.js")
     script(src="/js/lodash.min.js")
@@ -47,8 +54,97 @@ html.no-js
 
   body
     block page
-      .ui.page.grid
-        .row
+      .ui.large.top.fixed.hidden.menu
+        .ui.container
+          a.logo.item(href="/")
+            if (config.service.logo)
+              img(src="#{config.service.logo}")
+            else
+              i.icon.left(class="#{ config.service.icon || 'lab' }")
+            | #{config.service.name}
+          each resource in resources
+            if (resource.public)
+              a.item(href="#{resource.routes.query}")
+                if (resource.options.icon)
+                  i.icon(class="#{resource.options.icon}")
+                | #{resource.names.handle}
+      .ui.vertical.inverted.sidebar.right.large.menu
+        .ui.center.aligned.inverted.header
+          a(href="/")
+            if (config.service.logo)
+              img.ui.centered.tiny.circular.bordered.image(src="#{config.service.logo}")
+            else
+              i.icon.left(class="#{ config.service.icon || 'lab' }")
+            | #{config.service.name}
+            p(style="text-align: center;")
+             //-small made with <i class="icon heart"></i>
+             small(style="color:rgba(255,255,255,0.5); font-size: 0.75em;") made with <i class="icon heart"></i>
+        each resource in resources
+          if (resource.public)
+            a.item(href="#{resource.routes.query}")
+              if (resource.options.icon)
+                i.icon(class="#{resource.options.icon}")
+              | #{resource.names.handle}
+              
+      .pusher
+        .ui.inverted.vertical.masthead.segment
+          .ui.container
+            .ui.large.secondary.inverted.pointing.menu
+              a.logo.item(href="/")
+                if (config.service.logo)
+                  img(src="#{config.service.logo}")
+                else
+                  i.icon.left(class="#{ config.service.icon || 'lab' }")
+                | #{config.service.name}
+              each resource in resources
+                if (resource.public)
+                  a.item(href="#{resource.routes.query}")
+                    if (resource.options.icon)
+                      i.icon(class="#{resource.options.icon}")
+                    | #{resource.names.handle}
+              a.right.toc.item
+                i.sidebar.icon
+            .ui.text.container
+              block masthead
+              
+            div(style="clear: both;")
+
+        .ui.container.content(data-for="viewport", style="padding-top: 1em;")
+          include ../partials/flash
+          block content
+
+        .ui.inverted.vertical.footer.segment(style="margin-top: 2em;")
+          .ui.container
+            .ui.stackable.inverted.divided.equal.height.stackable.grid
+              .six.wide.column
+                h4.ui.inverted.header About
+                p Maki is a labor of love, a result of several years of iterations and re-architectures in pursuit of a clean, hand-rolled framework for building clean, useful applications.  We hope you like it.
+                //-.ui.inverted.link.list
+                  a.item(href="#") Protocol
+                  a.item(href="#") Whitepaper
+                  a.item(href="#") Roadmap
+                  a.item(href="#") Contact Us
+              .seven.wide.column
+                h4.ui.inverted.header Copyleft
+                p Maki is copyleft, and encourages you to copy, clone, and <em>create</em>.  After all, without a rich public domain, how else can we innovate?  Much to our chagrin, the software itself is more formally <a href="https://github.com/martindale/maki/blob/master/LICENSE">MIT licensed</a>, while our content is licensed under <a href="http://creativecommons.org/licenses/by/4.0/">CC-BY</a>.
+              .three.wide.column
+                h4.ui.inverted.header Elsewhere
+                .ui.inverted.link.list
+                  a.item(href="https://github.com/martindale/maki", rel="me")
+                    i.icon.github
+                    |  GitHub
+                  a.item(href="https://twitter.com/martindale", rel="me")
+                    i.icon.twitter
+                    |  Twitter
+                  a.item(href="https://facebook.com/eric.martindale", rel="me")
+                    i.icon.facebook
+                    |  Facebook
+                  //-a.item(href="#", rel="me")
+                    i.icon.medium
+                    |  Medium
+
+      //-.ui.page.grid
+        //-.row
           block navbar
             include ../partials/navbar
 
@@ -65,8 +161,25 @@ html.no-js
               small Built with <a href="http://github.com/martindale/maki">Maki</a>.
 
     block scripts
-      
+
     script.
+      window.addEventListener('load', function() {
+        // fix menu when passed
+        $('.masthead').visibility({
+          once: false,
+          onBottomPassed: function() {
+            console.log('.masthead.onBottomPassed()')
+            $('.fixed.menu').transition('fade in');
+          },
+          onBottomPassedReverse: function() {
+            $('.fixed.menu').transition('fade out');
+          }
+        });
+
+        // create sidebar and attach to menu open
+        $('.ui.sidebar').sidebar('attach events', '.toc.item');
+      });
+
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)

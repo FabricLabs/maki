@@ -27,6 +27,7 @@ rest.get(url).on('complete', function(people) {
         'Accept': 'application/json'
       },
       data: {
+        id: person.name,
         username: person.name,
         name: {
           given: person.profile.first_name,
@@ -37,6 +38,9 @@ rest.get(url).on('complete', function(people) {
         image: {
           original: person.profile.image_original,
           avatar: person.profile.image_192,
+        },
+        links: {
+          slack: person.id
         }
       }
     }).on('complete', function(result, response) {
