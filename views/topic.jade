@@ -17,6 +17,14 @@ block content
     .row
       .four.wide.column
         include partials/topic
+        .ui.two.mini.statistics
+          .ui.statistic
+            .value #{topic.stats.messages}
+            .label messages
+          .ui.statistic
+            .value #{topic.stats.subscribers}
+            .label people
+        
       .twelve.wide.column
         if (!topic.description)
           .ui.warning.icon.message

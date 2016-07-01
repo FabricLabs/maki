@@ -66,6 +66,10 @@ var Person = maki.define('Person', {
     },
     links: {
       slack: { type: String , max: 40 }
+    },
+    stats: {
+      messages: { type: Number , default: 0 },
+      invitations: { type: Number , default: 0 }
     }
   },
   auth: {
@@ -193,7 +197,6 @@ var Message = maki.define('Message', {
 
 function populateAuthor (next, done) {
   var message = this;
-  console.log('pre create message:', message);
   Person.get({
     'links.slack': message.author
   }, function(err, person) {
@@ -208,8 +211,29 @@ function populateAuthor (next, done) {
   });
 }
 
+function calculateStats (next, done) {
+  var message = this;
+  console.log('post create message:', message);
+  var query = {
+    topic: message.topic
+  };
+
+  console.log('query:', query);
+  Message.Model.count(query, function(err, count) {
+    console.log('count callback:', err, count);
+    Topic.patch({ id: message.topic }, [
+      { op: 'replace', path: '/stats/messages', value: count }
+    ], function(err, num) {
+      console.log('patch applied,', err, num);
+      next(err);
+    });
+  });
+}
+
 Message.pre('create', populateAuthor);
 Message.pre('update', populateAuthor);
+
+Message.post('create', calculateStats);
 
 maki.define('Example', {
   attributes: {

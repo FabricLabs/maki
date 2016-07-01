@@ -55,7 +55,8 @@ rest.get(url).on('complete', function(topics) {
       var base = 'https://slack.com/api/channels.history';
       var params = {
         token: config.slack.token,
-        channel: channel.id
+        channel: channel.id,
+        count: 1000
       };
       var url = base + '?' + qs.stringify(params);
 
@@ -102,9 +103,7 @@ rest.get(url).on('complete', function(topics) {
               return prev + curr;
             });
           }
-
           //console.log('msg:', msg);
-
           put(remote, msg, function(err, result) {
             console.log('message result:', result.id, 'has:', result.created);
           });
