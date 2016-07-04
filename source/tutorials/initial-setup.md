@@ -46,8 +46,13 @@ encourage you to <abbr class="tooltipped" title="Check out the Slack for help,
 link above!">ask for help</abbr> if you need it.  We're going to be writing
 these guides for the Mac OSX operating system.
 
-**Quick Tip:** if something doesn't work, try closing the Terminal and
-re-opening it!  If you still get an error on the step you're on, ask for help.
+<div class="ui info icon message">
+  <i class="inbox icon"></i>
+  <div class="content">
+    <div class="header">Quick Tip</div>
+    <p>If something doesn't work, try closing the Terminal and re-opening it!  If you still get an error on the step you're on, <a href="/topics/learning">ask for help in #learning</a>.</p>
+  </div>
+</div>
 
 ## Step 1: Package Manager
 OSX doesn't come with an easy way of managing applications by default, so we

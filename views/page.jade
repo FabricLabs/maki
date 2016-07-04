@@ -6,6 +6,16 @@ block masthead
       .masthead {
         background: url('#{page.masthead}');
       }
+  
+  if (page.edit)
+    .ui.card(style="float:right; margin: 0;")
+      .content
+        .right.floated.meta
+          a.ui.mini.button(href="#{page.edit}")
+            i.icon.pencil
+            | edit
+        .header Improve This
+        .description Have a suggestion?  This content is open-source, so lend a hand!
 
   if (page.title)
     h2 #{page.title}
