@@ -1,3 +1,11 @@
+---
+title: Resource Definitions
+description: Documentation for configuring Resources, including attributes and behaviors.
+source: https://github.com/martindale/maki/blob/maki.io/source/tutorials/adding-resources.md
+edit: https://github.com/martindale/maki/edit/maki.io/source/tutorials/adding-resources.md
+masthead: /img/digital-texture.jpg
+---
+
 ## Resources
 Resources define the "object model" that your application exposes.  Here's how
 a single resource is created:

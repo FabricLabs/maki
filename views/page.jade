@@ -1,16 +1,18 @@
 extends {process.env.PWD + '/views/layouts/default'}
 
-block scripts
-  script.
-    hljs.initHighlightingOnLoad();
-    
 block masthead
-  include partials/edit-self
+  - if (page && page.masthead)
+    style.
+      .masthead {
+        background: url('#{page.masthead}');
+      }
 
-  if (page && page.title)
-    h1 #{page.title}
-    if (page.description)
-      h2 #{page.description}
+  if (page.title)
+    h2 #{page.title}
+  if (page.image)
+    img.ui.image.right.floated.small(src="#{page.image}")
+  if (page.description)
+    h3 #{page.description}
 
 block content
-  .ui.text-container !{content}
+  .ui.text.container !{content}

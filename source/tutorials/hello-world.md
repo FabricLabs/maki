@@ -1,9 +1,37 @@
 ---
 title: Hello World with Maki
 description: A simple guide to building your first Maki app.
-source: https://github.com/martindale/maki/blob/better-splash/source/tutorials/hello-world.md
-edit: https://github.com/martindale/maki/edit/better-splash/source/tutorials/hello-world.md
+source: https://github.com/martindale/maki/blob/maki.io/source/tutorials/hello-world.md
+edit: https://github.com/martindale/maki/edit/maki.io/source/tutorials/hello-world.md
+masthead: /img/digital-texture.jpg
 ---
+
+<div class="ui top attached fluid three tablet stackable steps">
+  <a class="step" href="/tutorials/initial-setup">
+    <i class="plug icon"></i>
+    <div class="content">
+      <div class="title">Setup</div>
+      <div class="description">Get the tools you need.</div>
+    </div>
+  </a>
+  <a class="active step" href="/tutorials/hello-world">
+    <i class="power icon"></i>
+    <div class="content">
+      <div class="title">Hello, world.</div>
+      <div class="description">Create your first app.</div>
+    </div>
+  </a>
+  <a class="step" href="/tutorials/adding-resources">
+    <i class="settings icon"></i>
+    <div class="content">
+      <div class="title">Resources</div>
+      <div class="description">Add more functionality.</div>
+    </div>
+  </a>
+</div>
+
+# Hello, world.
+
 Building an average application with Maki is incredibly simple.  We'll get a web
 server set up using [the built-in HTTP service](/docs/services#http), and edit
 some content on the page to say "Hello world!".
@@ -123,4 +151,10 @@ block content
 
 That's it!  You're on your way to a fully-functional app.
 
-**Up Next:** [Adding Resources](/tutorials/adding-resources)
+<div class="ui fluid card">
+  <div class="content">
+    <h3 class="ui header"><strong>Up Next:</strong> Adding Resources</h3>
+    <p>Now that we've created a basic application, it's time to get fancy.</p>
+    <a href="/tutorials/adding-resources" class="ui fluid primary button">Add New Resources<i class="icon right chevron"></i></a>
+  </div>
+</div>

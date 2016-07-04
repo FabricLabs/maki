@@ -1,9 +1,35 @@
 ---
-title: Maki Projects
-description: A list of the available tutorials introducing you to Maki.
-source: https://github.com/martindale/maki/blob/better-splash/source/tutorials/initial-setup.md
-edit: https://github.com/martindale/maki/edit/better-splash/source/tutorials/initial-setup.md
+title: Initial Setup
+description: Get the tools you need to start making things with Maki.
+source: https://github.com/martindale/maki/blob/maki.io/source/tutorials/initial-setup.md
+edit: https://github.com/martindale/maki/edit/maki.io/source/tutorials/initial-setup.md
+masthead: /img/digital-texture.jpg
 ---
+
+<div class="ui top attached fluid three tablet stackable steps">
+  <a class="active step" href="/tutorials/initial-setup">
+    <i class="plug icon"></i>
+    <div class="content">
+      <div class="title">Setup</div>
+      <div class="description">Get the tools you need.</div>
+    </div>
+  </a>
+  <a class="step" href="/tutorials/hello-world">
+    <i class="power icon"></i>
+    <div class="content">
+      <div class="title">Hello, world.</div>
+      <div class="description">Create your first app.</div>
+    </div>
+  </a>
+  <a class="step" href="/tutorials/adding-resources">
+    <i class="settings icon"></i>
+    <div class="content">
+      <div class="title">Resources</div>
+      <div class="description">Add more functionality.</div>
+    </div>
+  </a>
+</div>
+
 # Initial Setup
 If you're already familiar with [the developer
 basics](/tutorials/developer-basics), you're ready to get your [developer
