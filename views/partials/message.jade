@@ -19,7 +19,7 @@ style.
   .content
     a.author(href="/people/#{message.author.id}") #{message.author.id}
     .metadata
-      .date(href="/messages/#{message.id}") #{message.created}
+      a.date(href="/messages/#{message.id}") #{message.created}
     .text
       p !{slackdown(message.content)}
     .actions

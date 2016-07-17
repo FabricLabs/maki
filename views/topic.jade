@@ -24,6 +24,15 @@ block content
           .ui.statistic
             .value #{topic.stats.subscribers}
             .label people
+        .ui.vertical.fluid.menu
+          .header.item #{topic.stats.subscribers} People
+          - var limit = 5
+          for person in _.sample(topic.people, limit)
+            a.item(href="/people/#{person}") #{person}
+          if (topic.people.length > limit)
+            a.item(href="https://chat.maki.io/?topic=#{topic.id}")
+              strong #{topic.people.length - 5} more
+              i.icon.right.chevron
         
       .twelve.wide.column
         if (!topic.description)

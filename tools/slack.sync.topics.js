@@ -30,97 +30,122 @@ function put (url, data, cb) {
 
 rest.get(url).on('complete', function(topics) {
   //console.log('topics:', topics.channels);
-
-  topics.channels.filter(function(x) {
-    return (x.is_archived === false);
-  }).forEach(function(channel) {
-    var channelID = speakingurl(channel.name);
-    var remote = home + '/topics/' + channelID;
-
-    console.log('topic:', channel);
-    console.log('remote:', remote);
-
-    put(remote, {
-      id: channelID, // TODO: reject if PUT doesn't match?
-      name: channel.name,
-      description: channel.purpose.value,
-      topic: channel.topic.value,
-      created: new Date(channel.created * 1000),
-      stats: {
-        subscribers: channel.num_members
+  
+  rest.get(home + '/people', {
+    headers: {
+      Accept: 'application/json'
+    }
+  }).on('complete', function(people) {
+    var peopleMap = {};
+    people.forEach(function(person) {
+      console.log('person:', person);
+      if (!person.links) {
+        console.error('person has no links:', person.id);
+        return;
       }
-    }, function(err, result) {
-      console.log('channel result:', channel.name, result)//response.statusCode);
+      
+      peopleMap[person.links.slack] = person;
+    });
 
-      var base = 'https://slack.com/api/channels.history';
-      var params = {
-        token: config.slack.token,
-        channel: channel.id,
-        count: 1000
-      };
-      var url = base + '?' + qs.stringify(params);
+    topics.channels.filter(function(x) {
+      return (x.is_archived === false);
+    }).forEach(function(channel) {
+      var channelID = speakingurl(channel.name);
+      var remote = home + '/topics/' + channelID;
 
-      console.log('channels.history using URL:', url);
-
-      rest.get(url).on('complete', function(data) {
-        console.log('retrieved', data.messages.length, 'messages');
-        console.log('sample:', data.messages[0]);
-
-        data.messages.filter(function(m) {
-          //return (m.reactions && m.reactions.length);
-          return (!m.subtype);
-        }).forEach(function(message) {
-          var state = JSON.stringify(message);
-          var key = [channelID, message.user, message.ts].join(':');
-          var hash = crypto.createHash('sha256').update(key).digest('hex');
-          var remote = home + '/messages/' + hash;
-
-          var timestamp = new Date(message.ts * 1000);
-          var reactions = {};
-
-          if (!message.reactions) message.reactions = [];
-          message.reactions.forEach(function(r) {
-            reactions[r.name] = parseInt(r.count);
-          });
-
-          var msg = {
-            id: hash,
-            topic: channelID,
-            author: message.user,
-            content: message.text,
-            created: timestamp,
-            reactions: reactions,
-            links: {
-              slack: hash // no IDs given by Slack!  uh-oh!
-            },
-            stats: {}
-          };
-
-          if (message.reactions && message.reactions.length) {
-            msg.stats.reactions = message.reactions.map(function(x) {
-              return x.count;
-            }).reduce(function(prev, curr, i) {
-              return prev + curr;
-            });
-          }
-          //console.log('msg:', msg);
-          put(remote, msg, function(err, result) {
-            console.log('message result:', result.id, 'has:', result.created);
-          });
-        });
+      console.log('topic:', channel);
+      console.log('remote:', remote);
+      
+      var peopleArray = Object.keys(peopleMap).map(function(id) {
+        return peopleMap[id]._id;
       });
 
+      put(remote, {
+        id: channelID, // TODO: reject if PUT doesn't match?
+        name: channel.name,
+        description: channel.purpose.value,
+        topic: channel.topic.value,
+        created: new Date(channel.created * 1000),
+        people: peopleArray,
+        stats: {
+          subscribers: channel.num_members
+        }
+      }, function(err, result) {
+        console.log('channel result:', channel.name, result)//response.statusCode);
+
+        var base = 'https://slack.com/api/channels.history';
+        var params = {
+          token: config.slack.token,
+          channel: channel.id,
+          count: 1000
+        };
+        var url = base + '?' + qs.stringify(params);
+
+        console.log('channels.history using URL:', url);
+
+        rest.get(url).on('complete', function(data) {
+          console.log('retrieved', data.messages.length, 'messages');
+          console.log('sample:', data.messages[0]);
+
+          data.messages.filter(function(m) {
+            //return (m.reactions && m.reactions.length);
+            return (!m.subtype);
+          }).forEach(function(message) {
+            var state = JSON.stringify(message);
+            var key = [channelID, message.user, message.ts].join(':');
+            var hash = crypto.createHash('sha256').update(key).digest('hex');
+            var remote = home + '/messages/' + hash;
+
+            var timestamp = new Date(message.ts * 1000);
+            var reactions = {};
+
+            if (!message.reactions) message.reactions = [];
+            message.reactions.forEach(function(r) {
+              reactions[r.name] = parseInt(r.count);
+            });
+
+            var msg = {
+              id: hash,
+              topic: channelID,
+              author: message.user,
+              content: message.text,
+              created: timestamp,
+              reactions: reactions,
+              links: {
+                slack: hash // no IDs given by Slack!  uh-oh!
+              },
+              stats: {}
+            };
+
+            if (message.reactions && message.reactions.length) {
+              msg.stats.reactions = message.reactions.map(function(x) {
+                return x.count;
+              }).reduce(function(prev, curr, i) {
+                return prev + curr;
+              });
+            }
+            //console.log('msg:', msg);
+            put(remote, msg, function(err, result) {
+              console.log('message result:', result.id, 'has:', result.created);
+            });
+          });
+        });
 
 
-      /*var base = 'https://slack.com/api/emoji.list';
-      var params = {
-        token: config.slack.token
-      };
-      var url = base + '?' + qs.stringify(params);
-      rest.get(url).on('complete', function(emoji) {
-        console.log('emoji:', emoji);
-      });*/
 
+        /*var base = 'https://slack.com/api/emoji.list';
+        var params = {
+          token: config.slack.token
+        };
+        var url = base + '?' + qs.stringify(params);
+        rest.get(url).on('complete', function(emoji) {
+          console.log('emoji:', emoji);
+        });*/
+
+      });
     });
+  
+  
   });
+
 });

@@ -130,6 +130,7 @@ var Topic = maki.define('Topic', {
     description: { type: String },
     topic: { type: String },
     created: { type: Date , default: Date.now },
+    people: [ { type: String , ref: 'Person' }],
     stats: {
       subscribers: { type: Number , default: 0 },
       messages: { type: Number , default: 0 },
