@@ -21,7 +21,7 @@ style.
     .metadata
       .date(href="/messages/#{message.id}") #{message.created}
     .text
-      p #{message.content}
+      p !{slackdown(message.content)}
     .actions
       if (reactions)
         for name in reactions
