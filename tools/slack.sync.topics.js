@@ -53,10 +53,9 @@ rest.get(url).on('complete', function(topics) {
       var channelID = speakingurl(channel.name);
       var remote = home + '/topics/' + channelID;
 
-      console.log('topic:', channel);
-      console.log('remote:', remote);
-      
-      var peopleArray = Object.keys(peopleMap).map(function(id) {
+      var peopleArray = channel.members.filter(function(id) {
+        return peopleMap[id];
+      }).map(function(id) {
         return peopleMap[id]._id;
       });
 
@@ -71,8 +70,6 @@ rest.get(url).on('complete', function(topics) {
           subscribers: channel.num_members
         }
       }, function(err, result) {
-        console.log('channel result:', channel.name, result)//response.statusCode);
-
         var base = 'https://slack.com/api/channels.history';
         var params = {
           token: config.slack.token,
@@ -81,12 +78,7 @@ rest.get(url).on('complete', function(topics) {
         };
         var url = base + '?' + qs.stringify(params);
 
-        console.log('channels.history using URL:', url);
-
         rest.get(url).on('complete', function(data) {
-          console.log('retrieved', data.messages.length, 'messages');
-          console.log('sample:', data.messages[0]);
-
           data.messages.filter(function(m) {
             //return (m.reactions && m.reactions.length);
             return (!m.subtype);
@@ -126,7 +118,7 @@ rest.get(url).on('complete', function(topics) {
             }
             //console.log('msg:', msg);
             put(remote, msg, function(err, result) {
-              console.log('message result:', result.id, 'has:', result.created);
+              //console.log('message result:', result.id, 'has:', result.created);
             });
           });
         });
