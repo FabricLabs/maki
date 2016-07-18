@@ -236,6 +236,16 @@ Message.pre('update', populateAuthor);
 
 Message.post('create', calculateStats);
 
+var Invitation = maki.define('Invitation', {
+  public: false,
+  attributes: {
+    email: { type: String , required: true , max: 240 },
+    topics: [ { type: String } ],
+    //created: { type: Date , default: Date.now },
+    status: { type: String , enum: ['created', 'sent', 'accepted'] }
+  }
+});
+
 maki.define('Example', {
   attributes: {
     name:    { type: String , max: 80 },
