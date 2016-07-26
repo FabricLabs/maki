@@ -69,6 +69,10 @@ rest.get(url).on('complete', function(topics) {
           subscribers: channel.num_members
         }
       }, function(err, result) {
+        if (err) return console.error(err);
+        
+        console.log('created remote topic:', result.id , result.created);
+        
         var base = 'https://slack.com/api/channels.history';
         var params = {
           token: config.slack.token,
