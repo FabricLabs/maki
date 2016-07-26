@@ -38,7 +38,6 @@ rest.get(url).on('complete', function(topics) {
   }).on('complete', function(people) {
     var peopleMap = {};
     people.forEach(function(person) {
-      console.log('person:', person);
       if (!person.links) {
         console.error('person has no links:', person.id);
         return;
@@ -118,7 +117,8 @@ rest.get(url).on('complete', function(topics) {
             }
             //console.log('msg:', msg);
             put(remote, msg, function(err, result) {
-              //console.log('message result:', result.id, 'has:', result.created);
+              if (err) return console.error(err);
+              console.log('created remote message:', result.id, result.created);
             });
           });
         });
