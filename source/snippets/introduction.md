@@ -1,4 +1,11 @@
-# Maki, Fabric, and How to Contribute
+---
+title: Maki, Fabric, and How to Contribute
+description: Plug yourself into the Maki community.  Here's how.
+source: https://github.com/martindale/maki/blob/community/source/snippets/introduction.md
+edit: https://github.com/martindale/maki/edit/community/source/snippets/introduction.md
+masthead: /img/digital-texture.jpg
+---
+
 **Great.  You've made it! Now what?**  No matter what kind of person you are, or
 what skills you bring to the table, **there's something you can contribute**.
 We're taking great care to organize things in a way that allows you to bite
@@ -135,6 +142,7 @@ an API client.
   
   });
   ```
+- [`maki-auth-flex`][maki-auth-flex]: the primary authentication tool for Maki apps.  This is like an "authentication router", which lets you configure an array of login methods and identity services for any Maki application.  There are dozens of plugins, and this project will direct you to the one of your choice (or show you how to create one and contribute it to the ecosystem!)
 - [`snarl`][snarl]: the default template for an agent built in the Maki ecosystem.  Snarl, in his current form, is a simple bot with an extensible plugin architecture that is used to coordinate with Maki services.
 
 [chat]: https://chat.maki.io/
