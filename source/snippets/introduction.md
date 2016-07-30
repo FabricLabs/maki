@@ -78,6 +78,7 @@ purpose.
 - [#hacking][#hacking]: when we're coordinating on a weekend hack, we'll chat here!
 - [#development][#development]: this is where engineering work on Maki and Fabric take place.  Try not to tap on the glass, there are engineers at work!
 - [#meetups][#meetups]: most of us met each other through the Internet.  This is where we organize in-person gatherings, to grab a [#beer][#beer] or three together!
+- [#random][#random]: like [#community][#community] but with more of a "look what I found while browsing" feel. If you can't figure out where to share a meme or an article, try putting it here.
 
 For each of these channels, you can check the "topic" and "purpose" by clicking
 the link.  These will change from time-to-time, so make sure to glance at them!
