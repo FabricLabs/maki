@@ -36,6 +36,45 @@ block content
 
       h3.ui.horizontal.header.divider Component Architecture
       p Components can be built and customized to control the user experience of your application across multiple platforms.
+      
+      
+      .ui.info.icon.message.text.container
+        i.icon.info
+        .content
+          h4.center.aligned.icon.header Heads Up!
+          p We haven't <a href="/snippets/language">formalized a language</a> yet.  These are just ideas.
+
+    .ui.two.column.centered.stackable.grid.container(style="margin-top: 2em; margin-bottom: 2em;")
+      .six.wide.column
+        // This simple component binds a user input
+        // (say, a text area) to a channel, a routable
+        // path in Fabric.
+        //  
+        // When the user has completed providing input,
+        // the type defitions for the resource will 
+        // resume their compute pipeline.
+        code.header maki-chat-input.com:
+        .ui.segment
+          pre.jade.numbered
+            code.
+              component#maki-chat-input
+                template
+                  input(src="/messages")
+      .six.wide.column
+        // Now, we can bind a `list` call to a
+        // known channel, with its API defined by
+        // the resource definition.
+        // 
+        // Our final step is to call `text`, which outputs
+        // the next step.  Called in its own context.
+        code.header maki-chat-messages.com:
+        .ui.segment
+          pre.jade.numbered
+            code.
+              component#maki-chat-messages
+                template
+                  list(src="/messages")
+                    text message
 
     .ui.two.column.centered.stackable.grid.container(style="margin-top: 2em; margin-bottom: 2em;")
       .six.wide.column
@@ -47,19 +86,7 @@ block content
                 template
                   maki-chat-messages
                   maki-chat-input
-      .six.wide.column
-        code.header maki-chat-input.com:
-        .ui.segment
-          pre.jade.numbered
-            code.
-              component#maki-chat-input
-                template
-                  input(type="text", name="content")
-                  button(type="submit", on-tap="submit")
-                behavior
-                  function submit() {
-                    // hooray!
-                  }
+
     .ui.three.column.centered.stackable.grid.container(style="margin-top: 2em; margin-bottom: 2em;")
       .three.wide.column
         h4 Mobile
