@@ -68,6 +68,9 @@ html.no-js
                 if (resource.options.icon)
                   i.icon(class="#{resource.options.icon}")
                 | #{resource.names.handle}
+          if (user)
+            a.right.item(href="/people/#{user.id}") #{user.id}
+            a.item(href="/sessions/#{session.hash}?method=delete") Logout
       .ui.vertical.inverted.sidebar.right.large.menu
         .ui.center.aligned.inverted.header
           a(href="/")
@@ -85,7 +88,11 @@ html.no-js
               if (resource.options.icon)
                 i.icon(class="#{resource.options.icon}")
               | #{resource.names.handle}
-              
+        if (user)
+          .ui.large.secondary.inverted.pointing.right.menu
+            a.item(href="/people/#{user.id}") #{user.id}
+            a.item(href="/sessions/#{session.hash}?method=delete") Logout
+        
       .pusher
         .ui.inverted.vertical.masthead.segment
           .ui.container
@@ -102,6 +109,10 @@ html.no-js
                     if (resource.options.icon)
                       i.icon(class="#{resource.options.icon}")
                     | #{resource.names.handle}
+              if (user)
+                .ui.large.secondary.inverted.pointing.right.menu
+                  a.item(href="/people/#{user.id}") #{user.id}
+                  a.item(href="/sessions/#{session.hash}?method=delete") Logout
               a.right.toc.item
                 i.sidebar.icon
             .ui.text.container
@@ -109,8 +120,11 @@ html.no-js
               
             div(style="clear: both;")
 
-        .ui.container.content(data-for="viewport", style="padding-top: 1em;")
+            
+        .ui.container.content(data-for="flash", style="padding-top: 2em;")
           include ../partials/flash
+
+        .ui.padded.container.content(data-for="viewport")
           block content
 
         .ui.inverted.vertical.footer.segment(style="margin-top: 2em;")

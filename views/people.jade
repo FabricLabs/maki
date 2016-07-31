@@ -21,10 +21,12 @@ block masthead
     i.icon.right.chevron
 
 block content
-  .ui.container.grid
-    .row(style="margin-top: 2em;")
-      h2 #{people.length} People in our Community
-      .ui.five.stackable.cards
-        - var shuffled = _.shuffle(people);
-        for person in shuffled
-          include partials/person
+  - var shuffled = _.shuffle(people);
+  .ui.vertical.stripe.segment.content(style="margin-top: inherit")
+    h2.ui.horizontal.header.divider #{people.length} People in our Community
+    .ui.five.stackable.cards
+      if (people.length > 8)
+        include partials/invitation-card
+      for person in shuffled
+        include partials/person
+      include partials/invitation-card

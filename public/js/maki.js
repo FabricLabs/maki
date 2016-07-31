@@ -38,10 +38,14 @@ var maki = {
         var message = new jsonRPC('unsubscribe', { channel: channel });
         return maki.socket.send( message.toJSON() );
       },
-      publish: function( channel , message ) {
-        if (!maki.socket) { maki.sockets.connect(); }
-
-
+      publish: function( channel , message , type) {
+        if (!maki.socket) maki.sockets.connect();
+        
+        var message = new jsonRPC(type, { channel: channel });
+        return maki.socket.send( message.toJSON() );
+      },
+      call: function(channel, method, params) {
+        maki.sockets.publish(channel, params, method);
       },
       disconnect: function() {
         if (maki.socket) {

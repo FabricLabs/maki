@@ -3,11 +3,21 @@ var config = require('./config');
 var Maki = require('./lib/Maki');
 var maki = new Maki( config );
 
-var Passport = require('maki-passport-local');
+/*var Passport = require('maki-passport-local');
 var passport = new Passport({
   resource: 'Person'
 });
 maki.use( passport );
+
+*/
+
+var AuthSlack = require('maki-auth-slack');
+var authSlack = new AuthSlack({
+  resource: 'Person',
+  slack: config.auth.slack
+});
+
+maki.use(authSlack);
 
 var CMS = require('maki-cms-local');
 var cms = new CMS({
@@ -45,6 +55,7 @@ maki.use(developers);
 maki.use(auth);
 
 var Person = maki.define('Person', {
+  public: false,
   icon: 'user',
   description: 'The list of people working on Maki, including all extended members of the community.',
   attributes: {
@@ -120,6 +131,7 @@ Person.post('get', function(done) {
 });
 
 var Topic = maki.define('Topic', {
+  public: false,
   icon: 'comment',
   handle: 'Conversations',
   masthead: '/img/sunrise.jpg',
@@ -212,7 +224,78 @@ function populateAuthor (next, done) {
   });
 }
 
-function calculateStats (next, done) {
+var Invitation = maki.define('Invitation', {
+  public: false,
+  attributes: {
+    id: { type: String , required: true , slug: true },
+    from: { type: String , max: 240 , authorize: 'user' },
+    email: { type: String , required: true , max: 240 },
+    avatar: { type: String },
+    topics: [ { type: String } ],
+    created: { type: Date , default: Date.now },
+    status: { type: String , enum: ['created', 'sent', 'accepted'] },
+    stats: {
+      reminders: { type: Number , default: 0 },
+      people: { type: Number , default: 1 }
+    }
+  },
+  requires: {
+    Topic: {
+      query: {},
+      sort: 'id'
+    }
+  },
+  handlers: {
+    html: {
+      create: function(req, res) {
+        var invitation = this;
+        req.flash('info', 'Invitation created successfully!');
+        res.format({
+          json: function () {
+            res.status( 303 ).redirect('/invitations/' + invitation.id);
+          },
+          html: function () {
+            res.status( 302 ).redirect('/invitations');
+          }
+        });
+      }
+    }
+  },
+});
+
+Invitation.pre('create', function(done) {
+  var invitation = this;
+  if (invitation.email) {
+    invitation.avatar = require('crypto').createHash('md5').update(invitation.email).digest('hex');
+    invitation.id = invitation.avatar;
+  }
+  done();
+});
+
+Invitation.post('get', function(done) {
+  var invitation = this;
+  if (invitation.email) {
+    invitation.avatar = require('crypto').createHash('md5').update(invitation.email).digest('hex');
+    invitation.id = invitation.avatar;
+  }
+  done();
+});
+
+var Reminder = maki.define('Reminder', {
+  public: false,
+  attributes: {
+    invitation: { type: String , required: true },
+    created: { type: Date , default: Date.now }
+  }
+});
+
+function useInternalID (next, done) {
+  var subject = this;
+  subject.id = subject._id;
+  next();
+}
+
+function calculateTopicStats (done) {
   var message = this;
   console.log('post create message:', message);
   var query = {
@@ -226,7 +309,26 @@ function calculateStats (next, done) {
       { op: 'replace', path: '/stats/messages', value: count }
     ], function(err, num) {
       console.log('patch applied,', err, num);
-      next(err);
+      done(err);
+    });
+  });
+}
+
+function calculateInvitationStats (done) {
+  var reminder = this;
+  console.log('post create reminder:', reminder);
+  var query = {
+    invitation: reminder.invitation
+  };
+
+  console.log('query:', query);
+  Reminder.Model.count(query, function(err, count) {
+    console.log('count callback:', err, count);
+    Invitation.patch({ id: reminder.invitation }, [
+      { op: 'replace', path: '/stats/reminders', value: count }
+    ], function(err, num) {
+      console.log('patch applied,', err, num);
+      done(err);
     });
   });
 }
@@ -234,17 +336,18 @@ function calculateStats (next, done) {
 Message.pre('create', populateAuthor);
 Message.pre('update', populateAuthor);
 
-Message.post('create', calculateStats);
+Message.post('create', calculateTopicStats);
+Reminder.post('create', calculateInvitationStats);
 
-var Invitation = maki.define('Invitation', {
-  public: false,
-  attributes: {
-    email: { type: String , required: true , max: 240 },
-    topics: [ { type: String } ],
-    //created: { type: Date , default: Date.now },
-    status: { type: String , enum: ['created', 'sent', 'accepted'] }
-  }
-});
+/*Reminder.post('create', function(done) {
+  var reminder = this;
+  // TODO: update internal APIs to use a channel here
+  Invitation.patch({ id: reminder.invitation }, [
+    { op: 'add', path: '/stats/transactions', value: 1 }
+  ], function(err, num) {
+    console.log('REMINDER POST CREATE:', err, num);
+  });
+});*/
 
 maki.define('Example', {
   attributes: {
