@@ -109,6 +109,9 @@ html.no-js
                     if (resource.options.icon)
                       i.icon(class="#{resource.options.icon}")
                     | #{resource.names.handle}
+              a.item(href="/people")
+                i.icon.users
+                | Community
               if (user)
                 .ui.large.secondary.inverted.pointing.right.menu
                   a.item(href="/people/#{user.id}") #{user.id}

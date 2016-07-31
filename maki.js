@@ -369,7 +369,7 @@ maki.define('Release', {
     published: { type: Date },
     notes: { type: String , render: 'markdown' }
   },
-  //source: 'https://api.github.com/repos/martindale/maki/releases',
+  source: 'https://api.github.com/repos/martindale/maki/releases',
   map: function( release ) {
     return {
       name: release.name,
