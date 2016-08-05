@@ -1,29 +1,64 @@
 extends layouts/default
 
+block masthead
+  h2.ui.inverted.header Make it with Maki!
+  h3.ui.inverted.header Get started quickly with these examples.
+
 block content
-  h1 Projects Using Maki
-  p We're really excited to have helped many people build awesome things.  Here's a few of them, including special highlights when they've also shared their code!
+  .ui.vertical.stripe.segment.content(style="margin-top: inherit")
+    h2.ui.horizontal.header.divider What are we building?
 
-  .ui.icon.message
-    i.icon.lab
-    .content
-      .header Building something cool?
-      p Go ahead and <a href="https://github.com/martindale/maki/edit/master/data/examples.json">add it to the list</a>!  We'd love to highlight what you've built.  <strong>Bonus points for being open source!</strong> 🍺
-
-  .ui.divided.items
-    for example in examples
-      .item
-        a.ui.tiny.image(href="#{example.uri}")
-          if (example.image)
-            img(src="#{example.image}")
-          else
-            img(src="/img/image.png")
+    .ui.three.cards
+      a.ui.link.card(href="/examples/infrastructure")
         .content
-          .header
-            a(href="#{example.uri}") #{example.name}
-            if (example.source)
-              |  
-              a.ui.label(href="#{example.source}")
-                i.icon.code
-                | Source
-          p.description #{example.description}
+          .header Infrastructure
+          .description You just want the REST API and messaging layers.
+      a.ui.link.card(href="/examples/content")
+        .content
+          .header Simple Website
+          .description No frills, no frazz.  Just good looking content.
+      a.ui.link.card(href="/examples/robust")
+        .content
+          .header Full-stack App
+          .description You're building something you think people will use.
+    
+    br
+    br
+    
+    .ui.two.cards
+      .ui.card
+        .content
+          .header BitFaucet
+          .description A simple app that interacts with a remote RPC service (the Bitcoin daemon, in this case).
+        .extra.content
+          a.ui.fluid.button.primary(href="https://github.com/martindale/bitfaucet")
+            | Browse the Source
+            i.icon.right.chevron
+
+  .ui.vertical.stripe.segment.content(style="margin-top: inherit")
+    h2.ui.horizontal.header.divider Other Examples
+
+    .ui.icon.message
+      i.icon.lab
+      .content
+        .header Building something cool?
+        p Go ahead and <a href="https://github.com/martindale/maki/edit/master/data/examples.json">add it to the list</a>!  We'd love to highlight what you've built.  <strong>Bonus points for being open source!</strong> 🍺
+
+
+    .ui.divided.items
+      for example in examples
+        .item
+          a.ui.tiny.image(href="#{example.uri}")
+            if (example.image)
+              img(src="#{example.image}")
+            else
+              img(src="/img/image.png")
+          .content
+            .header
+              a(href="#{example.uri}") #{example.name}
+              if (example.source)
+                |  
+                a.ui.label(href="#{example.source}")
+                  i.icon.code
+                  | Source
+            p.description #{example.description}

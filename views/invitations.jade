@@ -9,31 +9,7 @@ block masthead
   h1 Invite Your Friends
   h2 Let's make this a place we <em>all</em> love.
 
-  form.ui.inverted.form(action="/invitations", method="POST")
-    if (user)
-      //- TODO: how might be make this a simple object? cc: @chrisinajar
-      //- i.e.,: input(type="hidden", name="from", value="#{user}")
-      input(type="hidden", name="from", value="#{user.id}")
-
-    .field
-      .ui.massive.action.input
-        input(type="email", name="email", placeholder="e.g., your.friend@whomever.com", required)
-        .ui.icon.massive.button(on-tap="showSettings")
-          i.icon.setting
-          i.icon.down.caret
-        button.ui.icon.massive.green.button(type="submit")
-          | Send &nbsp;
-          i.mail.send.icon
-        
-    .settings(style="display: none;")
-      .field
-        label(for="message") Leave your friend a message:
-        textarea(name="message", rows="2")
-      .field
-        label(for="topics") What do you think they'll be interested in?
-        select.ui.fluid.search.dropdown(multiple, name="topics")
-          for topic in topics
-            option(value="#{topic.id}") ##{topic.id}
+  include forms/invitation
 
   if (user)
     //- TODO: how might we handle edge node authentication more smoothly?  Sessions aren't great.

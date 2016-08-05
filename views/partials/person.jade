@@ -6,3 +6,7 @@
     .meta joined in 
       abbr.tooltipped(title="#{person.created}") #{person.created.getFullYear()}
     p #{person.bio}
+  .extra.content
+    .ui.buttons
+      each profile in person.profiles
+        .ui.button #{service}

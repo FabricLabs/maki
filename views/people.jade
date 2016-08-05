@@ -1,26 +1,48 @@
 extends layouts/default
 
 block masthead
+  - var shuffled = _.shuffle(people);
   - if (page && page.masthead)
     style.
       .masthead {
         background: url('#{page.masthead}');
       }
-  h1 People: the Maki Community
-  p We are the people working towards <a href="https://slack-files.com/T09HF1HK9-F1827U79U-5cf8742c4f">the Maki Vision</a> by being members of <a href="/topics">the public chat</a>.  Add yourself to this list by <a href="/invitations">signing in to Slack</a>, and update it by editing your profile there.
-  p Conveniently, this page also serves as an example resource that can be synchronized with an oracle (or more simply, a trusted API).  Take a <a href="https://github.com/martindale/maki/blob/recognition/tools/slack.sync.people.js">look at the source code</a>!
-  
-  //-.ui.huge.fluid.buttons
-    a.ui.labeled.button(href="/topics")
-      i.icon.comment
-      | Browse the Topics
-    .or
-  a.ui.right.floated.huge.fluid.primary.labeled.button(href="/invitations", style="margin-top: 1em;")
-    i.icon.left.users
-    | Join the Community
-    i.icon.right.chevron
+
+  h2.ui.inverted.header Come build with us!
+    .ui.green.label
+      i.icon.chat 
+      | #{online} online now!
+  form.ui.inverted.form(action="/invitations", method="POST")
+    .field
+      .ui.massive.action.input
+        input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
+        button.ui.icon.massive.green.button(type="submit")
+          i.icon.leaf
+          | &nbsp;&nbsp;Get Started &nbsp;
+          i.icon.right.chevron
+    
+  p      
+    .ui.tiny.centered.images
+      for person in shuffled.slice(0, 8)
+        a(href="/people/#{person.id}")
+          img.ui.bordered.image.tooltipped(src="#{person.image.avatar}", title="@#{person.id}")
+      
+  h3.ui.inverted.center.aligned.header We're building a community of people who love to make things.  Let's build together!
 
 block content
+  //- This is a local interpretation of data.  We download the full dataset once
+  //- and then, _only_ then, run our processing (in our case, a subdivision of
+  //- the data into groups).  If this gets expensive, we simply store the result
+  //- instead of re-calculating it every time.  We might even re-publish our
+  //- work to the network as a resource!
+  - var shuffled = _.shuffle(topics); // topics is defined by Maki automatically
+  - var featured = shuffled.filter(function(x) { return (x.description.length > 0 && x.topic.length > 0 && x.stats.subscribers > 20); }).slice(0, 3);
+  .ui.vertical.stripe.segment.content(style="margin-top: inherit")
+    h2.ui.horizontal.header.divider Featured Conversations
+    .ui.three.cards
+      for topic in featured
+        include partials/topic
+
   - var shuffled = _.shuffle(people);
   .ui.vertical.stripe.segment.content(style="margin-top: inherit")
     h2.ui.horizontal.header.divider #{people.length} People in our Community
@@ -30,3 +52,9 @@ block content
       for person in shuffled
         include partials/person
       include partials/invitation-card
+
+block scripts
+  script.
+    $(window).on('load', function() {
+      $('input[name=email]').focus();
+    });

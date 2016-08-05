@@ -8,11 +8,10 @@
       | #{topic.name}
     p #{topic.description}
   .extra.content
-    if (cta)
-      a.ui.right.floated.primary.button(href="https://chat.maki.io/?topic=#{topic.id}") !{cta}
     p <strong>Currently:</strong> #{topic.topic}
-
-  if (!cta)
-    a.ui.bottom.attached.primary.right.labeled.icon.button(href="https://chat.maki.io/?topic=#{topic.id}")
-      | Join <small >&#35;</small>#{topic.name}
+  if (cta)
+    a.ui.bottom.attached.primary.right.labeled.icon.button(href="/topics/#{topic.id}#join") !{cta}
+  else
+    a.ui.bottom.attached.primary.right.labeled.icon.button(href="/topics/#{topic.id}#join")
+      | Join <strong>#{topic.stats.subscribers}</strong> others in <small>&#35;</small>#{topic.name}
       i.right.chevron.icon

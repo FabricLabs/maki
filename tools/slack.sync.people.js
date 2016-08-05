@@ -8,7 +8,8 @@ var qs = require('querystring');
 var home = 'http://localhost:9200';
 var base = 'https://slack.com/api/users.list';
 var params = {
-  token: config.slack.token
+  token: config.slack.token,
+  presence: 1
 };
 var url = base + '?' + qs.stringify(params);
 
@@ -41,7 +42,8 @@ rest.get(url).on('complete', function(people) {
         },
         links: {
           slack: person.id
-        }
+        },
+        status: person.presence
       }
     }).on('complete', function(result, response) {
       console.log('person result:', person.name, result, response.statusCode);

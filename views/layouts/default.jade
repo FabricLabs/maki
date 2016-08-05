@@ -109,9 +109,6 @@ html.no-js
                     if (resource.options.icon)
                       i.icon(class="#{resource.options.icon}")
                     | #{resource.names.handle}
-              a.item(href="/people")
-                i.icon.users
-                | Community
               if (user)
                 .ui.large.secondary.inverted.pointing.right.menu
                   a.item(href="/people/#{user.id}") #{user.id}
@@ -135,7 +132,7 @@ html.no-js
             .ui.stackable.inverted.divided.equal.height.stackable.grid
               .six.wide.column
                 h4.ui.inverted.header About
-                p Maki is a labor of love, a result of several years of iterations and re-architectures in pursuit of a clean, hand-rolled framework for building clean, useful applications.  We hope you like it.
+                p Maki is a labor of love, a result of several years of iterations and re-architectures in pursuit of a clean, hand-rolled framework for building beautiful applications.  We hope you like it.
                 //-.ui.inverted.link.list
                   a.item(href="#") Protocol
                   a.item(href="#") Whitepaper

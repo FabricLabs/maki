@@ -54,82 +54,6 @@ maki.use(snippets);
 maki.use(developers);
 maki.use(auth);
 
-var Person = maki.define('Person', {
-  public: false,
-  icon: 'user',
-  description: 'The list of people working on Maki, including all extended members of the community.',
-  attributes: {
-    _id: { type: String }, // TODO: remove
-    id: { type: String }, // TODO: incorporate into main library
-    username: { type: String , max: 80 , required: true , slug: true },
-    name:     {
-      family: { type: String , max: 80 },
-      given: { type: String , max: 80 }
-    },
-    bio: { type: String },
-    hash:     { type: String , restricted: true },
-    salt:     { type: String , restricted: true },
-    email:    { type: String , max: 80 , restricted: true },
-    created:  { type: Date , default: Date.now },
-    image: {
-      original: { type: String , max: 1024 },
-      avatar: { type: String , max: 1024 },
-    },
-    links: {
-      slack: { type: String , max: 40 }
-    },
-    stats: {
-      messages: { type: Number , default: 0 },
-      invitations: { type: Number , default: 0 }
-    }
-  },
-  auth: {
-    'patch': ['admin', function(done) {
-      var person = this;
-      return false;
-    }]
-  },
-  params: {
-    query: {
-      limit: 1000
-    }
-  },
-  fields: {
-    image: 'image',
-    description: 'bio'
-  },
-  requires: {
-    'Message': {
-      as: 'person:messages',
-      filter: function() {
-        return { author: this.id };
-      },
-      sort: '-created',
-      populate: 'author'
-    }
-  }
-});
-
-Person.pre('create', function(next, done) {
-  var person = this;
-  person._id = person.id;
-  next();
-});
-
-Person.pre('update', function(next, done) {
-  var person = this;
-  console.log('person:pre:update', person);
-  person._id = person.id;
-  next();
-});
-
-Person.post('get', function(done) {
-  var person = this;
-  if (!person.name) person.name = {};
-  person.name.display = person.username;
-  done();
-});
-
 var Topic = maki.define('Topic', {
   public: false,
   icon: 'comment',
@@ -229,6 +153,7 @@ var Invitation = maki.define('Invitation', {
   attributes: {
     id: { type: String , required: true , slug: true },
     from: { type: String , max: 240 , authorize: 'user' },
+    user: { type: String , max: 240 , ref: 'Person' },
     email: { type: String , required: true , max: 240 },
     avatar: { type: String },
     topics: [ { type: String } ],
@@ -255,6 +180,12 @@ var Invitation = maki.define('Invitation', {
             res.status( 303 ).redirect('/invitations/' + invitation.id);
           },
           html: function () {
+            console.log('invitation http handler, create:', invitation);
+            
+            if (invitation.status == 'accepted') {
+              return res.redirect('/authentications/slack?next=/people/' + invitation.user );
+            }
+            
             res.status( 302 ).redirect('/invitations');
           }
         });
@@ -263,13 +194,27 @@ var Invitation = maki.define('Invitation', {
   },
 });
 
-Invitation.pre('create', function(done) {
+Invitation.pre('create', function(next, done) {
   var invitation = this;
+
   if (invitation.email) {
     invitation.avatar = require('crypto').createHash('md5').update(invitation.email).digest('hex');
     invitation.id = invitation.avatar;
   }
-  done();
+  
+  Invitation.get({ email: invitation.email }, function(err, user) {
+    if (user) {
+      return Invitation.patch({ id: user.id }, [
+        { op: 'replace', path: '/stats/reminders', value: ++user.stats.reminders }
+      ], function(err) {
+        if (err) console.error(err);
+        done(null, user);
+      });
+    } else {
+      next();
+    }
+  });
+
 });
 
 Invitation.post('get', function(done) {
@@ -361,6 +306,7 @@ maki.define('Example', {
 });
 
 maki.define('Release', {
+  public: false,
   icon: 'tag',
   attributes: {
     name: { type: String , max: 80 },
@@ -390,6 +336,100 @@ maki.define('Plugin', {
   },
   icon: 'puzzle'
 });
+
+
+var Profile = maki.define('Profile', {
+  public: false,
+  attributes: {
+    id: { type: String , required: true },
+    service: { type: String , required: true },
+    created: { type: Date , default: Date.now },
+    data: {}
+  }
+});
+
+var Person = maki.define('Person', {
+  icon: 'users',
+  handle: 'Community',
+  description: 'The list of people working on Maki, including all extended members of the community.',
+  attributes: {
+    _id: { type: String }, // TODO: remove
+    id: { type: String }, // TODO: incorporate into main library
+    username: { type: String , max: 80 , required: true , slug: true },
+    name:     {
+      family: { type: String , max: 80 },
+      given: { type: String , max: 80 }
+    },
+    bio: { type: String },
+    hash:     { type: String , restricted: true },
+    salt:     { type: String , restricted: true },
+    email:    { type: String , max: 80 , restricted: true },
+    created:  { type: Date , default: Date.now },
+    image: {
+      original: { type: String , max: 1024 },
+      avatar: { type: String , max: 1024 },
+    },
+    links: {
+      slack: { type: String , max: 40 }
+    },
+    profiles: [ { type: String } ],
+    stats: {
+      messages: { type: Number , default: 0 },
+      invitations: { type: Number , default: 0 }
+    },
+    status: { type: String , enum: ['away', 'active'] }
+  },
+  auth: {
+    'patch': ['admin', function(done) {
+      var person = this;
+      return false;
+    }]
+  },
+  params: {
+    query: {
+      limit: 1000
+    }
+  },
+  fields: {
+    image: 'image',
+    description: 'bio'
+  },
+  requires: {
+    'Message': {
+      as: 'person:messages',
+      filter: function() {
+        return { author: this.id };
+      },
+      sort: '-created',
+      populate: 'author'
+    },
+    'Topic': {
+      query: {},
+      sort: 'id'
+    }
+  }
+});
+
+Person.pre('create', function(next, done) {
+  var person = this;
+  person._id = person.id;
+  next();
+});
+
+Person.pre('update', function(next, done) {
+  var person = this;
+  console.log('person:pre:update', person);
+  person._id = person.id;
+  next();
+});
+
+Person.post('get', function(done) {
+  var person = this;
+  if (!person.name) person.name = {};
+  person.name.display = person.username;
+  done();
+});
+
 
 /*var Analytics = require('maki-analytics');
 var analytics = new Analytics({ id: 'UA-57746323-2' });
