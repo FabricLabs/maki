@@ -9,17 +9,10 @@ block masthead
       }
 
   h2.ui.inverted.header Come build with us!
-    .ui.green.label
+    a.ui.green.link.label(on-tap="focus-input-email")
       i.icon.chat 
       | #{online} online now!
-  form.ui.inverted.form(action="/invitations", method="POST")
-    .field
-      .ui.massive.action.input
-        input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
-        button.ui.icon.massive.green.button(type="submit")
-          i.icon.leaf
-          | &nbsp;&nbsp;Get Started &nbsp;
-          i.icon.right.chevron
+  include forms/register
     
   p      
     .ui.tiny.centered.images
@@ -55,6 +48,11 @@ block content
 
 block scripts
   script.
-    $(window).on('load', function() {
+    $(document).on('click', '*[on-tap=focus-input-email]', focusInput);
+    $(window).on('load', focusInput);
+
+    function focusInput(e) {
+      e.preventDefault();
       $('input[name=email]').focus();
-    });
+      return false;
+    }

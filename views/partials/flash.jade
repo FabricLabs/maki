@@ -1,16 +1,3 @@
-//- Remove this message when you're comfortable.
-//-.ui.error.message.text.container
-  h4.header Warning!
-  p This site is operating in <strong>playground</strong> mode.  Content and features found here are for <u>demonstration purposes only</u> and <u>subject to change</u>.  &nbsp;&nbsp;&nbsp;&nbsp;<small>Currently running: <code>maki#next</code></small>
-
-.ui.info.large.message.text.container
-  h4.center.aligned.icon.header
-    i.icon.heart
-    | We'd love your help.
-  p Maki is an experimental framework for building things.  We have a lot of work in progress, and not everything is completed.    If you'd like, you can <a href="https://github.com/martindale/maki">follow along on our GitHub</a> or <a href="https://chat.maki.io/">join our Slack</a>.
-
-
-
 if (messages && (messages.info || messages.warning || messages.error || messages.success))
   for info in messages.info
     .ui.info.message

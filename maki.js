@@ -77,12 +77,20 @@ var Topic = maki.define('Topic', {
   },
   requires: {
     'Message': {
-      as: 'channel:messages',
       filter: function() {
         return { topic: this.id };
       },
       sort: '-created',
       populate: 'author'
+    },
+    'channelsToJoin': {
+      resource: 'Topic',
+      filter: function() {
+        return { id: this.id };
+      },
+      map: function(item) {
+        return item.id;
+      }
     }
   },
   params: {
@@ -157,6 +165,7 @@ var Invitation = maki.define('Invitation', {
     email: { type: String , required: true , max: 240 },
     avatar: { type: String },
     topics: [ { type: String } ],
+    message: { type: String },
     created: { type: Date , default: Date.now },
     status: { type: String , enum: ['created', 'sent', 'accepted'] },
     stats: {
@@ -186,6 +195,7 @@ var Invitation = maki.define('Invitation', {
               return res.redirect('/authentications/slack?next=/people/' + invitation.user );
             }
             
+            // TODO: determine why changing this to `/people` breaks messages
             res.status( 302 ).redirect('/invitations');
           }
         });
@@ -315,7 +325,7 @@ maki.define('Release', {
     published: { type: Date },
     notes: { type: String , render: 'markdown' }
   },
-  source: 'https://api.github.com/repos/martindale/maki/releases',
+  //source: 'https://api.github.com/repos/martindale/maki/releases',
   map: function( release ) {
     return {
       name: release.name,
@@ -396,7 +406,6 @@ var Person = maki.define('Person', {
   },
   requires: {
     'Message': {
-      as: 'person:messages',
       filter: function() {
         return { author: this.id };
       },

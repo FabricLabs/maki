@@ -3,6 +3,9 @@ form.ui.inverted.form(action="/invitations", method="POST")
     //- TODO: how might be make this a simple object? cc: @chrisinajar
     //- i.e.,: input(type="hidden", name="from", value="#{user}")
     input(type="hidden", name="from", value="#{user.id}")
+    
+  if (channels)
+    input(type="hidden", name="channels", value="#{channels.join(',')}")
 
   .field
     .ui.massive.action.input
@@ -18,8 +21,9 @@ form.ui.inverted.form(action="/invitations", method="POST")
     .field
       label(for="message") Leave your friend a message:
       textarea(name="message", rows="2")
-    .field
-      label(for="topics") What do you think they'll be interested in?
-      select.ui.fluid.search.dropdown(multiple, name="topics")
-        for topic in topics
-          option(value="#{topic.id}") ##{topic.id}
+    if (topics)
+      .field
+        label(for="topics") What do you think they'll be interested in?
+        select.ui.fluid.search.dropdown(multiple, name="topics")
+          for topic in topics
+            option(value="#{topic.id}") ##{topic.id}

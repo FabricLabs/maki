@@ -335,6 +335,26 @@ maki.define('Example', {
 });
 ```
 
+##### New Feature: Named Requirements
+Requirements can be named arbitrarily, by simply supplying the property name as
+the key, and providing a `resource` string to the configuration:
+
+```javascript
+maki.define('Example', {
+  requires: {
+    'featured': {
+      resource: 'Example',
+      filter: function() {
+        return { featured: true }
+      }
+    }
+  }
+});
+```
+
+Responses will now have a named attribute `featured`, which contains the results
+from the requirement collector.
+
 #### Population
 Not unlike [Requirements](#requirements), Resources with nested objects can have
 `populate()` called on it.

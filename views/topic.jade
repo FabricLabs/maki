@@ -72,3 +72,12 @@ block content
             include partials/message
 
           include partials/message-input
+
+
+  .ui.modal#join-modal
+    .header Come join us!
+    .content
+      maki-avatar-list(src="/people")
+      p Add your thoughts to the conversation by becoming a member.
+      include forms/register
+      

@@ -1,5 +1,5 @@
 //- TODO: .asHTML() (toJSON -> toHTML) or .as('html')
-.ui.form.comment.tooltipped(title="Join the community!", data-variation="wide", data-html="<h4>Come join us!</h4><maki-avatar-list src=\"/people\" /><p>Add your thoughts to the conversation by becoming a member.</p><p><a href=\"https://chat.maki.io\" class=\"ui primary right floated button\">Join the community <i class=\"ui icon right chevron\"></i></a></p>")
+.ui.form.comment(on-tap="launch-join-modal")
   .avatar
     img(src="/img/image.png")
   .content
@@ -18,4 +18,13 @@ script.
         hide: 250
       }
     });
+    
+    $(document).on('click', '*[on-tap=launch-join-modal]', function(e) {
+      e.preventDefault();
+      
+      $('#join-modal').modal('show');
+      
+      return false;
+    });
+    
   });
