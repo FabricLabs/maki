@@ -93,7 +93,11 @@ var Topic = maki.define('Topic', {
     'channelsToJoin': {
       resource: 'Topic',
       filter: function() {
-        return { id: this.id };
+        var defaults = ['community', 'projects', 'learning'];
+        return { $or: [
+          { id: this.id },
+          { id: { $in: defaults } }
+        ] };
       },
       map: function(item) {
         return item.id;

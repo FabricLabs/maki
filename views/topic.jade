@@ -111,7 +111,7 @@ block content
               i.icon.right.chevron
 
   .ui.modal#join-modal
-    .header Come join us!
+    .header Add yourself to the community to participate!
     .content
       maki-avatar-list(src="/topics/#{topic.id}/people")
       p      
@@ -120,30 +120,43 @@ block content
           for person in shuffled.slice(0, 8)
             a(href="/people/#{person.id}")
               img.ui.bordered.image.tooltipped(src="#{person.image.avatar}", title="@#{person.id}")
-      p Add your thoughts to the conversation by becoming a member.
-      form.ui.inverted.form(action="/invitations", method="POST")
+      form.ui.form(action="/invitations", method="POST")
         if (channelsToJoin)
           input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
+
+        .ui.massive.field
+          label Your email address:
 
         .field
           .ui.massive.action.input
             input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
-            button.ui.icon.green.button(type="submit")
+            button.ui.icon.massive.green.button(type="submit")
               i.icon.leaf
               | &nbsp;&nbsp;Get Started &nbsp;
               i.icon.right.chevron
 
-        if (topics)
+        h4.header Already have an account? &nbsp;&nbsp;&nbsp;
+          a.ui.large.primary.labeled.icon.button(href="/authentications/slack")
+            i.icon.slack.alt
+            | Sign in with Slack
+
+        //-if (channelsToJoin)
           .ui.field
             label(for="topics") What channels would you like to join?
             select.ui.fluid.search.dropdown(multiple, name="topics")
-              for channel in topics
+              for channel in channelsToJoin
                 option(value="#{channel}", selected) ##{channel}
 
 block scripts
   script.
     //$(document).on('click', '*[on-tap=open-register]', openRegister);
     //$(window).on('load', focusInput);
+
+    $(document).on('click', '*[on-tap=launch-join-modal]', function(e) {
+      e.preventDefault();
+      $('#join-modal').modal('show');
+      return false;
+    });
     
     function openRegister (e) {
       e.preventDefault();

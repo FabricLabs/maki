@@ -16,13 +16,3 @@ form.ui.form.comment(on-tap="#{(user) ? undefined : 'launch-join-modal'}", actio
         button.ui.right.labeled.icon.button(type="submit", class=((user) ? undefined : 'disabled'))
           i.share.icon
           | send
-
-
-script.
-  window.addEventListener('load', function() {
-    $(document).on('click', '*[on-tap=launch-join-modal]', function(e) {
-      e.preventDefault();
-      $('#join-modal').modal('show');
-      return false;
-    });
-  });
