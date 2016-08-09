@@ -65,6 +65,9 @@ rest.get(url).on('complete', function(topics) {
         topic: channel.topic.value,
         created: new Date(channel.created * 1000),
         people: peopleArray,
+        links: {
+          slack: channel.id
+        },
         stats: {
           subscribers: channel.num_members
         }

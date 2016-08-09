@@ -76,6 +76,13 @@ var Topic = maki.define('Topic', {
     }
   },
   requires: {
+    'Person': {
+      filter: function() {
+        var topic = this;
+        return { id: { $in: topic.people } }
+      },
+      sort: '-id'
+    },
     'Message': {
       filter: function() {
         return { topic: this.id };
@@ -119,6 +126,10 @@ var Message = maki.define('Message', {
   description: 'Messages about the Topics under discussion.',
   public: false,
   attributes: {
+    // TODO: make this a special field at the Fabric layer, and make it part of
+    // the API.  Remove from schema definition, potentially don't even have
+    // access to it within application scope.  External anyway, right?
+    '@context': { type: String },
     id: { type: String , max: 80 , required: true , slug: true },
     topic: { type: String , ref: 'Topic' },
     author: { type: String , ref: 'Person' , populate: ['query', 'get'] },
@@ -138,12 +149,23 @@ var Message = maki.define('Message', {
       sort: '-stats.reactions'
     }
   },
+  handlers: {
+    html: {
+      'create': function(req, res) {
+        var message = this;
+        res.status(302).redirect('/topics/' + message.topic);
+      }
+    }
+  }
 });
 
 function populateAuthor (next, done) {
   var message = this;
   Person.get({
-    'links.slack': message.author
+    $or: [
+      { 'links.slack': message.author },
+      { 'id': message.author }
+    ]
   }, function(err, person) {
     if (err) console.error(err);
     if (!person) {
@@ -154,6 +176,33 @@ function populateAuthor (next, done) {
     message.author = person.id;
     next();
   });
+}
+
+function populateChannel (next, done) {
+  var message = this;
+  Topic.get({
+    $or: [
+      { 'links.slack': message.topic },
+      { 'id': message.topic }
+    ]
+  }, function(err, topic) {
+    if (err) console.error(err);
+    if (!topic) {
+      return done('No such topic: ' + message.topic);
+      process.exit();
+    }
+
+    message.topic = topic;
+    next();
+  });
+}
+
+function reduceChannel (next, done) {
+  var message = this;
+  if (message.topic && message.topic.id) {
+    message.topic = message.topic.id;
+  }
+  next();  
 }
 
 var Invitation = maki.define('Invitation', {
@@ -183,7 +232,7 @@ var Invitation = maki.define('Invitation', {
     html: {
       create: function(req, res) {
         var invitation = this;
-        req.flash('info', 'Invitation created successfully!');
+        req.flash('info', '<div class="header">Check your email!</div>', '<p>An invitation has been sent to the email address you just gave us.  Join us by clicking the link in the invitation!</p>');
         res.format({
           json: function () {
             res.status( 303 ).redirect('/invitations/' + invitation.id);
@@ -288,6 +337,48 @@ function calculateInvitationStats (done) {
   });
 }
 
+function inferSlackContext (next, done) {
+  var message = this;
+  Person.get({
+    id: message.author
+  }, function(err, person) {
+    if (err) console.error(err);
+    if (!person) return done('No person found.');
+    message['@context'] = person.tokens.slack;
+    next();
+  });
+}
+
+function publishToSlack (next, done) {
+ var message = this;
+ var rest = require('restler');
+ var crypto = require('crypto');
+
+ var doc = {
+   //token: config.slack.token, // TODO: replace with user token...
+   token: message['@context'],
+   // that will probably require a global context, passed with every request.
+   // this is likely necessary in the long run.
+   channel: message.topic.links.slack,
+   text: message.content,
+   as_user: true
+ };
+
+ rest.post('https://slack.com/api/chat.postMessage', {
+   data: doc
+ }).on('complete', function(data) {
+   var key = [data.message.channel, data.message.user, data.message.ts].join(':');
+   message.id = crypto.createHash('sha256').update(key).digest('hex');
+   next();
+ });
+ 
+}
+
+Message.pre('create', inferSlackContext);
+Message.pre('create', populateChannel);
+Message.pre('create', publishToSlack);
+Message.pre('create', reduceChannel);
+
 Message.pre('create', populateAuthor);
 Message.pre('update', populateAuthor);
 
@@ -381,6 +472,9 @@ var Person = maki.define('Person', {
     },
     links: {
       slack: { type: String , max: 40 }
+    },
+    tokens: {
+      slack: { type: String }
     },
     profiles: [ { type: String } ],
     stats: {

@@ -1,14 +1,24 @@
 //- TODO: .asHTML() (toJSON -> toHTML) or .as('html')
-.ui.form.comment(on-tap="launch-join-modal")
+form.ui.form.comment(on-tap="#{(user) ? undefined : 'launch-join-modal'}", action="/messages", method="POST")
+  input(type="hidden", name="topic", value="#{topic.id}")
+  if (user)
+    input(type="hidden", name="author", value="#{user.id}")
+
   .avatar
-    img(src="/img/image.png")
+    if (user)
+      img(src="#{user.image.avatar}")
+    else
+      img(src="/img/image.png")
   .content
     .text
-      .ui.fluid.disabled.action.input
-        input.inline(type="text", placeholder="Start typing", disabled)
-        .ui.disabled.right.labeled.icon.button
+      .ui.fluid.action.input(class=((user) ? undefined : 'disabled'))
+        input.inline(type="text", name="content", placeholder="Start typing", disabled=((user) ? undefined : true))
+        button.ui.right.labeled.icon.button(type="submit", class=((user) ? undefined : 'disabled'))
           i.share.icon
           | send
+  if (!user)
+    h4 Sign in to participate
+    .ui.button(href="/authentications/slack") Sign in
 
 script.
   window.addEventListener('load', function() {

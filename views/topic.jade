@@ -16,7 +16,37 @@ block content
   .ui.grid.stackable
     .row
       .four.wide.column
-        include partials/topic
+        .ui.fluid.card
+          .content
+            a.header(href="/topics/#{topic.id}")
+              small(style="color: rgba(0,0,0,.4);") &#35;
+              | #{topic.name}
+            p #{topic.description}
+          .extra.content.registration
+            h4.ui.header Join the Discussion!
+            p We'd love your participation!  Let's get you signed up and plugged in.
+
+            form.ui.form.fluid(action="/invitations", method="POST")
+              if (channelsToJoin)
+                input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
+              .ui.field
+                label(for="email") What is your email address?
+                input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
+
+              if (topics)
+                .ui.field
+                  label(for="topics") What channels would you like to join?
+                  select.ui.fluid.search.dropdown(multiple, name="topics")
+                    for channel in topics
+                      option(value="#{channel}", selected) ##{channel}
+            
+              .ui.field
+                button.ui.fluid.labeled.green.button(type="submit")
+                  i.icon.leaf
+                  | That's me.  Let's go!
+                  i.right.chevron.icon
+              .ui.error.message
+
         .ui.two.mini.statistics
           .ui.statistic
             .value #{topic.stats.messages}
@@ -24,17 +54,8 @@ block content
           .ui.statistic
             .value #{topic.stats.subscribers}
             .label people
-        .ui.vertical.fluid.menu
-          a.header.item(href="https://chat.maki.io/?topic=#{topic.id}") #{topic.stats.subscribers} People
-          - var limit = 5
-          for person in _.sample(topic.people, limit)
-            a.item(href="/people/#{person}") #{person}
-          if (topic.stats.subscribers > limit)
-            a.item(href="https://chat.maki.io/?topic=#{topic.id}")
-              strong #{topic.stats.subscribers - limit} more
-              i.icon.right.chevron
         
-      .twelve.wide.column
+      .nine.wide.column
         if (!topic.description)
           .ui.warning.icon.message
             i.icon.warning.sign
@@ -56,7 +77,7 @@ block content
           code.json.
             #{JSON.stringify(topic, null, '  ')}
         
-        if (favorites.length)
+        //-if (favorites.length)
           .ui.message
             .content
               .header Highlights
@@ -64,20 +85,79 @@ block content
                 - var message = _.shuffle(favorites.slice(0, 3))[0]
                 include partials/message
         
-        h3 Latest Messages
+        .ui.segment
+          h4 Currently discussing...
+          p #{topic.topic}
         .ui.comments
           - messages.sort(function(a, b) { return b.created - a.created; });
-          - messages = messages.slice(0, 5).reverse();
+          - messages = messages.slice(0, 10).reverse();
           for message in messages
             include partials/message
-
           include partials/message-input
 
+      .three.wide.column
+        .ui.vertical.fluid.menu
+          a.header.item(on-tap="launch-join-modal", href="https://chat.maki.io/?topic=#{topic.id}") #{topic.stats.subscribers} People
+          - var limit = 12
+          for person in _.sample(topic.people, limit)
+            a.item(href="/people/#{person}") #{person}
+          if (topic.stats.subscribers > limit)
+            a.item(on-tap="launch-join-modal", href="https://chat.maki.io/?topic=#{topic.id}")
+              strong #{topic.stats.subscribers - limit} more
+              i.icon.right.chevron
 
   .ui.modal#join-modal
     .header Come join us!
     .content
-      maki-avatar-list(src="/people")
+      maki-avatar-list(src="/topics/#{topic.id}/people")
+      p      
+        .ui.tiny.centered.images
+          - var shuffled = _.shuffle(people);
+          for person in shuffled.slice(0, 8)
+            a(href="/people/#{person.id}")
+              img.ui.bordered.image.tooltipped(src="#{person.image.avatar}", title="@#{person.id}")
       p Add your thoughts to the conversation by becoming a member.
-      include forms/register
+      form.ui.inverted.form(action="/invitations", method="POST")
+        if (channelsToJoin)
+          input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
+
+        .field
+          .ui.massive.action.input
+            input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
+            button.ui.icon.green.button(type="submit")
+              i.icon.leaf
+              | &nbsp;&nbsp;Get Started &nbsp;
+              i.icon.right.chevron
+
+        if (topics)
+          .ui.field
+            label(for="topics") What channels would you like to join?
+            select.ui.fluid.search.dropdown(multiple, name="topics")
+              for channel in topics
+                option(value="#{channel}", selected) ##{channel}
       
+      
+
+block scripts
+  script.
+    //$(document).on('click', '*[on-tap=open-register]', openRegister);
+    //$(window).on('load', focusInput);
+    
+    function openRegister (e) {
+      e.preventDefault();
+      $('.registration').slideToggle();
+      $('.registration input[name=email]').focus();
+      return false;
+    }
+    
+    $('.ui.form').form({
+      fields: {
+        email: {
+          identifier: 'email',
+          rules: [
+            { type: 'empty', prompt: 'Please enter your email address' },
+            { type: 'email', prompt: 'Please enter a valid email address' }
+          ]
+        }
+      }
+    });
