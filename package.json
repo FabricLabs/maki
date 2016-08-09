@@ -52,6 +52,7 @@
     "lodash": "^2.4.1",
     "maki-analytics": "git://github.com/martindale/maki-analytics",
     "maki-auth-simple": "0.0.1",
+    "maki-auth-slack": "git://github.com/martindale/maki-auth-slack",
     "maki-cms-local": "git://github.com/martindale/maki-cms-local#master",
     "maki-forms": "0.0.0",
     "maki-jsonrpc": "^0.1.1",
