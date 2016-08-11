@@ -22,39 +22,41 @@ block content
               small(style="color: rgba(0,0,0,.4);") &#35;
               | #{topic.name}
             p #{topic.description}
-          .extra.content.registration
-            h4.ui.header Join the Discussion!
-            p We'd love your participation!  Let's get you signed up and plugged in.
+            .meta created by <a href="/people/#{topic.author}">foo</a>
+          .extra.content
+            .ui.two.mini.statistics
+              .ui.statistic
+                .value #{topic.stats.messages}
+                .label messages
+              .ui.statistic
+                .value #{topic.stats.subscribers}
+                .label people
+          if (!user)
+            .extra.content.registration.transition.smooth
+              h4.ui.header Join the Discussion!
+              p We'd love your participation!  Let's get you signed up and plugged in.
 
-            form.ui.form.fluid(action="/invitations", method="POST")
-              if (channelsToJoin)
-                input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
-              .ui.field
-                label(for="email") What is your email address?
-                input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
-
-              if (topics)
+              form.ui.form.fluid(action="/invitations", method="POST")
+                if (channelsToJoin)
+                  input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
                 .ui.field
-                  label(for="topics") What channels would you like to join?
-                  select.ui.fluid.search.dropdown(multiple, name="topics")
-                    for channel in topics
-                      option(value="#{channel}", selected) ##{channel}
-            
-              .ui.field
-                button.ui.fluid.labeled.green.button(type="submit")
-                  i.icon.leaf
-                  | That's me.  Let's go!
-                  i.right.chevron.icon
-              .ui.error.message
+                  label(for="email") What is your email address?
+                  input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
 
-        .ui.two.mini.statistics
-          .ui.statistic
-            .value #{topic.stats.messages}
-            .label messages
-          .ui.statistic
-            .value #{topic.stats.subscribers}
-            .label people
-        
+                if (topics)
+                  .ui.field
+                    label(for="topics") What channels would you like to join?
+                    select.ui.fluid.search.dropdown(multiple, name="topics")
+                      for channel in topics
+                        option(value="#{channel}", selected) ##{channel}
+              
+                .ui.field
+                  button.ui.fluid.labeled.green.button(type="submit")
+                    i.icon.leaf
+                    | That's me.  Let's go!
+                    i.right.chevron.icon
+                .ui.error.message
+
       .nine.wide.column
         if (!topic.description)
           .ui.warning.icon.message
@@ -113,13 +115,16 @@ block content
   .ui.modal#join-modal
     .header Add yourself to the community to participate!
     .content
+      h4.header #{people.length} others in this conversation
       maki-avatar-list(src="/topics/#{topic.id}/people")
-      p      
+      p
         .ui.tiny.centered.images
           - var shuffled = _.shuffle(people);
           for person in shuffled.slice(0, 8)
             a(href="/people/#{person.id}")
               img.ui.bordered.image.tooltipped(src="#{person.image.avatar}", title="@#{person.id}")
+          a(href="/community")
+            img.ui.bordered.image.tooltipped(src="/img/image.png", title="more")
       form.ui.form(action="/invitations", method="POST")
         if (channelsToJoin)
           input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
