@@ -147,6 +147,8 @@ $(window).on('ready', function() {
   $('.dropdown:not(.multiple.search)').dropdown();
   $('.ui.rating').rating();
   $('.tooltipped').popup();
+  //$('.ui.sticky').sticky();
+
   $('.message .close').on('click', function() {
     $(this).closest('.message').fadeOut();
   });

@@ -1,9 +1,8 @@
 ---
-title: Maki, Fabric, and How to Contribute
+title: Contributor's Guide
 description: Plug yourself into the Maki community.  Here's how.
 source: https://github.com/martindale/maki/blob/community/source/snippets/introduction.md
 edit: https://github.com/martindale/maki/edit/community/source/snippets/introduction.md
-masthead: /img/digital-texture.jpg
 ---
 
 **Great.  You've made it! Now what?**  No matter what kind of person you are, or
