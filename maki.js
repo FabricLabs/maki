@@ -541,9 +541,9 @@ var Entity = maki.define('Entity', {
   public: false,
   attributes: {
     coordinates: {
-      x: Number,
-      y: Number,
-      z: Number
+      x: { type: Number , default: 0 },
+      y: { type: Number , default: 0 },
+      z: { type: Number , default: 0 }
     }
   }
 });

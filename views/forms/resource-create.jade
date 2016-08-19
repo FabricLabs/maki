@@ -38,4 +38,7 @@ form.ui.form.segment(action="/#{resource.collection}", method="post", enctype="m
   for field in fields
     +fieldFor( resource.attributes , field )
 
-  button.ui.blue.submit.button(type="submit") Create &raquo;
+  button.ui.huge.blue.right.floated.right.labeled.icon.submit.button(type="submit") Create
+    i.right.chevron.icon
+  
+  div(style="clear: both;")
