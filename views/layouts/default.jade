@@ -89,10 +89,9 @@ html.no-js
                 i.icon(class="#{resource.options.icon}")
               | #{resource.names.handle}
         if (user)
-          .ui.large.secondary.inverted.pointing.right.menu
-            a.item(href="/people/#{user.id}") #{user.id}
-            a.item(href="/sessions/#{session.hash}?method=delete") Logout
-        
+          a.item(href="/people/#{user.id}") #{user.id}
+          a.item(href="/sessions/#{session.hash}?method=delete") Logout
+      
       .pusher
         .ui.inverted.vertical.masthead.segment
           .ui.container

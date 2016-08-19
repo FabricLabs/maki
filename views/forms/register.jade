@@ -5,7 +5,8 @@ form.ui.inverted.form(action="/invitations", method="POST")
   .field
     .ui.massive.action.input
       input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
-      button.ui.icon.green.button(type="submit")
-        i.icon.leaf
-        | &nbsp;&nbsp;Get Started &nbsp;
+      button.ui.icon.massive.right.labeled.green.icon.button(type="submit")
+        span
+          i.icon.leaf
+        | &nbsp;&nbsp;Get Started
         i.icon.right.chevron

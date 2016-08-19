@@ -6,18 +6,18 @@ block scripts
 
 block masthead
   .ui.center.aligned.inverted.segment
-    h1.ui.inverted.header
-      | Build more, code less.
-    h2.ui.inverted.header
-      | #{config.service.name} is !{config.service.mission}
+    h1.ui.inverted.header #{config.service.pitch}
+    h2.ui.inverted.header #{config.service.mission}
 
-    a.ui.huge.primary.button(href="/tutorials/hello-world", style="margin-top: 1.5em;")
-      | Create Your First Project
+    a.ui.huge.primary.right.labeled.icon.button(href="/people", style="margin-top: 2.5em;")
+      | Meet the Community
       i.right.chevron.icon
       
-    h4.ui.inverted.header No coding experience necessary.
+    //-h4.ui.inverted.header No coding experience necessary.
 
 block content
+  //-maki-promo-segment
+
   .ui.vertical.stripe.segment
     .ui.text.container
       h3.ui.horizontal.header.divider Semantic Interface Design
@@ -107,7 +107,7 @@ block content
           p Will Ricketts, SailsJS Contributor
         .column
           h3 We're building something new.
-          a.ui.huge.primary.button(href="/invitations") Come join us.
+          a.ui.huge.primary.right.labeled.icon.button(href="/invitations") Come join us.
             i.icon.right.chevron
 
 //-block page

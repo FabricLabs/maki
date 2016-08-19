@@ -537,6 +537,16 @@ Person.post('get', function(done) {
   done();
 });
 
+var Entity = maki.define('Entity', {
+  public: false,
+  attributes: {
+    coordinates: {
+      x: Number,
+      y: Number,
+      z: Number
+    }
+  }
+});
 
 /*var Analytics = require('maki-analytics');
 var analytics = new Analytics({ id: 'UA-57746323-2' });
