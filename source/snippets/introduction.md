@@ -154,6 +154,7 @@ an API client.
 [community-guidelines]: https://maki-dev.slack.com/files/martindale/F1565BS5P/Community_Guidelines.md
 [outstanding-tasks]: https://maki-dev.slack.com/files/martindale/F1ARP5JKV/Outstanding_Community_Tasks
 [maki-remote]: https://github.com/martindale/maki-remote
+[maki-auth-flex]: https://github.com/martindale/maki-auth-flex
 [waffle]: https://waffle.io/martindale/maki
 [snarl]: https://github.com/martindale/snarl
 
