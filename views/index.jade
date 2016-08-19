@@ -8,17 +8,21 @@ block masthead
   .ui.center.aligned.inverted.segment
     h1.ui.inverted.header #{config.service.pitch}
     h2.ui.inverted.header #{config.service.mission}
-
-    a.ui.huge.primary.right.labeled.icon.button(href="/people", style="margin-top: 2.5em;")
-      | Meet the Community
-      i.right.chevron.icon
+    
+    .content(style="margin-top: 4em;")
+      .ui.two.huge.buttons
+        a.ui.huge.primary.button(href="/examples") See the Examples
+        .or
+        a.ui.huge.green.right.labeled.icon.button(href="/people")
+          | Meet the Community
+          i.right.chevron.icon
       
     //-h4.ui.inverted.header No coding experience necessary.
 
 block content
   //-maki-promo-segment
 
-  .ui.vertical.stripe.segment
+  //-.ui.vertical.stripe.segment
     .ui.text.container
       h3.ui.horizontal.header.divider Semantic Interface Design
       p Build applications with the <a href="/snippets/components">Interface Design Language</a> and enjoy harmony.
@@ -36,8 +40,7 @@ block content
 
       h3.ui.horizontal.header.divider Component Architecture
       p Components can be built and customized to control the user experience of your application across multiple platforms.
-      
-      
+
       .ui.info.icon.message.text.container
         i.icon.info
         .content
