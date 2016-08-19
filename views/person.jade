@@ -20,7 +20,7 @@ block content
       .row
         .four.wide.column
           include partials/person
-        .twelve.wide.column
+        .nine.wide.column
           if (favorites.length)
             .ui.message
               .content
@@ -29,6 +29,19 @@ block content
                   - var message = favorites[0]
                   include partials/message
           .ui.comments
-            - messages = messages.slice(0, 5);
+            - messages.sort(function(a, b) { return b.created - a.created; });
+            - messages = messages.slice(0, 10);
             for message in messages
               include partials/message
+        .three.wide.column
+          .ui.vertical.fluid.menu
+            - topicMemberships.sort(function(a, b) { return b.people.length - a.people.length; });
+          
+            a.header.item #{topicMemberships.length} memberships
+            for topic in topicMemberships
+              a.item(href="/topics/#{topic.id}")
+                small(style="color: rgba(0,0,0,.4);") &#35;
+                |  #{topic.id}
+                .ui.icon.label
+                  i.users.icon
+                  | #{topic.people.length}

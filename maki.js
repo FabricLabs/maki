@@ -515,6 +515,12 @@ var Person = maki.define('Person', {
     'Topic': {
       query: {},
       sort: 'id'
+    },
+    'topicMemberships': {
+      resource: 'Topic',
+      filter: function() {
+        return { people: this.id };
+      }
     }
   }
 });
