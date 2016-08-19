@@ -1,5 +1,6 @@
 //- TODO: .asHTML() (toJSON -> toHTML) or .as('html')
 form.ui.form.comment(on-tap="#{(user) ? undefined : 'launch-join-modal'}", action="/messages", method="POST")
+  input(type="hidden", name="@context", value="#{user.tokens.slack}")
   input(type="hidden", name="topic", value="#{topic.id}")
   if (user)
     input(type="hidden", name="author", value="#{user.id}")

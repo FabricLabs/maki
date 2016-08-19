@@ -163,6 +163,16 @@ var Message = maki.define('Message', {
   }
 });
 
+//Message.pre('create', inferSlackContext);
+Message.pre('create', populateChannel);
+Message.pre('create', publishToSlack);
+Message.pre('create', reduceChannel);
+
+Message.pre('create', populateAuthor);
+Message.pre('update', populateAuthor);
+
+Message.post('create', calculateTopicStats);
+
 function populateAuthor (next, done) {
   var message = this;
   Person.get({
@@ -174,7 +184,6 @@ function populateAuthor (next, done) {
     if (err) console.error(err);
     if (!person) {
       return done('No such person: ' + message.author);
-      process.exit();
     }
 
     message.author = person.id;
@@ -193,7 +202,6 @@ function populateChannel (next, done) {
     if (err) console.error(err);
     if (!topic) {
       return done('No such topic: ' + message.topic);
-      process.exit();
     }
 
     message.topic = topic;
@@ -347,46 +355,40 @@ function inferSlackContext (next, done) {
     id: message.author
   }, function(err, person) {
     if (err) console.error(err);
-    if (!person) return done('No person found.');
-    message['@context'] = person.tokens.slack;
+    if (person && person.tokens && person.tokens.slack) {
+      message['@context'] = person.tokens.slack;
+    }
     next();
   });
 }
 
 function publishToSlack (next, done) {
- var message = this;
- var rest = require('restler');
- var crypto = require('crypto');
+  var message = this;
+  var rest = require('restler');
+  var crypto = require('crypto');
+ 
+  if (!message['@context']) return next();
 
- var doc = {
-   //token: config.slack.token, // TODO: replace with user token...
-   token: message['@context'],
-   // that will probably require a global context, passed with every request.
-   // this is likely necessary in the long run.
-   channel: message.topic.links.slack,
-   text: message.content,
-   as_user: true
- };
+  var doc = {
+    //token: config.slack.token, // TODO: replace with user token...
+    token: message['@context'],
+    // that will probably require a global context, passed with every request.
+    // this is likely necessary in the long run.
+    channel: message.topic.links.slack,
+    text: message.content,
+    as_user: true
+  };
 
- rest.post('https://slack.com/api/chat.postMessage', {
-   data: doc
- }).on('complete', function(data) {
-   var key = [data.message.channel, data.message.user, data.message.ts].join(':');
-   message.id = crypto.createHash('sha256').update(key).digest('hex');
-   next();
- });
+  rest.post('https://slack.com/api/chat.postMessage', {
+    data: doc
+  }).on('complete', function(data) {
+    var key = [data.message.channel, data.message.user, data.message.ts].join(':');
+    message.id = crypto.createHash('sha256').update(key).digest('hex');
+    next();
+  });
  
 }
 
-Message.pre('create', inferSlackContext);
-Message.pre('create', populateChannel);
-Message.pre('create', publishToSlack);
-Message.pre('create', reduceChannel);
-
-Message.pre('create', populateAuthor);
-Message.pre('update', populateAuthor);
-
-Message.post('create', calculateTopicStats);
 Reminder.post('create', calculateInvitationStats);
 
 /*Reminder.post('create', function(done) {

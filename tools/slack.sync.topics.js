@@ -16,7 +16,6 @@ var url = base + '?' + qs.stringify(params);
 
 console.log('using URL:', url);
 
-
 function put (url, data, cb) {
   rest.put(url, {
     headers: {
@@ -125,7 +124,7 @@ rest.get(url).on('complete', function(topics) {
             //console.log('msg:', msg);
             put(remote, msg, function(err, result) {
               if (err) return console.error(err);
-              console.log('created remote message:', result.id, result.created);
+              console.log('created remote message:', '#' + channelID , result.id, result.created , remote);
             });
           });
         });
