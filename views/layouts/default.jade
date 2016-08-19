@@ -121,7 +121,7 @@ html.no-js
             div(style="clear: both;")
 
             
-        .ui.container.content(data-for="flash", style="padding-top: 2em;")
+        //-.ui.container.content(data-for="flash", style="padding-top: 2em;")
           //- Remove this message when you're comfortable.
           //-.ui.error.message.text.container
             h4.header Warning!
@@ -191,7 +191,6 @@ html.no-js
         $('.masthead').visibility({
           once: false,
           onBottomPassed: function() {
-            console.log('.masthead.onBottomPassed()')
             $('.fixed.menu').transition('fade in');
           },
           onBottomPassedReverse: function() {

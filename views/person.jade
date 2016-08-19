@@ -12,19 +12,23 @@ block content
   - var favorites = messages.slice(0);
   - favorites.sort(function(a, b) { return b.stats.reactions - a.stats.reactions; });
   
-  .ui.grid.stackable
-    .row
-      .four.wide.column
-        include partials/person
-      .twelve.wide.column
-        if (favorites.length)
-          .ui.message
-            .content
-              .header Top Contribution
-              .ui.comments
-                - var message = favorites[0]
-                include partials/message
-        .ui.comments
-          - messages = messages.slice(0, 5);
-          for message in messages
-            include partials/message
+  .ui.vertical.stripe.segment.content
+    h2.ui.horizontal.header.divider
+      small(style="color: rgba(0,0,0,.4);") @
+      | #{person.id}
+    .ui.grid.stackable
+      .row
+        .four.wide.column
+          include partials/person
+        .twelve.wide.column
+          if (favorites.length)
+            .ui.message
+              .content
+                .header Top Contribution
+                .ui.comments
+                  - var message = favorites[0]
+                  include partials/message
+          .ui.comments
+            - messages = messages.slice(0, 5);
+            for message in messages
+              include partials/message

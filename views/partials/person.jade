@@ -2,7 +2,9 @@
   a.image(href="/people/#{person.id}")
     img(src="#{person.image.avatar}")
   .content
-    a.header(href="/people/#{person.slug}") #{person.username}
+    a.header(href="/people/#{person.slug}")
+      small(style="color: rgba(0,0,0,.4);") @
+      | #{person.username}
     .meta joined in 
       abbr.tooltipped(title="#{person.created}") #{person.created.getFullYear()}
     p #{person.bio}

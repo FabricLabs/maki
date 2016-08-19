@@ -102,15 +102,18 @@ block content
         img.ui.centered.aligned.image(src="/img/image.png")
 
       
-  .ui.vertical.stripe.quote.segment
+  .ui.vertical.stripe.quote.segment(style="padding-top: 2em;")
     .ui.equal.width.stackable.internally.celled.grid
       .center.aligned.row
         .column
           h3 "This feels like the invention of the transistor."
-          p Will Ricketts, SailsJS Contributor
+          p(style="margin-top: 4em;") Will Ricketts, SailsJS Contributor
         .column
           h3 We're building something new.
-          a.ui.huge.primary.right.labeled.icon.button(href="/invitations") Come join us.
+          a.ui.massive.primary.right.labeled.icon.button(href="/people", style="margin-top: 2em;")
+            span
+              i.users.icon
+            |  Come join us.
             i.icon.right.chevron
 
 //-block page

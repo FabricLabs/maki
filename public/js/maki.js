@@ -135,6 +135,26 @@ function DataBinder( objectID ) {
   });
 }
 
+
+$(document).on('click', 'a[href*="#"]:not([href="#"])', function() {
+  var target = $(this.hash);
+  var path = this.pathname + this.hash;
+  
+  $('[data-for=viewport]').attr('src', path);
+  
+  target = target.length ? target : $('[src="' + path +'"]');
+
+  if (target.length) {
+    $('.masthead').visibility({
+      transition: 'fade out'
+    });
+    $('html, body').animate({
+      scrollTop: target.offset().top
+    }, 1000);
+    return false;
+  }
+});
+
 $(window).on('ready', function() {
 
   // update classes for links
@@ -165,6 +185,7 @@ $(window).on('ready', function() {
       $(self).children('input').val( result.id );
     }
   });
+
 
   $.ajax({
     type: 'OPTIONS',
