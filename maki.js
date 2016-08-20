@@ -66,6 +66,7 @@ var Topic = maki.define('Topic', {
     description: { type: String },
     topic: { type: String },
     created: { type: Date , default: Date.now },
+    creator: { type: String , ref: 'Person' },
     people: [ { type: String , ref: 'Person' }],
     stats: {
       subscribers: { type: Number , default: 0 },
@@ -163,6 +164,9 @@ var Message = maki.define('Message', {
   }
 });
 
+Topic.pre('create', populateCreator);
+Topic.pre('update', populateCreator);
+
 //Message.pre('create', inferSlackContext);
 Message.pre('create', populateChannel);
 Message.pre('create', publishToSlack);
@@ -187,6 +191,23 @@ function populateAuthor (next, done) {
     }
 
     message.author = person.id;
+    next();
+  });
+}
+
+function populateCreator (next, done) {
+  var topic = this;
+  Person.get({
+    $or: [
+      { 'links.slack': topic.creator },
+      { 'id': topic.creator }
+    ]
+  }, function(err, person) {
+    if (err) console.error(err);
+    if (!person) {
+      return done('No such person: ' + topic.creator);
+    }
+    topic.creator = person.id;
     next();
   });
 }

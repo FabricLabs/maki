@@ -57,12 +57,13 @@ rest.get(url).on('complete', function(topics) {
         return peopleMap[id]._id;
       });
 
-      put(remote, {
+      var obj = {
         id: channelID, // TODO: reject if PUT doesn't match?
         name: channel.name,
         description: channel.purpose.value,
         topic: channel.topic.value,
         created: new Date(channel.created * 1000),
+        creator: channel.creator,
         people: peopleArray,
         links: {
           slack: channel.id
@@ -70,11 +71,13 @@ rest.get(url).on('complete', function(topics) {
         stats: {
           subscribers: channel.num_members
         }
-      }, function(err, result) {
+      };
+
+      put(remote, obj, function(err, result) {
         if (err) return console.error(err);
-        
-        console.log('created remote topic:', result.id , result.created);
-        
+
+        console.log('created remote topic:', result.id , result.created, obj);
+
         var base = 'https://slack.com/api/channels.history';
         var params = {
           token: config.slack.token,
