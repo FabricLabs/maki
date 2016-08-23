@@ -102,18 +102,20 @@ html.no-js
                 else
                   i.icon.left(class="#{ config.service.icon || 'lab' }")
                 | #{config.service.name}
-              each resource in resources
-                if (resource.public)
-                  a.item(href="#{resource.routes.query}")
-                    if (resource.options.icon)
-                      i.icon(class="#{resource.options.icon}")
-                    | #{resource.names.handle}
-              if (user)
-                .ui.large.secondary.inverted.pointing.right.menu
-                  a.item(href="/people/#{user.id}") #{user.id}
-                  a.item(href="/sessions/#{session.hash}?method=delete") Logout
-              a.right.toc.item
-                i.sidebar.icon
+                
+              block navbar
+                each resource in resources
+                  if (resource.public)
+                    a.item(href="#{resource.routes.query}")
+                      if (resource.options.icon)
+                        i.icon(class="#{resource.options.icon}")
+                      | #{resource.names.handle}
+                if (user)
+                  .ui.large.secondary.inverted.pointing.right.menu
+                    a.item(href="/people/#{user.id}") #{user.id}
+                    a.item(href="/sessions/#{session.hash}?method=delete") Logout
+                a.right.toc.item
+                  i.sidebar.icon
             .ui.text.container
               include ../partials/flash
               block masthead
