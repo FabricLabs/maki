@@ -56,7 +56,7 @@ html.no-js
     block page
       .ui.large.top.fixed.hidden.menu
         .ui.container
-          a.logo.item(href="/")
+          a.logo.item(href="/", style="padding-left: 0;")
             if (config.service.logo)
               img(src="#{config.service.logo}")
             else
@@ -96,7 +96,7 @@ html.no-js
         .ui.inverted.vertical.masthead.segment
           .ui.container
             .ui.large.secondary.inverted.pointing.menu
-              a.logo.item(href="/")
+              a.logo.item(href="/", style="padding-left: 0;")
                 if (config.service.logo)
                   img(src="#{config.service.logo}")
                 else
