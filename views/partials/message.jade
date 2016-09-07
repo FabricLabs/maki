@@ -21,8 +21,7 @@ style.
     .metadata
       a.date(href="/messages/#{message.id}", title="#{message.created}") #{moment(message.created).fromNow()}
       a(href="/topics/#{message.topic}") ##{message.topic}
-    .text
-      p !{slackdown(message.content)}
+    .text !{markdown(slackdown(message.content))}
     .actions
       if (reactions)
         for name in reactions

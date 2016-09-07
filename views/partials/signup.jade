@@ -1,0 +1,23 @@
+h4.ui.header Join the Discussion!
+p We'd love your participation!  Let's get you signed up and plugged in.
+
+form.ui.form.fluid(action="/invitations", method="POST")
+  if (channelsToJoin)
+    input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
+  .ui.field
+    label(for="email") What is your email address?
+    input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
+
+  if (topics)
+    .ui.field
+      label(for="topics") What channels would you like to join?
+      select.ui.fluid.search.dropdown(multiple, name="topics")
+        for channel in topics
+          option(value="#{channel}", selected) ##{channel}
+
+  .ui.field
+    button.ui.fluid.labeled.green.button(type="submit")
+      i.icon.leaf
+      | That's me.  Let's go!
+      i.right.chevron.icon
+  .ui.error.message

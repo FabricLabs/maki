@@ -38,29 +38,7 @@ block content
                   .label people
             if (!user)
               .extra.content.registration.transition.smooth
-                h4.ui.header Join the Discussion!
-                p We'd love your participation!  Let's get you signed up and plugged in.
-
-                form.ui.form.fluid(action="/invitations", method="POST")
-                  if (channelsToJoin)
-                    input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
-                  .ui.field
-                    label(for="email") What is your email address?
-                    input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
-
-                  if (topics)
-                    .ui.field
-                      label(for="topics") What channels would you like to join?
-                      select.ui.fluid.search.dropdown(multiple, name="topics")
-                        for channel in topics
-                          option(value="#{channel}", selected) ##{channel}
-                
-                  .ui.field
-                    button.ui.fluid.labeled.green.button(type="submit")
-                      i.icon.leaf
-                      | That's me.  Let's go!
-                      i.right.chevron.icon
-                  .ui.error.message
+                include partials/signup
 
         .nine.wide.column
           if (!topic.description)
@@ -108,10 +86,28 @@ block content
 
         .three.wide.column
           .ui.vertical.fluid.menu
-            a.header.item(on-tap="launch-join-modal", href="/topics/#{topic.id}/people") #{topic.stats.subscribers} People
             - var limit = 12
-            for person in _.sample(topic.people, limit)
-              a.item(href="/people/#{person}") #{person}
+            - var online = people.filter(function(x) {
+            -   return x.status === 'active';
+            - }).sort(function(a, b) {
+            -   return (a.id < b.id) ? -1 : (a.id > b.id) ? 1 : 0;
+            - });
+            - var offline = people.filter(function(x) {
+            -   return x.status !== 'active';
+            - }).sort(function(a, b) {
+            -   return (a.id < b.id) ? -1 : (a.id > b.id) ? 1 : 0;
+            - });
+            - var joined = _.union(online, offline).slice(0, limit);
+            a.header.item(on-tap="launch-join-modal", href="/topics/#{topic.id}/people")
+              | #{topic.stats.subscribers} People
+              .ui.small.green.icon.label.tooltopped(title="#{online.length} people are online now!")
+                i.icon.users
+                | #{online.length} online
+            for person in joined
+              a.item(href="/people/#{person.id}")
+                | #{person.id}
+                if (person.status === 'active')
+                  i.green.circle.tooltipped.icon(title="#{person.id} is online!")
             if (topic.stats.subscribers > limit)
               a.item(on-tap="launch-join-modal", href="/topics/#{topic.id}/people")
                 strong #{topic.stats.subscribers - limit} more
