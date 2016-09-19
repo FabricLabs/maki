@@ -14,7 +14,7 @@ block content
   - favorites.sort(function(a, b) { return b.stats.reactions - a.stats.reactions; });
 
   .ui.vertical.stripe.segment.content
-    h2.ui.horizontal.header.divider
+    //-h2.ui.horizontal.header.divider
       small(style="color: rgba(0,0,0,.4);") &#35;
       | #{topic.id}
 
@@ -70,9 +70,10 @@ block content
                   - var message = _.shuffle(favorites.slice(0, 3))[0]
                   include partials/message
           
-          .ui.segment
-            h4 Currently discussing...
-            p #{topic.topic}
+          if (topic.topic)
+            .ui.segment
+              h4 Currently discussing...
+              p #{topic.topic}
           .ui.comments
             - messages.sort(function(a, b) { return b.created - a.created; });
             - messages = messages.slice(0, 10).reverse();
