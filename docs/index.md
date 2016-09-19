@@ -1,7 +1,10 @@
 ---
 title: Maki Docs
 description: Learn how to use Maki, the a full-stack application framework.
+source: https://github.com/martindale/maki/blob/community/docs/index.md
+edit: https://github.com/martindale/maki/edit/community/docs/index.md
 ---
+
 <style type="text/css">
   img {
     max-width: 100%;

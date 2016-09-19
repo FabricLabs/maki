@@ -22,7 +22,8 @@ maki.use(authSlack);
 var CMS = require('maki-cms-local');
 var cms = new CMS({
   base: '/docs',
-  path: '/docs'
+  path: '/docs',
+  view: process.env.PWD + '/views/page'
 });
 
 var tutorials = new CMS({
