@@ -20,17 +20,22 @@ mixin MessageItem(localItem, depth, max, child)
             for name in reactions
               .ui.small.label.tooltipped(title=":#{name}:") !{emojify(name)} #{localItem.reactions[name]}
         .text(data-for="message-reply-form", data-target-id="#{localItem.id}", style="display: none;")
-          form.ui.form(method="POST", action="/messages")
-            input(type="hidden", name="parent", value="#{localItem.id}")
-            if (user)
-              input(type="hidden", name="author", value="#{user.id}")
-              if (user.tokens)
-                input(type="hidden", name="@context", value="#{user.tokens.slack}")
-            .field
-              textarea(name="content", rows="2")
-            button.ui.right.floated.primary.right.labeled.icon.button(type="submit")
-              | Share
-              i.right.arrow.icon
+          if (user)
+            form.ui.form(method="POST", action="/messages")
+              input(type="hidden", name="parent", value="#{localItem.id}")
+              if (user)
+                input(type="hidden", name="author", value="#{user.id}")
+                if (user.tokens)
+                  input(type="hidden", name="@context", value="#{user.tokens.slack}")
+              .field
+                textarea(name="content", rows="2")
+              button.ui.right.floated.primary.right.labeled.icon.button(type="submit")
+                | Share
+                i.right.arrow.icon
+          else
+            a.ui.labeled.icon.primary.button(href="/authentications/slack")
+              i.icon.slack.alt
+              | Sign in with Slack
         .actions
           a(href="#reply", on-tap="toggle-reply-form", data-target-id="#{localItem.id}") reply
         if (child)
