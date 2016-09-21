@@ -1,0 +1,43 @@
+mixin MessageItem(localItem, depth, max, child)
+  if (depth <= max)
+    .comment
+      //-pre #{JSON.stringify(localItem, null, '  ')}
+      - var reactions = Object.keys(localItem.reactions || {});
+      a.avatar(href="/people/#{localItem.author.id}")
+        img(src="#{localItem.author.image.avatar}")
+      .content
+        a.author(href="/people/#{localItem.author.id}") #{localItem.author.id}
+        .metadata
+          a.date(href="/messages/#{localItem.id}", title="#{localItem.created}") #{moment(localItem.created).fromNow()}
+          if (localItem.topic)
+            a(href="/topics/#{localItem.topic}") ##{localItem.topic}
+          if (localItem.parent)
+            span in reply to 
+              a(href="/messages/#{localItem.parent}") #{localItem.parent.slice(0, 5)}&hellip;
+        .text !{markdown(slackdown(localItem.content))}
+        .actions
+          if (reactions)
+            for name in reactions
+              .ui.small.label.tooltipped(title=":#{name}:") !{emojify(name)} #{localItem.reactions[name]}
+        .text(data-for="message-reply-form", data-target-id="#{localItem.id}", style="display: none;")
+          form.ui.form(method="POST", action="/messages")
+            input(type="hidden", name="parent", value="#{localItem.id}")
+            if (user)
+              input(type="hidden", name="author", value="#{user.id}")
+              if (user.tokens)
+                input(type="hidden", name="@context", value="#{user.tokens.slack}")
+            .field
+              textarea(name="content", rows="2")
+            button.ui.right.floated.primary.right.labeled.icon.button(type="submit")
+              | Share
+              i.right.arrow.icon
+        .actions
+          a(href="#reply", on-tap="toggle-reply-form", data-target-id="#{localItem.id}") reply
+        if (child)
+          //- TODO: highlight selected comment somehow.
+          .huge.threaded.comments(style="font-size: 1.2em; margin-bottom: -3em;")
+            +MessageItem(child, 1 , 1)
+        if (replies)
+          .threaded.comments
+            for comment in replies
+              +MessageItem(comment, depth + 1, max)
