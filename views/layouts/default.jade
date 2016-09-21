@@ -1,3 +1,5 @@
+include ../partials/mixins
+
 doctype html
 html.no-js
   head
@@ -45,6 +47,7 @@ html.no-js
     script(src="/js/lodash.min.js")
 
     script(src="/js/highlight.pack.js")
+    script(src="/js/hammer.min.js")
     script(src="/js/uuid.js")
     script(src="/js/jsonrpc.js")
     
@@ -203,6 +206,20 @@ html.no-js
 
         // create sidebar and attach to menu open
         $('.ui.sidebar').sidebar('attach events', '.toc.item');
+
+        $(document).on('click', '*[on-tap=toggle-reply-form]', function(e) {
+          e.preventDefault();
+          
+          var $el = $(this);
+          var target = $el.data('target-id');
+
+          $('[data-for=message-reply-form]:not([data-target-id=' + target + '])').slideUp();
+
+          $('[data-for=message-reply-form][data-target-id=' + target + ']').slideToggle();
+          $('[data-for=message-reply-form][data-target-id=' + target + '] textarea[name=content]').focus();
+
+          return false;
+        });
       });
 
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
