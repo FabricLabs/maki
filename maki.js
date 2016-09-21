@@ -138,6 +138,7 @@ var Message = maki.define('Message', {
     '@context': { type: String },
     id: { type: String , max: 80 , required: true , slug: true },
     topic: { type: String , ref: 'Topic' },
+    parent: { type: String , ref: 'Message' },
     author: { type: String , ref: 'Person' , populate: ['query', 'get'] },
     content: { type: String },
     created: { type: Date , default: Date.now },
@@ -155,11 +156,34 @@ var Message = maki.define('Message', {
       sort: '-stats.reactions'
     }
   },
+  requires: {
+    'parent': {
+      resource: 'Message',
+      single: true,
+      filter: function() {
+        var localMessage = this;
+        return { id: localMessage.parent };
+      },
+      populate: 'author'
+    },
+    'replies': {
+      resource: 'Message',
+      filter: function() {
+        var localMessage = this;
+        return { parent: localMessage.id };
+      },
+      populate: 'author'
+    }
+  },
   handlers: {
     html: {
       'create': function(req, res) {
         var message = this;
-        res.status(302).redirect('/topics/' + message.topic);
+        if (message.topic) {
+          return res.status(302).redirect('/topics/' + message.topic);
+        } else {
+          return res.status(303).redirect('/messages/' + message.id );;
+        }
       }
     }
   }
@@ -167,6 +191,23 @@ var Message = maki.define('Message', {
 
 Topic.pre('create', populateCreator);
 Topic.pre('update', populateCreator);
+
+Message.pre('create', function assignHash (next, done) {
+  var crypto = require('crypto');
+
+  var message = this;
+  if (message.id) return next();
+  
+  var now = Date.now() * 1000;
+  var key = [message.author, now].join(':');
+  var hash = crypto.createHash('sha256').update(key).digest('hex');
+  
+  message.id = hash;
+  
+  return next();
+  
+});
+
 
 //Message.pre('create', inferSlackContext);
 Message.pre('create', populateChannel);
@@ -188,7 +229,7 @@ function populateAuthor (next, done) {
   }, function(err, person) {
     if (err) console.error(err);
     if (!person) {
-      return done('No such person: ' + message.author);
+      return done('No such author: ' + message.author);
     }
 
     message.author = person.id;
@@ -223,7 +264,8 @@ function populateChannel (next, done) {
   }, function(err, topic) {
     if (err) console.error(err);
     if (!topic) {
-      return done('No such topic: ' + message.topic);
+      console.warn('No topic found, strange behavior ahead...');
+      //return done('No such topic: ' + message.topic);
     }
 
     message.topic = topic;
@@ -390,6 +432,7 @@ function publishToSlack (next, done) {
   var crypto = require('crypto');
  
   if (!message['@context']) return next();
+  if (!message['topic']) return next();
 
   var doc = {
     //token: config.slack.token, // TODO: replace with user token...

@@ -9,11 +9,11 @@ block content
   .ui.comments
     - favorites = favorites.slice(0, 5);
     for message in favorites
-      include partials/message
+      +MessageItem(message, 1, 3)
   
   h3 Latest Messages
   .ui.comments
     - messages.sort(function(a, b) { return b.created - a.created; });
     - messages = messages.slice(0, 5).reverse();
     for message in messages
-      include partials/message
+      +MessageItem(message, 1, 3)
