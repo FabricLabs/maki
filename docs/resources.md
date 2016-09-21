@@ -123,6 +123,14 @@ maki.define('Widget', {
 });
 ```
 
+##### References
+When specifying a value for a referenced field (that is, `ref:`), several types
+can be used.
+
+`simple` for a top-level link (defers to consensus).  Example: `person: 'martindale'`
+`path` for a hinted type (defers to local node).  Example: `person: '/people/martindale'`
+`target` for another namespace's version (defers to remote node).  Example: `person: soundtrack/people/martindale`
+`exact` for a specific document (defers to the content).  Example: `https://maki.io/messages/328250f68b47a76cdeee7be76526f560ce959d70969978c74e60d89a2c13b43e`
 
 #### Special Types
 Certain special types of Resource attributes exist.  These control some behavior
