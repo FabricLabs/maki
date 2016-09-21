@@ -1,10 +1,4 @@
 dom-module#maki-identity-card
-  template
-    .image
-      img(src="/img/stevie.jpg")
-    .content
-      .header {{identity.name}}
-    .ui.bottom.attached.button(on-tap="_selectIdentity") use {{identity.name}}
   script.
     Polymer({
       is: 'maki-identity-card',
@@ -12,12 +6,5 @@ dom-module#maki-identity-card
         identity: {
           type: Object
         }
-      },
-      _selectIdentity: function(e, detail) {
-        var self = this;
-        console.log('[MAKI:IDENTITY]', '_selectIdentity', e, detail);
-        var manager = document.querySelectorAll('maki-identity')[0];
-        manager.identity = self.identity;
-        manager._register();
-      },
+      }
     });

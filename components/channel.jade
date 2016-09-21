@@ -1,10 +1,13 @@
 dom-module#maki-channel
-  script(src="/js/uuid.js")
-  script(src="/js/jsonrpc.js")
+  script(src="/js/uuid.js", async)
+  script(src="/js/jsonrpc.js", async)
   script.
     Polymer({
       is: 'maki-channel',
       properties: {
+        namespace: { 
+          type: String
+        },
         autoconnect: {
           type: Boolean
         },
@@ -20,13 +23,6 @@ dom-module#maki-channel
         src: {
           type: String
         },
-      },
-      ready: function() {
-        var self = this;
-        console.log('[MAKI:CHANNEL]', 'ready');
-        if (self.autoconnect === true) {
-          self._connect();
-        }
       },
       _send: function(method, params) {
         var self = this;
@@ -55,9 +51,54 @@ dom-module#maki-channel
           self._subscribe(element.src);
         }
       },
+      _handleMessage: function(msg) {
+        var self = this;
+        console.log('[MAKI:CHANNEL]', '_handleMessage', msg);
+        
+        try {
+          var data = JSON.parse( msg.data );
+        } catch (e) {
+          var data = {};
+        }
+        
+        console.log('[MAKI:CHANNEL]', '_handleMessage', 'resulting data:', data);
+        
+        // experimental JSON-RPC implementation
+        if (data.jsonrpc === '2.0') {
+          console.log('[MAKI:CHANNEL]', '_handleMessage', 'valid jsonrpc!');
+          
+          switch (data.method) {
+            case 'ping':
+              console.log('[MAKI:CHANNEL]', 'received ping.  playing pong...');
+              self.ws.send(JSON.stringify({
+                'jsonrpc': '2.0',
+                'result': 'pong',
+                'id': data.id
+              }));
+            break;
+            case 'patch':
+              // TODO: update in-memory data (two-way binding);
+              console.log('[MAKI:CHANNEL]', 'received `patch` event:', data.params.channel , data );
+              var channel = data.params.channel;
+              var ops = data.params.ops;
+              var datastore = document.querySelector('maki-datastore[name='+self.namespace+']');
+              var manager = document.querySelector('maki-peer-manager');
+
+              datastore._patch(channel, ops);
+              manager._relay(data);
+
+            break;
+            default:
+              console.error('[MAKI:CHANNEL]', 'unhandled jsonrpc method ' , data.method);
+            break;
+          }
+        } else {
+
+        }
+      },
       _connect: function() {
         var self = this;
-        var maki = document.querySelectorAll('maki-application')[0];
+        var maki = document.querySelector('maki-application');
         var protocol = (document.location.protocol === 'http:') ? 'ws://' : 'wss://';
         var path = protocol + document.location.host; // + self.src;
         
@@ -71,43 +112,16 @@ dom-module#maki-channel
             }, 500);
           }
         }
-        self.ws.onmessage = function onMessage(msg) {
-          try {
-            var data = JSON.parse( msg.data );
-          } catch (e) {
-            var data = {};
-          }
-          // experimental JSON-RPC implementation
-          if (data.jsonrpc === '2.0') {
-            switch (data.method) {
-              case 'ping':
-                console.log('[MAKI:CHANNEL]', 'received ping.  playing pong...');
-                self.ws.send(JSON.stringify({
-                  'jsonrpc': '2.0',
-                  'result': 'pong',
-                  'id': data.id
-                }));
-              break;
-              case 'patch':
-                // TODO: update in-memory data (two-way binding);
-                console.log('[MAKI:CHANNEL]', 'received `patch` event:', data.params.channel , data );
-                var channel = data.params.channel;
-                var ops = data.params.ops;
-                var datastore = document.querySelectorAll('maki-datastore')[0];
-                
-                datastore._patch(channel, ops);
-              
-              break;
-              default:
-                console.error('[MAKI:CHANNEL]', 'unhandled jsonrpc method ' , data.method);
-              break;
-            }
-          } else {
-
-          }
-        }
+        self.ws.onmessage = self._handleMessage.bind(self);
         self.ws.onopen = function onOpen() {
           console.log('[MAKI:CHANNEL]', 'websocket open.');
+        }
+      },
+      ready: function() {
+        var self = this;
+        console.log('[MAKI:CHANNEL]', 'ready');
+        if (self.autoconnect === true) {
+          self._connect();
         }
       },
     });
