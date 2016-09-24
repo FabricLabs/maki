@@ -370,7 +370,7 @@ describe('http', function(){
     expect( setup ).to.not.throw();
   });
 
-  it('should not accept an invalid plugin', function() {
+  it('should accept an invalid plugin', function() {
     function setup() {
       var plugin = {};
       plugin.extends = {
@@ -381,7 +381,7 @@ describe('http', function(){
       maki.use( {} );
     }
 
-    expect( setup ).to.throw();
+    expect( setup ).to.not.throw();
   });
 
   it('should receive uploads', function(done) {

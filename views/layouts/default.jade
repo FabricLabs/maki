@@ -35,159 +35,17 @@ html.no-js
     link(rel="stylesheet", href="/css/maki.css")
     link(rel="stylesheet", href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Open+Sans:300italic,400,300,700")
 
-    - if (page && page.masthead)
-      style.
-        .masthead {
-          background: url('#{page.masthead}') no-repeat 50% 50%;
-          background-size: cover;
-        }
+    link(rel="import", href="/polymer/polymer.html")
+    link(rel="import", href="/components")
 
     script(src="/js/jquery.js")
-    script(src="/js/semantic.min.js")
-    script(src="/js/lodash.min.js")
-
-    script(src="/js/highlight.pack.js")
-    script(src="/js/hammer.min.js")
-    script(src="/js/uuid.js")
-    script(src="/js/jsonrpc.js")
-    
-    script(src="/js/maki.js")
+    script(src="/js/bundle.js")
 
     base(href="/")
 
   body
-    block page
-      .ui.large.top.fixed.hidden.menu
-        .ui.container
-          a.logo.item(href="/", style="padding-left: 0;")
-            if (config.service.logo)
-              img(src="#{config.service.logo}")
-            else
-              i.icon.left(class="#{ config.service.icon || 'lab' }")
-            | #{config.service.name}
-          each resource in resources
-            if (resource.public)
-              a.item(href="#{resource.routes.query}")
-                if (resource.options.icon)
-                  i.icon(class="#{resource.options.icon}")
-                | #{resource.names.handle}
-          if (user)
-            a.right.item(href="/people/#{user.id}") #{user.id}
-            a.item(href="/sessions/#{session.hash}?method=delete") Logout
-      .ui.vertical.inverted.sidebar.right.large.menu
-        .ui.center.aligned.inverted.header
-          a(href="/")
-            if (config.service.logo)
-              img.ui.centered.tiny.circular.bordered.image(src="#{config.service.logo}")
-            else
-              i.icon.left(class="#{ config.service.icon || 'lab' }")
-            | #{config.service.name}
-            p(style="text-align: center;")
-             //-small made with <i class="icon heart"></i>
-             small(style="color:rgba(255,255,255,0.5); font-size: 0.75em;") made with <i class="icon heart"></i>
-        each resource in resources
-          if (resource.public)
-            a.item(href="#{resource.routes.query}")
-              if (resource.options.icon)
-                i.icon(class="#{resource.options.icon}")
-              | #{resource.names.handle}
-        if (user)
-          a.item(href="/people/#{user.id}") #{user.id}
-          a.item(href="/sessions/#{session.hash}?method=delete") Logout
-      
-      .pusher
-        .ui.inverted.vertical.masthead.segment
-          .ui.container
-            .ui.large.secondary.inverted.pointing.menu
-              a.logo.item(href="/", style="padding-left: 0;")
-                if (config.service.logo)
-                  img(src="#{config.service.logo}")
-                else
-                  i.icon.left(class="#{ config.service.icon || 'lab' }")
-                | #{config.service.name}
-                
-              block navbar
-                each resource in resources
-                  if (resource.public)
-                    a.item(href="#{resource.routes.query}")
-                      if (resource.options.icon)
-                        i.icon(class="#{resource.options.icon}")
-                      | #{resource.names.handle}
-                if (user)
-                  .ui.large.secondary.inverted.pointing.right.menu
-                    a.item(href="/people/#{user.id}") #{user.id}
-                    a.item(href="/sessions/#{session.hash}?method=delete") Logout
-                a.right.toc.item
-                  i.sidebar.icon
-            .ui.text.container
-              include ../partials/flash
-              block masthead
-              
-            div(style="clear: both;")
-
-            
-        //-.ui.container.content(data-for="flash", style="padding-top: 2em;")
-          //- Remove this message when you're comfortable.
-          //-.ui.error.message.text.container
-            h4.header Warning!
-            p This site is operating in <strong>playground</strong> mode.  Content and features found here are for <u>demonstration purposes only</u> and <u>subject to change</u>.  &nbsp;&nbsp;&nbsp;&nbsp;<small>Currently running: <code>maki#next</code></small>
-
-          //-.ui.info.large.message.text.container
-            h4.center.aligned.icon.header
-              i.icon.heart
-              | We'd love your help.
-            p Maki is an experimental framework for building things.  We have a lot of work in progress, and not everything is completed.    If you'd like, you can <a href="https://github.com/martindale/maki">follow along on our GitHub</a> or <a href="https://chat.maki.io/">join our Slack</a>.
-
-        .ui.padded.container.content(data-for="viewport")
-          block content
-
-        .ui.inverted.vertical.footer.segment(style="margin-top: 2em;")
-          .ui.container
-            block footer
-              .ui.stackable.inverted.divided.equal.height.stackable.grid
-                .six.wide.column
-                  h4.ui.inverted.header About
-                  p Maki is a labor of love, a result of several years of iterations and re-architectures in pursuit of a clean, hand-rolled framework for building beautiful applications.  We hope you like it.
-                  //-.ui.inverted.link.list
-                    a.item(href="#") Protocol
-                    a.item(href="#") Whitepaper
-                    a.item(href="#") Roadmap
-                    a.item(href="#") Contact Us
-                .seven.wide.column
-                  h4.ui.inverted.header Copyleft
-                  p Maki is copyleft, and encourages you to copy, clone, and <em>create</em>.  After all, without a rich public domain, how else can we innovate?  Much to our chagrin, the software itself is more formally <a href="https://github.com/martindale/maki/blob/master/LICENSE">MIT licensed</a>, while our content is licensed under <a href="http://creativecommons.org/licenses/by/4.0/">CC-BY</a>.
-                .three.wide.column
-                  h4.ui.inverted.header Elsewhere
-                  .ui.inverted.link.list
-                    a.item(href="https://github.com/martindale/maki", rel="me")
-                      i.icon.github
-                      |  GitHub
-                    a.item(href="https://twitter.com/martindale", rel="me")
-                      i.icon.twitter
-                      |  Twitter
-                    a.item(href="https://facebook.com/eric.martindale", rel="me")
-                      i.icon.facebook
-                      |  Facebook
-                    //-a.item(href="#", rel="me")
-                      i.icon.medium
-                      |  Medium
-
-      //-.ui.page.grid
-        //-.row
-          block navbar
-            include ../partials/navbar
-
-        .row
-          .column.content(data-for="viewport")
-          
-            include ../partials/flash
-          
-            block content
-
-        .row
-          .ui.one.column.stackable.center.aligned
-            p
-              small Built with <a href="http://github.com/martindale/maki">Maki</a>.
+    maki-application
+      include ../partials/scaffold
 
     block scripts
 

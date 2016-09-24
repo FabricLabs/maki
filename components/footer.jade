@@ -1,0 +1,37 @@
+dom-module#maki-footer
+  template
+    .ui.stackable.inverted.divided.equal.height.stackable.grid
+      .six.wide.column
+        h4.ui.inverted.header About
+        p Maki is a labor of love, a result of several years of iterations and re-architectures in pursuit of a clean, hand-rolled framework for building beautiful applications.  We hope you like it.
+        //-.ui.inverted.link.list
+          a.item(href="#") Protocol
+          a.item(href="#") Whitepaper
+          a.item(href="#") Roadmap
+          a.item(href="#") Contact Us
+      .seven.wide.column
+        h4.ui.inverted.header Copyleft
+        p Maki is copyleft, and encourages you to copy, clone, and <em>create</em>.  After all, without a rich public domain, how else can we innovate?  Much to our chagrin, the software itself is more formally <a href="https://github.com/martindale/maki/blob/master/LICENSE">MIT licensed</a>, while our content is licensed under <a href="http://creativecommons.org/licenses/by/4.0/">CC-BY</a>.
+      .three.wide.column
+        h4.ui.inverted.header Elsewhere
+        .ui.inverted.link.list
+          a.item(href="https://github.com/martindale/maki", rel="me")
+            i.icon.github
+            |  GitHub
+          a.item(href="https://twitter.com/martindale", rel="me")
+            i.icon.twitter
+            |  Twitter
+          a.item(href="https://facebook.com/eric.martindale", rel="me")
+            i.icon.facebook
+            |  Facebook
+          //-a.item(href="#", rel="me")
+            i.icon.medium
+            |  Medium
+
+  script.
+    Polymer({
+      is: 'maki-footer',
+      ready: function() {
+        console.log('[MAKI:FOOTER]', 'ready');
+      }
+    });

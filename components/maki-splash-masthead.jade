@@ -1,0 +1,24 @@
+dom-module#maki-splash-masthead
+  template
+    .ui.center.aligned.inverted.segment
+      h1.ui.inverted.header #{config.service.pitch}
+      h2.ui.inverted.header #{config.service.mission}
+
+      .content(style="margin-top: 4em;")
+        .ui.two.huge.buttons
+          a.ui.huge.primary.button(href="/examples") See the Examples
+          .or
+          a.ui.huge.green.right.labeled.icon.button(href="/people")
+            | Meet the Community
+            i.right.chevron.icon
+        
+      //-h4.ui.inverted.header No coding experience necessary.
+
+  script(src="/js/highlight.pack.js")
+  script.
+    Polymer({
+      is: 'maki-splash-masthead',
+      ready: function() {
+        hljs.initHighlightingOnLoad();
+      }
+    });

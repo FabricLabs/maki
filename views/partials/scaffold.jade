@@ -1,0 +1,18 @@
+.pusher
+  .ui.inverted.vertical.masthead.segment
+    .ui.container
+      maki-navbar.ui.large.secondary.inverted.pointing.menu
+      .ui.text.container
+        include flash
+        block masthead
+        
+      div(style="clear: both;")
+
+  .ui.padded.container.content(data-for="viewport")
+    block content
+      // intentionally left empty, until server can render isomorphically.
+
+  .ui.inverted.vertical.footer.segment(style="margin-top: 2em;")
+    .ui.container
+      block footer
+        maki-footer

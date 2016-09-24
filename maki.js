@@ -8,6 +8,8 @@ var passport = new Passport({
   resource: 'Person'
 });
 maki.use( passport );
+maki.use(require('maki-client-level'));
+maki.use(require('maki-client-polymer'));
 
 */
 
@@ -467,19 +469,25 @@ Reminder.post('create', calculateInvitationStats);
 });*/
 
 maki.define('Example', {
+  icon: 'idea',
+  description: 'A list of applications Made With Maki.',
+  source: 'data/examples.json',
+  components: {
+    query: 'maki-examples'
+  },
   attributes: {
     name:    { type: String , max: 80 },
     slug:    { type: String , max: 80 , id: true },
     content: { type: String },
     screenshot: { type: 'File' }
   },
-  source: 'data/examples.json',
-  icon: 'idea'
 });
 
 maki.define('Release', {
   public: false,
   icon: 'tag',
+  description: 'Officially tagged releases of the Maki library.',
+  //source: 'https://api.github.com/repos/martindale/maki/releases',
   attributes: {
     name: { type: String , max: 80 },
     tag: { type: String , max: 80 },
@@ -487,7 +495,6 @@ maki.define('Release', {
     published: { type: Date },
     notes: { type: String , render: 'markdown' }
   },
-  //source: 'https://api.github.com/repos/martindale/maki/releases',
   map: function( release ) {
     return {
       name: release.name,
@@ -500,15 +507,32 @@ maki.define('Release', {
 
 maki.define('Plugin', {
   handle: 'Extensions',
+  icon: 'puzzle',
+  description: 'Modules that extend the default Maki behaviors.',
   attributes: {
     name: { type: String , max: 80 },
     description: { type: String },
     version: { type: String , max: 10 },
     coverage: { type: Number , default: 0 },
   },
-  icon: 'puzzle'
 });
 
+maki.define('Index', {
+  public: false,
+  name: 'Index',
+  templates: {
+    query: 'splash'
+  },
+  components: {
+    query: 'maki-splash',
+    get: 'maki-splash'
+  },
+  routes: {
+    query: '/'
+  },
+  static: true,
+  //internal: true
+});
 
 var Profile = maki.define('Profile', {
   public: false,
@@ -625,4 +649,6 @@ var Entity = maki.define('Entity', {
 var analytics = new Analytics({ id: 'UA-57746323-2' });
 
 maki.use( analytics ).serve(['http']).start();*/
-maki.start();
+maki.start(function() {
+  console.log('routes:', maki.routes);
+});

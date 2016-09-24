@@ -1,0 +1,188 @@
+dom-module#maki-application
+  style.
+    #navigation {
+      width: 100%;
+    }
+  
+  template
+    maki-content-store(name="#{config.service.namespace}")
+    maki-datastore(name="#{config.service.namespace}", for="#{config.service.namespace}")
+    maki-channel(autoconnect, reconnect="true")
+    //-maki-service
+    //-maki-peer-manager(autoconnect, limit="128", strategy="lowest-latency")
+    
+    maki-navbar.ui.large.top.fixed.hidden.menu
+    maki-navbar.ui.vertical.inverted.sidebar.right.large.menu
+    
+    .pusher
+      .ui.inverted.vertical.masthead.segment
+        .ui.container
+          maki-navbar.ui.large.top.fixed.hidden.menu
+          maki-navbar.ui.vertical.inverted.sidebar.right.large.menu
+          .ui.text.container
+            //- TODO: how to flash messages?
+            //-include flash
+            block masthead
+            
+          div(style="clear: both;")
+
+      .ui.padded.container.content(data-for="viewport")
+        block content
+          maki-splash
+
+      .ui.inverted.vertical.footer.segment(style="margin-top: 2em;")
+        .ui.container
+          block footer
+            maki-footer
+
+  script(src="/js/page.min.js", async)
+  script(src="/assets/objectid.js", async)
+  script(src="/assets/async.min.js", async)
+  script.
+    window.maki = Polymer({
+      is: 'maki-application',
+      properties: {
+        src: {
+          type: String
+        },
+        for: {
+          type: String
+        },
+        route: {
+          type: String
+        },
+        routes: {
+          type: Object,
+          value: {}
+        },
+        components: {
+          type: Object,
+          value: {}
+        },
+        resources: {
+          type: Object,
+          observer: '_resourcesUpdated'
+        },
+        datastore: {
+          type: Object
+        },
+        worker: { type: Object },
+        identity: {
+          type: Object,
+          notify: true
+        },
+        state: { type: String }
+      },
+      _pathToResource: function(path) {
+        var self = this;
+        var resource = null;
+        console.log('[MAKI:APPLICATION]', '_pathToResource', path);
+        for (var route in self.routes) {
+          var regex = self.routes[route];
+          console.log('[MAKI:APPLICATION]', '_pathToResource', 'testing', regex);
+          if (regex.test(path)) {
+            resource = self.resourceMap[route];
+            break;
+          }
+        }
+
+        console.log('[MAKI-APPLICATION]', '_pathToResource', path, 'finally:', resource);
+        
+        return resource;
+      },
+      _route: function(ctx) {
+        var self = this;
+        var viewport = document.querySelector('[for=viewport]');
+        var component = 'maki-undefined';
+        var view = null;
+        for (var route in self.routes) {
+          var regex = self.routes[route];
+          console.log('[MAKI:APPLICATION]', '_route', 'routing', route, regex);
+          console.log('[MAKI:APPLICATION]', '_route', 'comparing...', ctx.path);
+          if (regex.test(ctx.path)) {
+            component = self.components[route];
+            console.log('[MAKI:APPLICATION]', '_route', 'found:', component);
+            view = document.createElement(component);
+            view.action = self.actionMap[route];
+            view.type = self.resourceMap[route];
+            view.type.route = route;
+            
+            console.log('[MAKI:APPLICATION]', '_route', 'selected:', view);
+            break;
+          }
+        }
+
+        if (!view) {
+          view = document.createElement(component);
+        }
+        
+        view.setAttribute('src', ctx.path);
+        view.setAttribute('type', view.type);
+        while (viewport.hasChildNodes()) {
+          viewport.removeChild(viewport.lastChild);
+        }
+        viewport.appendChild(view);
+
+      },
+      /*
+          Configures the Router, which provides human-friendly URLs 
+      
+       */
+      _resourcesUpdated: function(resources) {
+        var self = this;
+        var _route = self._route.bind(self);
+        self.resourceMap = {};
+        self.actionMap = {};
+        Object.keys(resources).forEach(function(name) {
+          //var resource = resources[name];
+          var resource = document.createElement('maki-resource');
+          var definition = resources[name];
+          
+          resource.name = name;
+          resource.definition = definition;
+          
+          resource._load();
+
+          ['get', 'query'].forEach(function(action) {
+            var route = definition.routes[action];
+            if (!route) return;
+            self.routes[route] = new RegExp(eval(definition.paths[action]));
+            self.components[route] = definition.components[action];
+            self.resourceMap[route] = resource;
+            self.actionMap[route] = action;
+            page(route, _route);
+          });
+        });
+        
+        self.routes['/'] = new RegExp(/^\/$/);
+        self.components['/'] = (resources.Index && resources.Index.components) ? resources.Index.components.query : 'maki-index';
+        
+        page('/', _route);
+        page('*', _route);
+        
+        page();
+      },
+      created: function() {
+        var self = this;
+        self.route = window.location.pathname;
+        //self.worker = new Worker('/worker.js');
+        // load the application configuration
+        $.ajax({
+          type: 'OPTIONS',
+          url: '/',
+          headers: {
+            'Accept': 'application/json'
+          },
+          success: function(data) {
+            self.config = data.config;
+            self.resources = data.resources;
+          }
+        });
+      },
+      ready: function() {
+        document.addEventListener('datastore:open', function() {
+          self.datastore = document.querySelector('maki-datastore');
+          self.datastore._sync();
+        });
+      }
+    });
