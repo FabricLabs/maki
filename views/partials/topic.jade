@@ -12,6 +12,6 @@
   if (cta)
     a.ui.bottom.attached.primary.right.labeled.icon.button(href="/topics/#{topic.id}#join") !{cta}
   else
-    a.ui.bottom.attached.primary.right.labeled.icon.button(on-tap="open-register", href="/topics/#{topic.id}#join")
+    a.ui.bottom.attached.primary.right.labeled.icon.button(href="/topics/#{topic.id}#join")
       | Join <strong>#{topic.stats.subscribers}</strong> others in <small>&#35;</small>#{topic.name}
       i.right.chevron.icon

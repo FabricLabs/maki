@@ -136,7 +136,7 @@ function DataBinder( objectID ) {
 }
 
 
-$(document).on('click', 'a[href*="#"]:not([href="#"])', function() {
+/* $(document).on('click', 'a[href*="#"]:not([href="#"])', function() {
   var target = $(this.hash);
   var path = this.pathname + this.hash;
   
@@ -153,7 +153,7 @@ $(document).on('click', 'a[href*="#"]:not([href="#"])', function() {
     }, 1000);
     return false;
   }
-});
+}); */
 
 $(window).on('ready', function() {
 
