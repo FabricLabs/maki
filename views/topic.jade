@@ -102,7 +102,6 @@ block content
             a.header.item(on-tap="launch-join-modal", href="/topics/#{topic.id}/people")
               | #{topic.stats.subscribers} People
               .ui.small.green.icon.label.tooltopped(title="#{online.length} people are online now!")
-                i.icon.users
                 | #{online.length} online
             for person in joined
               a.item(href="/people/#{person.id}")
