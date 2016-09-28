@@ -73,7 +73,7 @@ block content
           if (topic.topic)
             .ui.segment
               h4 Currently discussing...
-              p #{topic.topic}
+              p !{markdown(topic.topic)}
           .ui.comments
             - messages.sort(function(a, b) { return b.created - a.created; });
             - messages = messages.slice(0, 10).reverse();
