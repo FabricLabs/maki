@@ -1,4 +1,11 @@
+//- maki-datastore
+//- is a top-level manager of data
+//- maps /path to <hash>
 dom-module#maki-datastore
+  template
+    maki-crypto-worker(name="datastore")
+    maki-key-value(name="tips", for$="{{name}}")
+    maki-key-value(name$="{{name}}")
   script(src="/js/json-patch-duplex.min.js")
   script.
     Polymer({
@@ -7,7 +14,16 @@ dom-module#maki-datastore
         name: { 
           type: String
         },
-        store: {
+        for: { 
+          type: String
+        },
+        db: {
+          type: Object
+        },
+        fabric: {
+          type: Object
+        },
+        tips: {
           type: Object
         },
         private: {
@@ -20,59 +36,263 @@ dom-module#maki-datastore
       },
       listeners: {
         'datastore:miss':   '_handleMiss',
-        'datastore:change': '_handleChange'
+        'datastore:change': '_handleChange',
+        'datastore:patch':  '_handlePatch',
       },
-      _populate: function(obj, stack) {
+      _query: function(path, query, opts, cb) {
         var self = this;
-        for (var property in obj) {
-          if (obj.hasOwnProperty(property)) {
-            if (typeof obj[property] === 'object') {
-              return self._populate(obj[property], stack);
-            } else {
-              
-            }
-          }
+        var name = self.name;
+        if (typeof opts === 'function') {
+          cb = opts;
+          opts = {};
         }
-      },
-      _store: function(key, val, cb) {
-        var self = this;
-        console.log('[MAKI:DATASTORE]', '_store', typeof val, key, val);
-        if (val instanceof Array && val.length === 0) return cb('Empty array not allowed.');
-        self.store.put(key, val, function(err) {
-          if (err) console.error(err);
-          self.fire('datastore:change', {
-            key: key,
-            val: val
-          });
-          return cb(err);
+        
+        console.log('[MAKI:DATASTORE]', name, '_query', 'incoming:', path, query, opts);
+        
+        // TODO: not do this
+        var application = document.querySelector(self.for + '-application');
+        var resource = application._pathToResource(path);
+        console.log('[MAKI:DATASTORE]', name, '_query', 'dat path', path, resource);
+        resource.store.find(query, function(err, docs) {
+          console.log('[MAKI:DATASTORE]',name, '_query', 'dat result', err, docs);
+          cb(err, docs);
         });
       },
-      _retrieve: function(key, cb) {
+      _post: function(path, obj, cb) {
+        // TODO: middlewares
         var self = this;
-        console.log('[MAKI:DATASTORE]', '_retrieve looking for:', key);
-        self.store.get(key, {
-          asBuffer: false
-        }, function(err, val) {
+        console.log('[MAKI:DATASTORE]', '_post', '_publish', 'adding', path, obj);
+
+        self.tips._get(path, function(err, tip) {
+          if (err) console.error('[MAKI:DATASTORE]', '_post', 'tip retrieval err:', err);
+          self.db._get(tip, {
+            convert: true
+          }, function(err, collection) {
+            if (err) console.error('[MAKI:DATASTORE]', '_post', 'getTip error:', err);
+            if (!collection) {
+              collection = [];
+            }
+            if (!(collection instanceof Array)) {
+              console.error('[MAKI:DATASTORE]', '_post', 'getTip not collection', collection);
+              return cb('Tip exists, but does not store a collection.');
+            }
+            
+            console.log('[MAKI:DATASTORE]', '_post', '_publish', 'getTip results', collection);
+            
+            self._put(path + '/' + obj['id'], obj, function(err, doc) {
+              if (err) console.error('[MAKI:DATASTORE]', '_post', '_put', path + '/' + obj['id'], err);
+              // TODO: remove this condition, understand where and why `null`
+              // happens to `doc` sometimes...
+              if (doc) {
+                collection.unshift(doc);
+              }
+
+              console.error('[MAKI:DATASTORE]', '_post', '_publish', 'collection (before):', path, collection);
+
+              collection = collection.map(function(x) {
+                if (x['@id']) {
+                  return x['@id'];
+                } else {
+                  return x;
+                }
+              });
+              collection = JSON.parse(JSON.stringify(collection));
+              
+              console.error('[MAKI:DATASTORE]', '_post', '_publish', 'collection (after):', path, collection);
+              
+              self._put(path, collection, function(err) {
+                if (err) console.error('[MAKI:DATASTORE]', '_post', '_publish', 'adding result', err);
+                return cb(err, doc);
+              });
+            });
+          });
+        });
+      },
+      _put: function(path, val, cb) {
+        // TODO: middlewares
+        var self = this;
+        var name = self.name;
+        self._bundle(val, function(err, obj) {
+          if (err) console.error(err);
+          console.log('[MAKI:DATASTORE]', '_put', '_post', '_bundle', '_publish', 'output', obj);
+          if (!obj) console.log('[MAKI:DATASTORE]', '_put', 'grave concern!  no obj from bundle', path, val);
+          if (!obj['@id']) console.log('[MAKI:DATASTORE]', '_put', 'grave concern!  no @id from bundle', obj);
+            
+          /*if (obj['@id'] === val['@id']) {
+            return cb(null, obj);
+          }*/
+          
+          self.db._set(obj['@id'], obj, function(err) {
+            if (err) console.error(err);
+            console.log('[MAKI:DATASTORE]', name, '_put', '_publish', 'setting tip...', path, obj['@id']);
+            self.tips._set(path, obj['@id'], function(err) {
+              if (err) console.error(err);
+              console.log('[MAKI:DATASTORE]', name, '_put', '_publish', 'set the tip!', path, obj);
+
+              self._flatten(obj, function(err, doc) {
+                var application = document.querySelector(self.for + '-application');
+                // TODO: not do this.  maybe use the `private` property?
+                if (!application) {
+                  console.error('[MAKI:DATASTORE]', name, '_put', '_publish', 'could not find application', self.for);
+                  self.fire('datastore:change', {
+                    path: path,
+                    val: obj,
+                    old: undefined
+                  });  
+                  
+                  return cb(err, obj);
+                } else {
+                  var resource = application._pathToResource(path);
+
+                  resource.store.insert(obj, function(err, result) {
+                    if (err) console.error('[MAKI:DATASTORE]', name, '_put', '_publish', 'store.insert:', err);
+                    
+                    self.fire('datastore:change', {
+                      path: path,
+                      val: obj,
+                      old: undefined
+                    });
+                    
+                    console.log('[MAKI:DATASTORE]', name, '_put', '_publish', 'shared:', path, obj, result);
+                    
+                    return cb(err, obj);
+                  });
+                }
+              });
+            });
+          });
+        });
+      },
+      _update: function(path, query, updates, opts, cb) {
+        var self = this;
+        
+        console.log('[MAKI:DATASTORE]', '_update', self.for);
+        console.log('[MAKI:DATASTORE]', '_update', path, query, updates, opts);
+        console.log('[MAKI:DATASTORE]', '_update', 'updates:', updates, 'opts:', opts);
+
+        var application = document.querySelector(self.for + '-application');
+        var resource = application._pathToResource(path);
+        resource.store.update(query, updates, opts, cb);
+      },
+      _upsert: function(path, query, item, cb) {
+        var self = this;
+        self._update(path, query, item, {
+          upsert: true
+        }, function(err, numAffected) {
+          console.log('[MAKI:DATASTORE]', '_upsert end', err, numAffected);
+          cb(err);
+        });
+      },
+      _flatten: function(item, cb) {
+        var self = this;
+        window.traverse(item, function(node, next) {
+          var context = this;
+          if (context.isRoot) return next();
+          var key = context.key;
+          var val = context.parent[key];
+          if (val['@id']) {
+            context.parent[key] = val['@id'];
+          }
+          next();
+        }, function(final) {
+          cb(null, final);
+        });
+      },
+      // HTTP-emulated GET request
+      _get: function(path, cb) {
+        // TODO: middlewares
+        var self = this;
+        var name = self.name;
+        console.log('[MAKI:DATASTORE]', '_get looking for:', path);
+        
+        var eventName = 'key-value:'+name+':open';
+        console.log('[MAKI:DATASTORE]', name, '_get', 'waiting for (eventName):', eventName);
+        self.tips._get(path, function(err, tip) {
+          if (err) console.error('[MAKI:DATASTORE]', '_get', path, err);
+
+          console.log('[MAKI:DATASTORE]', name, '_get', path, 'tip is:', tip);
+
+          self.db._get(tip, {
+            convert: true,
+            //hydrate: true
+          }, function(err, obj) {
+            if (err || !obj) {
+              obj = [];
+            }
+            
+            console.log('[MAKI:DATASTORE]', name, '_get', 'db.get', 'will traverse:', err, tip, obj);
+            function resolveReferences(node, next) {
+              var context = this;
+              var key = context.key;
+              console.log('[MAKI:DATASTORE]', name, '_get', 'traverse', 'key', key, context, node);
+              if (typeof node !== 'string') return next();
+              if (key === '@id') return next();
+
+              console.log('[MAKI:DATASTORE]', name, '_get', 'traverse', 'populating', key);
+              self.db._get(node, {
+                convert: true
+              }, function(err, item) {
+                if (err) console.error('[MAKI:DATASTORE]', '_get', 'error:', err);
+                if (!item) return next();
+                console.log('[MAKI:DATASTORE]', name, '_get', 'key:', key, 'found:', item);
+                console.log('[MAKI:DATASTORE]', name, '_get', 'key:', key, 'replacing:', key, 'with', item, 'in', context.parent);
+                
+                console.log('[MAKI:DATASTORE]', name, '_get', 'key:', key, 'was:', context.parent[key], 'in', context.parent);
+                context.parent[key] = item;
+                console.log('[MAKI:DATASTORE]', name, '_get', 'key:', key, 'now:', context.parent[key]);
+                console.log('[MAKI:DATASTORE]', name, '_get', 'deep diving...', item);
+                // deep dive.
+                window.traverse(item, resolveReferences, function(inner) {
+                  if (!inner) return next();
+                  console.log('[MAKI:DATASTORE]', name, '_get', 'inner:', inner);
+                  next();
+                });
+              });
+            }
+            
+            // TODO: make modular
+            window.traverse(obj, resolveReferences, function(final) {
+              console.log('[MAKI:DATASTORE]', '_get', path, 'final:', null, final);
+              return cb(null, final);
+            });
+          });
+        });
+
+        /*self.db._get(key, function(err, val) {
           if (err) console.error(err);
           if (val) return cb(null, val) && self.fire('datastore:miss', key);
           self.fire('datastore:miss', key);
           return cb('datastore:miss');
-        });
+        });*/
       },
       _patch: function(key, ops, cb) {
+        // TODO: middlewares
         var self = this;
         console.log('[MAKI:DATASTORE]', 'datastore:patch:', key, ops);
-        self._retrieve(key, function(err, obj) {
+        self._get(key, function(err, obj) {
           if (err) console.error(err);
           console.log('[MAKI:DATASTORE]', 'applying to:', obj);
           jsonpatch.apply(obj, ops);
           console.log('[MAKI:DATASTORE]', 'obj now:', obj);
-          self._store(key, obj, function(err) {
+          self._put(key, obj, function(err) {
             if (err) console.error(err);
           });
         });
       },
+      _bundle: function(obj, cb) {
+        var self = this;
+        console.log('[MAKI:DATASTORE]', '_bundle', '_post', 'pre-parse', obj);
+        obj['@id'] = undefined;
+        console.log('[MAKI:DATASTORE]', '_bundle', '_post', 'post-parse', obj);
+        var worker = document.querySelector('maki-crypto-worker[name=datastore]');
+        worker._digest(obj, function(err, hash) {
+          console.log('[MAKI:DATASTORE]', '_bundle', '_put', '_post', 'post-parse digest:', hash);
+          obj['@id'] = hash;
+          cb(err, obj);
+        });
+      },
       _handleMiss: function(e, detail) {
+        return;
         var self = this;
         var key = e.detail;
         console.log('[MAKI:DATASTORE]', '_handleMiss', e, detail);
@@ -82,31 +302,61 @@ dom-module#maki-datastore
         $.getJSON(key, function(data) {
           console.log('[MAKI:DATASTORE]', 'retrieved (from remote)', data);
           if (!data) return;
-          self._store(key, data, function(err) {
+          self._put(key, data, function(err) {
             if (err) console.error('[MAKI:DATASTORE]', '_handeMiss error:', err);
           });
         });
       },
+      _handlePatch: function(e) {
+        var self = this;
+        console.log('[MAKI:DATASTORE]', '_handlePatch', e.detail);
+        var channel = document.querySelector('maki-channel');
+        channel._send('patch', {
+          channel: e.detail.key,
+          ops: e.detail.patches
+        });
+      },
       _handleChange: function(e, detail) {
         var self = this;
-        var key = detail.key;
+        
+        console.log('[MAKI:DATASTORE]', '_handleChange', e, detail);
+        if (!detail) {
+          var detail = e.detail;
+        }
+        
+        var path = detail.path;
         var val = detail.val;
+        var old = detail.old;
         
-        console.log('[MAKI:DATASTORE]', '_handleChange', detail);
+        /* if (!old) {
+          if (val instanceof Array) {
+            old = [];
+          } else {
+            old = {};
+          }
+        }
         
-        var channel = document.querySelectorAll('maki-channel');
-        /*channel._send('patch', {
-          channel: key,
-          ops: [{ op: 'add',  }]
-        });*/
-        
-        var pattern = '[src="'+key+'"]';
-        console.log('[MAKI:DATASTORE]', 'pattern:', pattern);
+        if (old) {
+          var worker = document.querySelector('maki-crypto-worker');
+          var observer = jsonpatch.observe(old);
 
+          console.log('[MAKI:DATASTORE]', 'extending', old, 'with', val);
+          var now = _.extend(old, val);
+          console.log('[MAKI:DATASTORE]', 'final:', now);
+          var patches = jsonpatch.generate(observer);
+          
+          console.log('[MAKI:DATASTORE]', 'patch set generated:', patches);
+
+          var channel = document.querySelectorAll('maki-channel');
+          /*channel._send('patch', {
+            channel: key,
+            ops: [{ op: 'add',  }]
+          });****
+        } */
+        
+        var pattern = '[src="'+path+'"]';
         var elements = document.querySelectorAll(pattern);
-        
-        console.log('[MAKI:DATASTORE]', 'elements bound to this key:', key, elements);
-        
+        console.log('[MAKI:DATASTORE]', 'elements bound to this key:', path, elements);
         for (var i = 0; i < elements.length; i++) {
           var element = elements[i];
           element._sync();
@@ -114,9 +364,7 @@ dom-module#maki-datastore
       },
       _sync: function() {
         var elements = document.querySelectorAll('[src]');
-        
         console.log('[MAKI:DATASTORE]', '_sync', elements);
-        
         for (var i = 0; i < elements.length; i++) {
           var element = elements[i];
           if (typeof element._sync === 'function') {
@@ -132,16 +380,18 @@ dom-module#maki-datastore
       ready: function() {
         var self = this;
         console.log('[MAKI:DATASTORE]', 'ready');
-        self.store = level(self.name);
-        self.store.open(function(err) {
-          console.log('[MAKI:DATASTORE]', 'open');
-          var event = new Event('datastore:open')
-          document.dispatchEvent(event);
-          var event = new Event('datastore:'+self.name+':open')
-          document.dispatchEvent(event);
-
-          if (err) console.error(err);
-          self._sync();
+        document.addEventListener('key-value:tips:open', function() {
+          self.tips = document.querySelector('maki-key-value[name=tips][for='+self.name+']');
         });
+        document.addEventListener('key-value:'+self.name+':open', function() {
+          console.log('[MAKI:DATASTORE]', 'key-value open received!');
+          self.db = document.querySelector('maki-key-value[name='+self.name+']');
+          
+          self.db.addEventListener('key-value:change', self._handleChange.bind(self));
+          
+          self.fire('datastore:'+self.name+':open');
+          self.fire('datastore:open');
+        });
+        //self.listen(self.db, 'key-value:change', '_handleChange');
       }
     });
