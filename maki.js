@@ -294,7 +294,7 @@ var Invitation = maki.define('Invitation', {
     topics: [ { type: String } ],
     message: { type: String },
     created: { type: Date , default: Date.now },
-    status: { type: String , enum: ['created', 'sent', 'accepted'] },
+    status: { type: String , enum: ['created', 'sent', 'accepted'] , default: 'created' },
     stats: {
       reminders: { type: Number , default: 0 },
       people: { type: Number , default: 1 }
