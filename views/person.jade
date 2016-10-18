@@ -20,7 +20,19 @@ block content
       .row
         .four.wide.column
           include partials/person
-        .nine.wide.column
+          
+          .ui.vertical.fluid.menu
+            - topicMemberships.sort(function(a, b) { return b.people.length - a.people.length; });
+          
+            a.header.item #{topicMemberships.length} memberships
+            for topic in topicMemberships
+              a.item(href="/topics/#{topic.id}")
+                small(style="color: rgba(0,0,0,.4);") &#35;
+                |  #{topic.id}
+                .ui.icon.label
+                  i.users.icon
+                  | #{topic.people.length}
+        .twelve.wide.column
           if (favorites.length)
             .ui.message
               .content
@@ -52,16 +64,3 @@ block content
                     small(style="color: rgba(0,0,0,.4);") @
                     | #{person.id} hasn't said very much!
                   p Say hello!
-              
-        .three.wide.column
-          .ui.vertical.fluid.menu
-            - topicMemberships.sort(function(a, b) { return b.people.length - a.people.length; });
-          
-            a.header.item #{topicMemberships.length} memberships
-            for topic in topicMemberships
-              a.item(href="/topics/#{topic.id}")
-                small(style="color: rgba(0,0,0,.4);") &#35;
-                |  #{topic.id}
-                .ui.icon.label
-                  i.users.icon
-                  | #{topic.people.length}
