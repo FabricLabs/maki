@@ -26,6 +26,12 @@ var cms = new CMS({
   view: process.env.PWD + '/views/page'
 });
 
+var examples = new CMS({
+  base: '/examples',
+  path: '/source/examples',
+  view: process.env.PWD + '/views/page'
+});
+
 var tutorials = new CMS({
   base: '/tutorials',
   path: '/source/tutorials',
@@ -50,6 +56,7 @@ var auth = new Auth({
 });
 
 maki.use(cms);
+maki.use(examples);
 maki.use(tutorials);
 maki.use(snippets);
 maki.use(developers);
