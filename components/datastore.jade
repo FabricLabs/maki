@@ -285,6 +285,9 @@ dom-module#maki-datastore
         obj['@id'] = undefined;
         console.log('[MAKI:DATASTORE]', '_bundle', '_post', 'post-parse', obj);
         var worker = document.querySelector('maki-crypto-worker[name=datastore]');
+        
+        console.log('[MAKI:DATASTORE]', '_bundle', '_post', 'worker:', worker);
+        
         worker._digest(obj, function(err, hash) {
           console.log('[MAKI:DATASTORE]', '_bundle', '_put', '_post', 'post-parse digest:', hash);
           obj['@id'] = hash;
