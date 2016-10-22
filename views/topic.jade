@@ -81,9 +81,14 @@ block content
               include partials/message
             include partials/message-input
           if (!user)
-            a.ui.labeled.icon.primary.button(href="/authentications/slack")
-              i.icon.slack.alt
-              | Sign in with Slack
+            .ui.buttons
+              a.ui.labeled.icon.primary.button(href="/authentications/slack")
+                i.icon.slack.alt
+                | Sign in with Slack
+              .or
+              a.ui.right.labeled.green.icon.button(href="/people")
+                i.leaf.icon
+                | Join the Community
 
         .three.wide.column
           .ui.vertical.fluid.menu
