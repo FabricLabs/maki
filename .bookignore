@@ -1,0 +1,7 @@
+bin/*
+config/*
+data/*
+lib/*
+private/*
+test/*
+views/*
