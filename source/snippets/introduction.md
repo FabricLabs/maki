@@ -95,8 +95,7 @@ Just click the little star icon to keep a channel at the top!
 Each channel in the Maki Slack is a conversation, with its own community and
 objectives.  The best way to get a feel for what's going on is to check these
 three items.
-    sender: { type: String },
-    content: { type: String }
+
 If you're trying to build your own community in one of our channels, keeping
 these up-to-date is the most important part of your work!
 
