@@ -2,25 +2,25 @@
 
 ### Overview
 - [Why are we here?][why-are-we-here]
-- [Maki vs. Fabric: What's the Difference?][maki-vs-fabric]
 
 ### Developers
 - [Getting Involved](source/developers/getting-involved.md)
+- [Running in Production](source/snippets/production.md)
 
 ### Examples
 - [Simple Content Site](source/examples/content.md)
 - [Advanced Web Service](source/examples/infrastructure.md)
 - [Robust Multi-Platform App](source/examples/robust.md)
 
-### Technology
-- [Overview][fabric-overview]
-- [Fabric Protocol Specification][fabric-protocol]
-
 ### Tutorials
 - [Overview](source/tutorials/index.md)
 - [Initial Setup](source/tutorials/initial-setup.md)
 - [Hello, World!](source/tutorials/hello-world.md)
 - [Adding Resources](source/tutorials/adding-resources.md)
+
+### Technology
+- [Overview][fabric-overview]
+- [Fabric][fabric-protocol]
 
 ### Documentation
 - [Overview](docs/index.md)
