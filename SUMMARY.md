@@ -5,6 +5,7 @@
 
 ### Developers
 - [Getting Involved](source/developers/getting-involved.md)
+- [Community Projects](https://slack-files.com/T09HF1HK9-F2PNSMKD2-00a26fd573)
 - [Running in Production](source/snippets/production.md)
 
 ### Examples
@@ -20,7 +21,7 @@
 
 ### Technology
 - [Overview][fabric-overview]
-- [Fabric][fabric-protocol]
+- [The Fabric Protocol][fabric-protocol]
 
 ### Documentation
 - [Overview](docs/index.md)
