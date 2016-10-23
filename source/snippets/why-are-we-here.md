@@ -1,3 +1,10 @@
+---
+title: Why are we here?
+description: Learn more about the purpose of Maki.
+source: https://github.com/martindale/maki/blob/community/source/snippets/why-are-we-here.md
+edit: https://github.com/martindale/maki/edit/community/source/snippets/why-are-we-here.md
+---
+
 # Why are we here?
 First of all, welcome to [the Maki Developer Community](https://chat.maki.io). You're a part of a special family now, a group of people working hard to change the world in a very tangible way. Read on to learn more.
 
