@@ -28,19 +28,19 @@ var cms = new CMS({
 
 var examples = new CMS({
   base: '/examples',
-  path: '/source/examples',
+  path: '/examples',
   view: process.env.PWD + '/views/page'
 });
 
 var tutorials = new CMS({
   base: '/tutorials',
-  path: '/source/tutorials',
+  path: '/tutorials',
   view: process.env.PWD + '/views/page'
 });
 
 var snippets = new CMS({
   base: '/snippets',
-  path: '/source/snippets',
+  path: '/snippets',
   view: process.env.PWD + '/views/page'
 });
 
