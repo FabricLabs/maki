@@ -2,7 +2,8 @@ Maki
 ==============
 [![Build Status](https://img.shields.io/travis/martindale/maki.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki)
 [![Coverage Status](https://img.shields.io/coveralls/martindale/maki.svg?style=flat-square)](https://coveralls.io/r/martindale/maki)
-[![Community](https://community.ericmartindale.com/badge.svg)](https://community.ericmartindale.com/)
+[![Community](https://chat.maki.io/badge.svg?style=flat-square)](https://chat.maki.io)
+![Total Contributors](https://img.shields.io/github/contributors/martindale/maki.svg?style=flat-square)
 
 The complete stack for building extensible apps, faster than ever.  Hand-roll your application by telling Maki what your application does, and it takes care of the rest – without getting in your way if you want to customize it.
 
@@ -86,6 +87,19 @@ Maki aims to be as lightweight as possible while still offering a base stack tha
 
 ## Documentation
 For our documentation, see the `docs/` subfolder.
+
+## Contributors
+- [@martindale](https://github.com/martindale)
+- [@chrisinajar](https://github.com/chrisinajar)
+- [@jlukic](https://github.com/jlukic)
+- [@unusualbob](https://github.com/unusualbob)
+- [@overra](https://github.com/overra)
+- [@unChaz](https://github.com/unChaz)
+- [@toriborealis](https://github.com/toriborealis)
+
+Special thanks to [the whole Maki community](https://maki.io/people) for supporting this project with their presence and more.
+
+Many, many other contributors deserve recognition for their work on the open source projects that have made Maki possible.  See `package.json` for just a few of them.
 
 ## Recommended Deployment
 I use [pm2](https://github.com/unitech/pm2) (`npm install pm2 -g`) to manage node apps in production, and I strongly recommend you do, too.  It's got awesome features like log management, process clustering, and automatic startup scripts.
