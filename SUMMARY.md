@@ -26,7 +26,7 @@
 - [Overview](docs/index.md)
 - [Resources](docs/resources.md)
 - [Components](source/snippets/components.md)
-- [Datastores](docs/datastore.md)
+- [Datastores](docs/datastores.md)
 - [Plugins](docs/plugins.md)
 - [Services](docs/services.md)
 
@@ -40,7 +40,7 @@
 [slack-apps]: https://slack.com/downloads
 [why-are-we-here]: source/snippets/why-are-we-here.md
 [maki-vs-fabric]: https://maki-dev.slack.com/files/chrisinajar/F16EBB88K/Elevator_Speach
-[fabric-overview]: source/snippets/fabric.md
+[fabric-overview]: source/snippets/fabric-overview.md
 [fabric-protocol]: https://maki-dev.slack.com/files/martindale/F170LP2HL/fabric_protocol_specification.md
 [community-guidelines]: https://maki-dev.slack.com/files/martindale/F1565BS5P/Community_Guidelines.md
 [outstanding-tasks]: https://maki-dev.slack.com/files/martindale/F1ARP5JKV/Outstanding_Community_Tasks
