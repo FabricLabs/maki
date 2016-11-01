@@ -9,6 +9,9 @@ block masthead
 
   if (page && page.title)
     h2.ui.inverted.header #{page.title}
+  if (page && page.published)
+    h3.ui.inverted.header
+      | #{moment(page.published).format('dddd, MMMM Do, YYYY')}
   if (page && page.image)
     img.ui.image.right.floated.small(src="#{page.image}")
   if (page && page.description)

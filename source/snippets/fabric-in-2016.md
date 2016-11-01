@@ -1,5 +1,6 @@
 ---
 title: Fabric in 2016
+published: 2016-01-02T23:22:53Z
 ---
 Admittedly, Fabric has been a confusing amalgam of many distinct projects over
 the past several years.  It has been a delicate ballet of testing many different
