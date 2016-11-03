@@ -7,11 +7,10 @@ var maki = new Maki( config );
 var passport = new Passport({
   resource: 'Person'
 });
-maki.use( passport );
+maki.use( passport );*/
+
 maki.use(require('maki-client-level'));
 maki.use(require('maki-client-polymer'));
-
-*/
 
 var AuthSlack = require('maki-auth-slack');
 var authSlack = new AuthSlack({
