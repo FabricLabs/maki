@@ -2,19 +2,16 @@
 
 ### Overview
 - [Why are we here?][why-are-we-here]
-- [Maki vs. Fabric: What's the Difference?][maki-vs-fabric]
 
 ### Developers
 - [Getting Involved](source/developers/getting-involved.md)
+- [Community Projects](https://slack-files.com/T09HF1HK9-F2PNSMKD2-00a26fd573)
+- [Running in Production](source/snippets/production.md)
 
 ### Examples
 - [Simple Content Site](source/examples/content.md)
 - [Advanced Web Service](source/examples/infrastructure.md)
 - [Robust Multi-Platform App](source/examples/robust.md)
-
-### Technology
-- [Overview][fabric-overview]
-- [Fabric Protocol Specification][fabric-protocol]
 
 ### Tutorials
 - [Overview](source/tutorials/index.md)
@@ -22,11 +19,15 @@
 - [Hello, World!](source/tutorials/hello-world.md)
 - [Adding Resources](source/tutorials/adding-resources.md)
 
+### Technology
+- [Overview][fabric-overview]
+- [The Fabric Protocol][fabric-protocol]
+
 ### Documentation
 - [Overview](docs/index.md)
 - [Resources](docs/resources.md)
 - [Components](source/snippets/components.md)
-- [Datastores](docs/datastore.md)
+- [Datastores](docs/datastores.md)
 - [Plugins](docs/plugins.md)
 - [Services](docs/services.md)
 
@@ -40,7 +41,7 @@
 [slack-apps]: https://slack.com/downloads
 [why-are-we-here]: source/snippets/why-are-we-here.md
 [maki-vs-fabric]: https://maki-dev.slack.com/files/chrisinajar/F16EBB88K/Elevator_Speach
-[fabric-overview]: source/snippets/fabric.md
+[fabric-overview]: source/snippets/fabric-overview.md
 [fabric-protocol]: https://maki-dev.slack.com/files/martindale/F170LP2HL/fabric_protocol_specification.md
 [community-guidelines]: https://maki-dev.slack.com/files/martindale/F1565BS5P/Community_Guidelines.md
 [outstanding-tasks]: https://maki-dev.slack.com/files/martindale/F1ARP5JKV/Outstanding_Community_Tasks
