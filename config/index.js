@@ -11,7 +11,7 @@ module.exports = {
     name: process.env.MAKI_SERVICE_NAME || 'Maki' ,
     source: 'https://github.com/martindale/maki',
     // heh.  this silly RFC.
-    authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200' ,
+    authority: process.env.MAKI_SERVICE_AUTHORITY || 'maki.io' ,
     namespace: NAMESPACE ,
     pitch: 'Made with Maki.',
     mission: process.env.MAKI_SERVICE_MISSION || 'Maki makes building beautiful apps a breeze.',
@@ -86,11 +86,17 @@ module.exports = {
     timeout: process.env.MAKI_SOCKETS_TIMEOUT || 30000
   },
   slack: {
-    token: process.env.MAKI_SLACK_TOKEN || 'https://api.slack.com/docs/oauth-test-tokens'
+    token: process.env.MAKI_SLACK_TOKEN || 'xoxp-9593051655-9593154709-33361206691-54fcdaf191'
   },
   auth: {
     local: {
       enabled: true
+    },
+    slack: {
+      id: '9593051655.63459461600',
+      secret: 'e461e545dfe7b088de9f1a92584f7df3',
+      callback: 'https://maki.io/authentications/slack/callback',
+      team: 'T09HF1HK9'
     }
   },
   views: {
