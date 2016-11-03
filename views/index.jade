@@ -5,17 +5,37 @@ block scripts
     hljs.initHighlightingOnLoad();
 
 block masthead
+  if (config.service.masthead)
+    style.
+      .masthead {
+        background: #fff url('#{config.service.masthead}') no-repeat center center !important;
+        background-size: cover !important;
+      }
+      
+      .masthead .ui.inverted.segment {
+        background: none;
+      }
+
   .ui.center.aligned.inverted.segment
     h1.ui.inverted.header #{config.service.pitch}
     h2.ui.inverted.header #{config.service.mission}
     
     .content(style="margin-top: 4em;")
-      .ui.two.huge.buttons
-        a.ui.huge.primary.button(href="/examples") See the Examples
-        .or
-        a.ui.huge.green.right.labeled.icon.button(href="/people")
-          | Meet the Community
-          i.right.chevron.icon
+      if (config.service.cta)
+        if (config.service.cta.icon)
+          - var cta = config.service.cta
+          a.ui.massive.centered.right.labeled.green.icon.button(href="#{cta.link}")
+            i.right.chevron.icon(class="#{cta.icon}")
+            | !{cta.text}
+        else
+          a.ui.massive.fluid.green.button(href="#{cta.link}") #{cta.text}
+      else
+        .ui.two.huge.buttons
+          a.ui.huge.primary.button(href="/examples") See the Examples
+          .or
+          a.ui.huge.green.right.labeled.icon.button(href="/people")
+            | Meet the Community
+            i.right.chevron.icon
       
     //-h4.ui.inverted.header No coding experience necessary.
 
@@ -110,10 +130,10 @@ block content
           p(style="margin-top: 4em;") Will Ricketts, SailsJS Contributor
         .column
           h3 We're building something new.
-          a.ui.massive.primary.right.labeled.icon.button(href="/people", style="margin-top: 2em;")
-            span
-              i.users.icon
-            |  Come join us.
+          a.ui.massive.primary.right.labeled.icon.button(href="/docs", style="margin-top: 2em;")
+            span(style="margin-right: 1em;")
+              i.file.icon
+            |  Browse the Docs
             i.icon.right.chevron
 
 //-block page
