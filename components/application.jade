@@ -15,16 +15,7 @@ dom-module#maki-application
     maki-navbar.ui.vertical.inverted.sidebar.right.large.menu
     
     .pusher
-      .ui.inverted.vertical.masthead.segment
-        .ui.container
-          maki-navbar.ui.large.secondary.inverted.pointing.menu
-            
-          .ui.text.container
-            //- TODO: how to flash messages?
-            //-include flash
-            block masthead
-            
-          div(style="clear: both;")
+      maki-masthead
 
       .ui.padded.container.content(data-for="viewport")
         block content
