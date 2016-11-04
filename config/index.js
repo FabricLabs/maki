@@ -86,17 +86,17 @@ module.exports = {
     timeout: process.env.MAKI_SOCKETS_TIMEOUT || 30000
   },
   slack: {
-    token: process.env.MAKI_SLACK_TOKEN || 'xoxp-9593051655-9593154709-33361206691-54fcdaf191'
+    token: process.env.MAKI_SLACK_TOKEN || 'https://api.slack.com/docs/oauth-test-tokens'
   },
   auth: {
     local: {
       enabled: true
     },
     slack: {
-      id: '9593051655.63459461600',
-      secret: 'e461e545dfe7b088de9f1a92584f7df3',
-      callback: 'https://maki.io/authentications/slack/callback',
-      team: 'T09HF1HK9'
+      id: 'get from slack',
+      secret: 'get from slack',
+      callback: 'https://maki.fabric.pub/authentications/slack/callback',
+      team: 'get from slack API'
     }
   },
   views: {
