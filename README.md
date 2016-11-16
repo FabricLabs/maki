@@ -5,7 +5,9 @@ Maki
 [![Community](https://chat.maki.io/badge.svg?style=flat-square)](https://chat.maki.io)
 ![Total Contributors](https://img.shields.io/github/contributors/martindale/maki.svg?style=flat-square)
 
-The complete stack for building extensible apps, faster than ever.  Hand-roll your application by telling Maki what your application does, and it takes care of the rest – without getting in your way if you want to customize it.
+Maki is the Innovator's Toolbox. It's a complete stack that makes building extensible apps faster and easier than ever before. 
+
+Maki allows you to hand-roll your application by telling Maki what your application does, and it takes care of the rest – without getting in your way if you want to customize it.
 
 - **Write Once, Deploy Everywhere** Maki enables a standard definition for applications beyond simply web apps.  Because of our resource grammar, we can build desktop and native mobile applications directly – all in supplement to your web application.  All with the same code.
 - **Resource-Derived Infrastructure**  REST makes a lot of sense for APIs – we take it one step further and build the entire application around Resources as named channels, serving events and static documents alike.  Even Desktop applications built with Maki use the same, familiar API!
