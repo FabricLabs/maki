@@ -1,0 +1,24 @@
+dom-module#maki-waiting-list
+  style.
+    .labeled.icon.button span i {
+      margin-right: 1em;
+    }
+
+  template
+    form.ui.form(action="/invitations", method="POST")
+      .ui.huge.fluid.action.input
+        input(type="text", placeholder="Enter your email", name="email")
+        button.ui.right.labeled.huge.green.icon.button
+          span
+            i.icon.list
+          | Subscribe
+          i.right.icon.right.chevron
+      h3.ui.inverted.header Subscribe to be notified of upcoming announcements.
+    
+  script.
+    Polymer({
+      is: 'maki-waiting-list',
+      ready: function(data) {
+        console.log('[MAKI:WAITING-LIST]', 'ready');
+      }
+    })
