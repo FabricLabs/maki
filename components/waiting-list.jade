@@ -1,27 +1,66 @@
+//- submits an `email` to `src`
 dom-module#maki-waiting-list
-  style.
-    .labeled.icon.button span i {
-      margin-right: 1em;
-    }
-
   template
-    form.ui.form(action="{{src}}", method="POST")
-      .ui.huge.fluid.action.input
-        input(type="text", placeholder="Enter your email", name="email")
-        button.ui.right.labeled.huge.green.icon.button
-          span
-            i.icon.list
-          | Subscribe
-          i.right.icon.right.chevron
+    style.
+      :host {
+        display: block;
+        height: 10em;
+      }
+
+      .labeled.icon.button span i {
+        margin-right: 1em;
+      }
+
+    template(is="dom-if", if="{{hasSubscribed}}")
+      h3.ui.inverted.header You're on the waiting list.  Stand by for updates!
+      button.ui.primary.labeled.icon.button(on-tap="resetForm")
+        i.refresh.icon
+        | Invite Another &raquo;
+    template(is="dom-if", if="{{!hasSubscribed}}")
+      form.ui.form(action="{{src}}", method="POST")
+        .ui.huge.fluid.icon.action.input
+          input(type="email", placeholder="Enter your email", name="email")
+          i.email.icon
+          button.ui.right.labeled.huge.green.icon.button(on-tap="submitForm")
+            span
+              i.icon.list
+            | Subscribe
+            i.right.icon.right.chevron
       h3.ui.inverted.header Subscribe to be notified of upcoming announcements.
-    
+
   script.
     Polymer({
       is: 'maki-waiting-list',
       properties: {
-        src: { type: String }
+        src: { type: String },
+        hasSubscribed: { type: Boolean , value: false },
+        isWorking: { type: Boolean , value: false }
+      },
+      resetForm: function(e) {
+        document.querySelector('form').reset();
+        this.hasSubscribed = false;
+      },
+      submitForm: function(e) {
+        e.preventDefault();
+        var self = this;
+        $(self).find('.ui.form').addClass('loading');
+        var email = $(self).find('input[name=email]').val();
+        
+        console.log('[MAKI:WAITING-LIST]', 'submitForm', 'email', email);
+        
+        $.ajax(self.src, {
+          data: JSON.stringify({ email: email }),
+          contentType: 'application/json',
+          type: 'POST',
+          success: function() {
+            $(self).find('.ui.form').removeClass('loading')
+            document.querySelector('form.ui.form').reset();
+            self.hasSubscribed = true;
+          }
+        });
+        return false;
       },
       ready: function(data) {
         console.log('[MAKI:WAITING-LIST]', 'ready');
       }
-    })
+    });
