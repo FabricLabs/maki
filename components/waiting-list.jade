@@ -17,15 +17,15 @@ dom-module#maki-waiting-list
         i.refresh.icon
         | Invite Another &raquo;
     template(is="dom-if", if="{{!hasSubscribed}}")
-      form.ui.form(action="{{src}}", method="POST")
-        .ui.huge.fluid.icon.action.input
-          input(type="email", placeholder="Enter your email", name="email")
-          i.email.icon
-          button.ui.right.labeled.huge.green.icon.button(on-tap="submitForm")
-            span
-              i.icon.list
-            | Subscribe
-            i.right.icon.right.chevron
+      form.ui.equal.width.form(action="{{src}}", method="POST")
+        .fields
+          .two.wide.field
+          .ten.wide.field
+            .ui.huge.right.action.input
+              input(type="email", placeholder="Enter your email", name="email")
+              button.ui.right.huge.green.icon.button(on-tap="submitForm")
+                i.right.icon.right.chevron
+          .two.wide.field
       h3.ui.inverted.header Subscribe to be notified of upcoming announcements.
 
   script.
