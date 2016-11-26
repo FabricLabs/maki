@@ -1,11 +1,11 @@
 dom-module#maki-navbar
   template
-    a.logo.item(href="/", style="padding-left: 0;")
+    a.logo.brand.item(href="/", style="padding-left: 0;")
       if (config.service.logo)
-        img(src="#{config.service.logo}")
+        img.tooltipped(src="#{config.service.logo}", title="#{config.service.synopsis}")
       else
         i.icon.left(class="#{ config.service.icon || 'lab' }")
-      | #{config.service.name}
+      span.brand #{config.service.name}
       
     block navbar
       each resource in resources
