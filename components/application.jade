@@ -13,18 +13,19 @@ dom-module#maki-application
     
     maki-navbar.ui.large.top.fixed.hidden.menu
     maki-navbar.ui.vertical.inverted.sidebar.right.large.menu
-    
-    .pusher
-      maki-masthead
 
-      .ui.padded.container.content(data-for="viewport")
-        block content
-          maki-splash
+    maki-masthead
 
-      .ui.inverted.vertical.footer.segment
-        .ui.container
-          block footer
-            maki-footer
+    .ui.padded.container.content(data-for="viewport")
+      block content
+        maki-splash
+
+    .ui.inverted.vertical.footer.segment
+      .ui.container
+        block footer
+          maki-footer
+
+    maki-analytics
 
   script(src="/js/page.min.js", async)
   script(src="/assets/objectid.js", async)
@@ -175,5 +176,20 @@ dom-module#maki-application
           self.datastore = document.querySelector('maki-datastore');
           self.datastore._sync();
         });
+        
+        // fix menu when passed
+        $('.masthead').visibility({
+          once: false,
+          onBottomPassed: function() {
+            $('.fixed.menu').transition('fade in');
+          },
+          onBottomPassedReverse: function() {
+            $('.fixed.menu').transition('fade out');
+          }
+        });
+
+        // create sidebar and attach to menu open
+        $('.ui.sidebar').sidebar('attach events', '.toc.item');
+
       }
     });
