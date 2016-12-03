@@ -22,19 +22,23 @@ dom-module#maki-waiting-list
           .two.wide.field
           .ten.wide.field
             .ui.huge.right.action.input
-              input(type="email", placeholder="Enter your email", name="email")
+              input(type="email", placeholder="{{placeholder}}", name="email", value="{{email}}")
               button.ui.right.huge.green.icon.button(on-tap="submitForm")
                 i.right.icon.right.chevron
           .two.wide.field
       h3.ui.inverted.header
-        i.icon.rss
-        | Subscribe now to be notified when we launch.
+        i(class$="{{icon}}")
+        | {{text}}
 
   script.
     Polymer({
       is: 'maki-waiting-list',
       properties: {
-        src: { type: String },
+        src: { type: String , value: '/invitations' },
+        icon: { type: String , value: 'rss icon' },
+        text: { type: String , value: 'Subscribe now to be notified when we launch.' },
+        placeholder: { type: String , value: 'Enter your email' },
+        email: { type: String },
         hasSubscribed: { type: Boolean , value: false },
         isWorking: { type: Boolean , value: false }
       },
@@ -46,12 +50,11 @@ dom-module#maki-waiting-list
         e.preventDefault();
         var self = this;
         $(self).find('.ui.form').addClass('loading');
-        var email = $(self).find('input[name=email]').val();
         
         console.log('[MAKI:WAITING-LIST]', 'submitForm', 'email', email);
         
         $.ajax(self.src, {
-          data: JSON.stringify({ email: email }),
+          data: JSON.stringify({ email: self.email }),
           contentType: 'application/json',
           type: 'POST',
           success: function() {
