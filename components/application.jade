@@ -1,9 +1,4 @@
 dom-module#maki-application
-  style.
-    #navigation {
-      width: 100%;
-    }
-  
   template
     maki-content-store(name="#{config.service.namespace}")
     maki-datastore(name="#{config.service.namespace}", for="#{config.service.namespace}")
@@ -171,6 +166,7 @@ dom-module#maki-application
         });
       },
       ready: function() {
+        console.log('[MAKI:APPLICATION]', 'ready');
         document.addEventListener('datastore:open', function() {
           self.datastore = document.querySelector('maki-datastore');
           self.datastore._sync();
