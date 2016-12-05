@@ -22,7 +22,7 @@ dom-module#maki-waiting-list
           .two.wide.field
           .ten.wide.field
             .ui.huge.right.action.input
-              input(type="email", placeholder="{{placeholder}}", name="email", value="{{email}}")
+              input(type="email", placeholder="{{placeholder}}", name="email", value="{{email::input}}")
               button.ui.right.huge.green.icon.button(on-tap="submitForm")
                 i.right.icon.right.chevron
           .two.wide.field
@@ -49,10 +49,8 @@ dom-module#maki-waiting-list
       submitForm: function(e) {
         e.preventDefault();
         var self = this;
-        $(self).find('.ui.form').addClass('loading');
-        
-        console.log('[MAKI:WAITING-LIST]', 'submitForm', 'email', email);
-        
+        $(self).find('.ui.form input').addClass('loading');
+
         $.ajax(self.src, {
           data: JSON.stringify({ email: self.email }),
           contentType: 'application/json',
