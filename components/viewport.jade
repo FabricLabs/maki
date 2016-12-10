@@ -1,0 +1,17 @@
+dom-module#maki-viewport
+  template
+    #content
+  script.
+    Polymer({
+      is: 'maki-viewport',
+      properties: {
+        src: { type: String }
+      },
+      _route: function(src, back) {
+
+      },
+      ready: function() {
+        console.log('[MAKI:VIEWPORT]', 'ready');
+        this.src = this.src || '';
+      }
+    });

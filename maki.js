@@ -3,11 +3,11 @@ var config = require('./config');
 var Maki = require('./lib/Maki');
 var maki = new Maki( config );
 
-/*var Passport = require('maki-passport-local');
+var Passport = require('maki-passport-local');
 var passport = new Passport({
   resource: 'Person'
 });
-maki.use( passport );*/
+maki.use( passport );
 
 maki.use(require('maki-client-level'));
 maki.use(require('maki-client-polymer'));
@@ -286,11 +286,14 @@ function reduceChannel (next, done) {
   if (message.topic && message.topic.id) {
     message.topic = message.topic.id;
   }
-  next();  
+  next();
 }
 
 var Invitation = maki.define('Invitation', {
   public: false,
+  components: {
+    query: 'maki-invitations'
+  },
   attributes: {
     id: { type: String , required: true , slug: true },
     from: { type: String , max: 240 , authorize: 'user' },
@@ -554,6 +557,13 @@ var Person = maki.define('Person', {
   icon: 'users',
   handle: 'Community',
   description: 'The list of people working on Maki, including all extended members of the community.',
+  masthead: null,
+  // TODO: auto-infer
+  components: {
+    masthead: 'maki-community-welcome',
+    query: 'maki-community',
+    get: 'maki-profile'
+  },
   attributes: {
     _id: { type: String }, // TODO: remove
     id: { type: String }, // TODO: incorporate into main library

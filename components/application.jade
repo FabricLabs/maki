@@ -9,9 +9,10 @@ dom-module#maki-application
     maki-navbar.ui.large.top.fixed.hidden.menu
     maki-navbar.ui.vertical.inverted.sidebar.right.large.menu
 
-    maki-masthead
+    maki-masthead#masthead
+      maki-made-with
 
-    .ui.padded.container.content(data-for="viewport")
+    maki-viewport#viewport
       block content
         maki-splash
 
@@ -29,72 +30,69 @@ dom-module#maki-application
     window.maki = Polymer({
       is: 'maki-application',
       properties: {
-        src: {
-          type: String
-        },
-        for: {
-          type: String
-        },
-        route: {
-          type: String
-        },
-        routes: {
-          type: Object,
-          value: {}
-        },
-        components: {
-          type: Object,
-          value: {}
-        },
-        resources: {
-          type: Object,
-          observer: '_resourcesUpdated'
-        },
-        datastore: {
-          type: Object
-        },
+        src: { type: String },
+        for: { type: String },
+        route: { type: String },
+        routes: { type: Object, value: {} },
+        components: { type: Object, value: {} },
+        resources: { type: Object, observer: '_resourcesUpdated' },
+        datastore: { type: Object },
         worker: { type: Object },
-        identity: {
-          type: Object,
-          notify: true
-        },
+        identity: { type: Object, notify: true },
         state: { type: String }
       },
       _pathToResource: function(path) {
         var self = this;
         var resource = null;
+        
         console.log('[MAKI:APPLICATION]', '_pathToResource', path);
+        
         for (var route in self.routes) {
           var regex = self.routes[route];
+          
           console.log('[MAKI:APPLICATION]', '_pathToResource', 'testing', regex);
+          
           if (regex.test(path)) {
             resource = self.resourceMap[route];
             break;
           }
         }
 
-        console.log('[MAKI-APPLICATION]', '_pathToResource', path, 'finally:', resource);
+        console.log('[MAKI:APPLICATION]', '_pathToResource', path, 'finally:', resource);
         
         return resource;
       },
       _route: function(ctx) {
         var self = this;
-        var viewport = document.querySelector('[for=viewport]');
+        var viewport = this.$.viewport;
         var component = 'maki-undefined';
+        var masthead = null;
         var view = null;
+
+        if (!viewport) {
+          console.warn('[MAKI:APPLICATION]', 'no viewport provided');
+          return false;
+        }
+
         for (var route in self.routes) {
           var regex = self.routes[route];
+          
           console.log('[MAKI:APPLICATION]', '_route', 'routing', route, regex);
           console.log('[MAKI:APPLICATION]', '_route', 'comparing...', ctx.path);
+          
           if (regex.test(ctx.path)) {
             component = self.components[route];
-            console.log('[MAKI:APPLICATION]', '_route', 'found:', component);
+            masthead = self.resourceMap[route].options.components.masthead;
             view = document.createElement(component);
+            
+            console.log('[MAKI:APPLICATION]', '_route', 'found:', component);
+            console.log('[MAKI:APPLICATION]', '_route', 'selected:', view);
+            console.log('[MAKI:APPLICATION]', '_route', 'masthead:', masthead);
+
             view.action = self.actionMap[route];
             view.type = self.resourceMap[route];
             view.type.route = route;
-            
-            console.log('[MAKI:APPLICATION]', '_route', 'selected:', view);
+
             break;
           }
         }
@@ -104,10 +102,14 @@ dom-module#maki-application
         }
         
         view.setAttribute('src', ctx.path);
-        view.setAttribute('type', view.type);
+        view.setAttribute('type', view.type.name);
+
+        self.$.masthead.component = masthead;
+
         while (viewport.hasChildNodes()) {
           viewport.removeChild(viewport.lastChild);
         }
+
         viewport.appendChild(view);
 
       },
@@ -118,25 +120,26 @@ dom-module#maki-application
       _resourcesUpdated: function(resources) {
         var self = this;
         var _route = self._route.bind(self);
+        
         self.resourceMap = {};
         self.actionMap = {};
+        
+        console.log('[MAKI:APPLICATION]', '_resourcesUpdated', resources);
+        
         Object.keys(resources).forEach(function(name) {
-          //var resource = resources[name];
-          var resource = document.createElement('maki-resource');
           var definition = resources[name];
           
-          resource.name = name;
-          resource.definition = definition;
+          console.log('[MAKI:APPLICATION]', '_resourcesUpdated', 'definition', definition);
           
-          resource._load();
-
           ['get', 'query'].forEach(function(action) {
             var route = definition.routes[action];
             if (!route) return;
+            
             self.routes[route] = new RegExp(eval(definition.paths[action]));
             self.components[route] = definition.components[action];
-            self.resourceMap[route] = resource;
+            self.resourceMap[route] = definition;
             self.actionMap[route] = action;
+            
             page(route, _route);
           });
         });
@@ -151,6 +154,7 @@ dom-module#maki-application
       },
       created: function() {
         var self = this;
+        console.log('[MAKI:APPLICATION]', 'created');
         self.route = window.location.pathname;
         //self.worker = new Worker('/worker.js');
         // load the application configuration
@@ -168,10 +172,6 @@ dom-module#maki-application
       },
       ready: function() {
         console.log('[MAKI:APPLICATION]', 'ready');
-        document.addEventListener('datastore:open', function() {
-          self.datastore = document.querySelector('maki-datastore');
-          self.datastore._sync();
-        });
         
         // fix menu when passed
         $('.masthead').visibility({

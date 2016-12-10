@@ -17,10 +17,10 @@ dom-module#maki-resource
       _load: function() {
         var self = this;
         console.log('[MAKI:RESOURCE]', '_load', self.name);
-        self.store = new Nedb({
+        /*self.store = new Nedb({
           filename: self.name,
           autoload: true
-        });
+        }); */
       },
       ready: function() {
         var self = this;
