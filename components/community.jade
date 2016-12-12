@@ -6,7 +6,7 @@ dom-module#maki-community
         |  People in our Community
       .ui.five.doubling.cards
         template(is="dom-repeat", items="{{data}}")
-          maki-person-card(src="/people/{{item.id}}")
+          maki-person-card.ui.card(src="/people/{{item.id}}")
 
   script.
     Polymer({
