@@ -65,6 +65,7 @@ dom-module#maki-masthead
       },
       _componentChanged: function(name, old) {
         console.log('[MAKI:MASTHEAD]', '_componentChanged', name);
+        
         var self = this;
         var viewport = this.$.masthead;
         
@@ -84,6 +85,7 @@ dom-module#maki-masthead
           element.classList.add('segment');
           
           this.$.masthead.appendChild(element);
+
         }
       },
       ready: function() {

@@ -6,9 +6,9 @@ dom-module#maki-person-card
     .content
       a.header(href="/people/{{data.slug}}")
         small(style="color: rgba(0,0,0,.4);") @
-        | {{data.username}}
+        | {{data.id}}
       .meta joined in 
-        abbr.tooltipped(title="{{data.created}}") {{data.created.getFullYear()}}
+        abbr.tooltipped(title="{{data.created}}") {{humanFriendlyDate(data.created)}}
       p {{data.bio}}
     .extra.content
       .ui.buttons
@@ -23,6 +23,10 @@ dom-module#maki-person-card
         state: { type: String },
         source: { type: String },
         output: { type: String },
+      },
+      humanFriendlyDate: function(date) {
+        var when = new Date(date);
+        return when.getFullYear();
       },
       _load: function(uri, back) {
         var self = this;

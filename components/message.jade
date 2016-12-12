@@ -1,0 +1,47 @@
+dom-module#maki-message
+  template
+    a.avatar(href="{{data.author.link}}")
+      img(src="{{data.author.image.avatar}}")
+    .content
+      a.author(href="/people/{{data.author.id}}") {{data.author.id}}
+      .metadata
+        a.date(href="{{data.link}}", title="{{data.created}") {{data.created}}
+        template(is="dom-if", if="{{data.topic}}")
+          a(href="{{data.topic.link}}") {{data.topic.id}}
+        template(is="dom-if", if="{{data.parent}}")
+          span in reply to 
+            a(href="{{data.parent.link}}") {{data.parent}}
+      .text {{data.content}}
+      .actions
+        template(is="dom-repeat", items="{{data.reactions}}")
+          .ui.small.label.tooltipped(title="{{item}}") {{item}}
+  script.
+    Polymer({
+      is: 'maki-message',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:MESSAGE]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          console.log('[MAKI:MESSAGE]', '_load', 'loaded', data);
+          
+          data.link = '/messages/' + data.id;
+          self.data = data;
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:MESSAGE]', 'ready');
+      }
+    });

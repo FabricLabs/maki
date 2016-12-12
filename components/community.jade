@@ -5,9 +5,10 @@ dom-module#maki-community
         span {{data.length}}
         |  People in our Community
       .ui.five.doubling.cards
-        template(is="dom-repeat", items="{{data}}")
-          maki-person-card.ui.card(src="/people/{{item.id}}")
+        template(is="dom-repeat", items="{{data}}", as="person")
+          maki-person-card.ui.card(src="{{person.link}}")
 
+  script(src="/assets/lodash.min.js", async)
   script.
     Polymer({
       is: 'maki-community',
@@ -26,7 +27,10 @@ dom-module#maki-community
         // TODO: use this API instead:
         // fabric.get(self.src, function(err, data) { ... });
         $.getJSON(self.src, function(data) {
-          self.data = data;
+          self.data = _.shuffle(data).map(function(item) {
+            item.link = '/people/' + item.id;
+            return item;
+          });
           self.toggleClass('loading', false);
         });
 

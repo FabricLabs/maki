@@ -1,6 +1,42 @@
 dom-module#maki-profile
   template
+    .ui.vertical.stripe.segment.content
+      .ui.grid.stackable
+        .row
+          .four.wide.column
+            maki-person-card.ui.fluid.card(src="{{data.link}}")
+          .twelve.wide.column
+            maki-message-list.ui.comments(src="{{messages}}")
+
   script.
     Polymer({
-      is: 'maki-profile'
+      is: 'maki-profile',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String },
+        messages: { type: String },
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[QUILL:READER]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          data.link = '/people/' + data.id;
+          self.messages = '/messages?filter=%7B%22author%22%3A%22'+data.id+'%22%7D';
+          
+          self.data = data;
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[QUILL:READER]', 'ready');
+        this.src = this.src || '';
+      }
     });

@@ -57,12 +57,52 @@ maki.use(snippets);
 maki.use(developers);
 maki.use(auth);
 
+maki.define('Example', {
+  icon: 'idea',
+  description: 'A list of applications Made With Maki.',
+  pitch: 'Open source by default.',
+  mission: 'Most apps made with Maki are completely transparent.',
+  source: __dirname + '/source/examples',
+  components: {
+    masthead: 'maki-pitch',
+    query: 'maki-example-showcase',
+    get: 'maki-example-view'
+  },
+  attributes: {
+    id: { type: String , id: true },
+    title: { type: String , max: 240 },
+    content: { type: String },
+    created: { type: Date , default: Date.now },
+    screenshot: { type: 'File' }
+  }
+});
+
+maki.define('Doc', {
+  icon: 'book',
+  description: 'Resources and reference materials.',
+  source: __dirname + '/docs',
+  components: {
+    query: 'maki-api-index',
+    get: 'maki-doc-view'
+  },
+  attributes: {
+    id: { type: String , id: true },
+    title: { type: String , max: 240 },
+    content: { type: String },
+    created: { type: Date , default: Date.now },
+  }
+});
+
 var Topic = maki.define('Topic', {
   public: false,
   icon: 'comment',
   handle: 'Conversations',
   masthead: '/img/sunrise.jpg',
   description: 'Topics being discussed by the Maki community.',
+  components: {
+    query: 'maki-topic-browser',
+    get: 'maki-chat-interface'
+  },
   attributes: {
     id: { type: String , max: 80 , required: true },
     name: { type: String , max: 80 , required: true , slug: true },
@@ -450,26 +490,6 @@ Reminder.post('create', calculateInvitationStats);
   });
 });*/
 
-maki.define('Example', {
-  icon: 'idea',
-  description: 'A list of applications Made With Maki.',
-  pitch: 'Open source by default.',
-  mission: 'Most apps made with Maki are completely transparent.',
-  source: __dirname + '/source/examples',
-  components: {
-    masthead: 'maki-pitch',
-    query: 'maki-example-showcase',
-    get: 'maki-example-view'
-  },
-  attributes: {
-    id: { type: String , id: true },
-    title: { type: String , max: 240 },
-    content: { type: String },
-    created: { type: Date , default: Date.now },
-    screenshot: { type: 'File' }
-  }
-});
-
 maki.define('Release', {
   public: false,
   icon: 'tag',
@@ -493,6 +513,7 @@ maki.define('Release', {
 });
 
 maki.define('Plugin', {
+  public: false,
   handle: 'Extensions',
   icon: 'puzzle',
   description: 'Modules that extend the default Maki behaviors.',

@@ -74,6 +74,9 @@ dom-module#maki-application
           console.warn('[MAKI:APPLICATION]', 'no viewport provided');
           return false;
         }
+        
+        viewport.toggleClass('loading', true);
+        self.$.masthead.toggleClass('loading', true);
 
         for (var route in self.routes) {
           var regex = self.routes[route];
@@ -113,6 +116,7 @@ dom-module#maki-application
         }
 
         viewport.appendChild(view);
+        viewport.toggleClass('loading', false);
 
 
         // handle masthead, if it exists
@@ -128,6 +132,8 @@ dom-module#maki-application
             document.querySelector(masthead).setAttribute('src', ctx.path);
           }
         }
+        
+        self.$.masthead.toggleClass('loading', false);
 
       },
       /*
@@ -190,7 +196,8 @@ dom-module#maki-application
       },
       ready: function() {
         console.log('[MAKI:APPLICATION]', 'ready');
-        
+
+        $('.tooltipped').popup();
         // fix menu when passed
         $('.masthead').visibility({
           once: false,

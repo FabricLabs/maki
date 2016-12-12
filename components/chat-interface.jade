@@ -1,0 +1,68 @@
+dom-module#maki-chat-interface
+  template
+    .ui.vertical.stripe.segment.content
+      .ui.grid.stackable
+        .row
+          .four.wide.column
+            maki-topic-card.ui.fluid.card(src="{{data.link}}")
+
+          .nine.wide.column
+            template(is="dom-if", if="{{!data.description}}")
+              .ui.warning.icon.message
+                i.icon.warning.sign
+                .content
+                  .header
+                    small(style="color: rgba(0,0,0,.4);") &#35;
+                    span {{topic.id}}
+                    |  is missing a description!
+                  p Can you <a href="https://github.com/martindale/maki/issues/new?title=Suggested%20Description%20for%20{{topic.name}}&body=I'd%20like%20to%20suggest%20the%20following%20description%20for%20the%20topic%3A%0A%0A%3E%20{{topic.name}}%20is%20a%20place%20to%20talk%20about...">come up with a suggestion</a>?  Maybe look over <a href="/topics">some of the other topics</a> for some inspiration.
+            template(is="dom-if", if="{{!data.topic}}")
+              .ui.warning.icon.message
+                i.icon.warning.sign
+                .content
+                  .header
+                    small(style="color: rgba(0,0,0,.4);") &#35;
+                    span {{topic.id}}
+                    |  isn't currently discussing anything!
+                  p Maybe you can <a href="https://chat.maki.io/?topic={{topic.id}}&amp;message=What's%20the%20first%20thing%20someone%20should%20know%20about%20{{topic.id}}%3F">start the conversation</a>?
+            template(is="dom-if", if="{{data.topic}}")
+              .ui.segment
+                h4 Currently discussing...
+                p {{data.topic}}
+            
+            maki-message-list.ui.comments(src="{{messages}}")
+
+            maki-chat-input
+
+  script.
+    Polymer({
+      is: 'maki-chat-interface',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String },
+        messages: { type: String },
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:CHAT-INTERFACE]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          data.link = '/topics/' + data.id;
+          
+          self.messages = '/messages?filter=%7B%22topic%22%3A%22'+data.id+'%22%7D';
+          
+          self.data = data;
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:CHAT-INTERFACE]', 'ready');
+      }
+    });

@@ -1,0 +1,57 @@
+dom-module#maki-topic-browser
+  template
+    .ui.vertical.stripe.segment.content
+      h2.ui.horizontal.header.divider
+        span {{data.length}}
+        |  Topics Under Discussion
+        
+    .ui.stackable.grid.container
+      .sixteen.wide.column
+        .row
+          .ui.info.icon.message
+            i.icon.warning
+            .content
+              .header We need your best!
+              p Topics in the Maki Community are like <strong>quest indicators</strong>: they are the subjects we need experts in!  Join the discussion for topics you find interesting, and be sure to <strong>invite your friends</strong>, so we can all build the best things together.
+
+        .row.top-padded
+          h2.tooltipped(title="Topics with a description, a topic, and at least 20 subscribers") Featured Topics
+          .ui.two.huge.stackable.cards
+
+        .row.top-padded
+          h2 All Topics
+          .ui.five.stackable.cards
+            template(is="dom-repeat", items="{{data}}")
+              maki-topic-card.ui.card(src="{{item.link}}")
+
+
+  script.
+    Polymer({
+      is: 'maki-topic-browser',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:TOPIC-BROWSER]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = _.shuffle(data).map(function(item) {
+            item.link = '/topics/' + item.id;
+            return item;
+          });
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:TOPIC-BROWSER]', 'ready');
+      }
+    });

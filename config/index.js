@@ -13,17 +13,17 @@ module.exports = {
     // heh.  this silly RFC.
     authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200' ,
     namespace: NAMESPACE ,
-    pitch: 'Made with Maki.',
+    pitch: 'Make it with Maki!',
     mission: process.env.MAKI_SERVICE_MISSION || 'Maki makes building beautiful apps a breeze.',
     description: process.env.MAKI_SERVICE_DESCRIPTION || 'Maki allows you to focus on your project, rather than laboring over architecture decisions.  With true isomorphism, you control how your application behaves, and can then customize how your features are exposed on specific platforms.',
-    about: 'Maki is a labor of love, a result of several years of iterations and re-architectures in pursuit of a clean, hand-rolled framework for building beautiful applications.  We hope you like it.',
-    copyright: 'Maki is copy<em>left</em>, and encourages you to copy, clone, and <em>create</em>.  After all, without a rich public domain, how else can we innovate?  Much to our chagrin, the software itself is more formally <a href="https://github.com/martindale/maki/blob/master/LICENSE">MIT licensed</a>, while our content is licensed under <a href="http://creativecommons.org/licenses/by/4.0/">CC-BY</a>.',
+    about: 'Maki is a noncommercial labor of love, built over many years as an experiment in application design.  We find it useful in our daily work, and hope you do, too.  <i class="heart icon"></i>',
+    copyright: 'Maki is copy<em>left</em>, and encourages you to copy, clone, and <em>create</em>.  After all, without a rich public domain, how else can we innovate?<br /><br /><a href="https://github.com/martindale/maki/blob/master/LICENSE">Open Source Licenses May Apply</a>',
     masthead: '/img/breeze.gif',
     cta: {
-      link: '/examples/maki',
+      link: '/examples',
       // This example includes more complex markup
       //- TODO: consider converting to markdown?
-      text: '<span style="margin-right: 1em;"><i class="code icon"></i></span> View the Source',
+      text: 'Browse Examples',
       icon: 'right chevron'
     },
     points: [

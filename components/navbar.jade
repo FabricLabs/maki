@@ -2,7 +2,7 @@ dom-module#maki-navbar
   template
     a.logo.brand.item(href="/", style="padding-left: 0;")
       if (config.service.logo)
-        img.tooltipped(src="#{config.service.logo}", title="#{config.service.synopsis}")
+        img(src="#{config.service.logo}", title="#{config.service.synopsis}")
       else
         i.icon.left(class="#{ config.service.icon || 'lab' }")
       span.brand #{config.service.name}
@@ -10,7 +10,7 @@ dom-module#maki-navbar
     block navbar
       each resource in resources
         if (resource.public)
-          a.item(href="#{resource.routes.query}")
+          a.item(href="#{resource.routes.query}", title="#{resource.description}")
             if (resource.options.icon)
               i.icon(class="#{resource.options.icon}")
             | #{resource.names.handle}
@@ -20,8 +20,7 @@ dom-module#maki-navbar
           a.item(href="/sessions/#{session.hash}?method=delete") Logout
       a.right.toc.item
         i.sidebar.icon
-  script(src="/js/page.min.js", async)
-  script(src="/js/jquery.js", async)
+
   script.
     Polymer({
       is: 'maki-navbar'

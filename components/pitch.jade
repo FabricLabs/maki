@@ -31,13 +31,10 @@ dom-module#maki-pitch
       _load: function(uri, back) {
         var self = this;
         console.log('[MAKI:PITCH]', '_load', uri, back);
-        self.toggleClass('loading', true);
-
         // TODO: use this API instead:
         // fabric.get(self.src, function(err, data) { ... });
         $.getJSON(self.src, function(data) {
           self.data = data;
-          self.toggleClass('loading', false);
         });
       },
       ready: function() {

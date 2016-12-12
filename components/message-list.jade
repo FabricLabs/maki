@@ -1,0 +1,43 @@
+dom-module#maki-message-list
+  template
+    template(is="dom-repeat", items="{{data}}")
+      maki-message.ui.comment(src="{{item.link}}")
+
+  script.
+    Polymer({
+      is: 'maki-message-list',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:MESSAGE-LIST]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          console.log('[MAKI:MESSAGE-LIST]', '_load', 'loaded', data);
+          
+          data.sort(function(a, b) { return b.created - a.created; });
+          data = data.slice(0, 10).reverse();
+          
+          self.data = data.map(function(message) {
+            message.link = '/messages/' + message.id;
+            return message;
+          });
+          
+          console.log('message list:', self.data);
+          
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:MESSAGE-LIST]', 'ready');
+      }
+    });

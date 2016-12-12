@@ -1,0 +1,71 @@
+dom-module#maki-topic-card
+  template
+    .content
+      a.header(href="{{data.link}}")
+        small(style="color: rgba(0,0,0,.4);") &#35;
+        | {{data.name}}
+      p {{data.description}}
+      .meta created by <a href="/people/{{data.creator}}">{{data.creator}}</a>
+    .extra.content
+      .ui.two.mini.statistics
+        .ui.statistic
+          .value {{data.stats.messages}}
+          .label messages
+        .ui.statistic
+          .value {{data.stats.subscribers}}
+          .label people
+
+    template(is="dom-if", if="{{!user}}")
+      .extra.content.registration.transition.smooth
+        h4.ui.header Join the Discussion!
+        p We'd love your participation!  Let's get you signed up and plugged in.
+
+        form.ui.form.fluid(action="/invitations", method="POST")
+        if (channelsToJoin)
+          input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
+        .ui.field
+          label(for="email") What is your email address?
+          input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
+
+        if (topics)
+          .ui.field
+            label(for="topics") What channels would you like to join?
+            select.ui.fluid.search.dropdown(multiple, name="topics")
+              for channel in topics
+                option(value="#{channel}", selected) ##{channel}
+
+        .ui.field
+          button.ui.fluid.labeled.green.button(type="submit")
+            i.icon.leaf
+            | That's me.  Let's go!
+            i.right.chevron.icon
+        .ui.error.message
+
+  script.
+    Polymer({
+      is: 'maki-topic-card',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:TOPIC-CARD]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          data.link = '/topics/' + data.id;
+          self.data = data;
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:TOPIC-CARD]', 'ready');
+      }
+    });
