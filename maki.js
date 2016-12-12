@@ -11,6 +11,7 @@ maki.use( passport );
 
 maki.use(require('maki-client-level'));
 maki.use(require('maki-client-polymer'));
+maki.use(require('maki-client-markdown'));
 
 var AuthSlack = require('maki-auth-slack');
 var authSlack = new AuthSlack({
@@ -24,12 +25,6 @@ var CMS = require('maki-cms-local');
 var cms = new CMS({
   base: '/docs',
   path: '/docs',
-  view: process.env.PWD + '/views/page'
-});
-
-var examples = new CMS({
-  base: '/examples',
-  path: '/source/examples',
   view: process.env.PWD + '/views/page'
 });
 
@@ -57,7 +52,6 @@ var auth = new Auth({
 });
 
 maki.use(cms);
-maki.use(examples);
 maki.use(tutorials);
 maki.use(snippets);
 maki.use(developers);
@@ -292,7 +286,9 @@ function reduceChannel (next, done) {
 var Invitation = maki.define('Invitation', {
   public: false,
   components: {
-    query: 'maki-invitations'
+    masthead: 'maki-invitation-splash',
+    query: 'maki-invitation-manager',
+    get: 'maki-invitation-view',
   },
   attributes: {
     id: { type: String , required: true , slug: true },
@@ -313,29 +309,6 @@ var Invitation = maki.define('Invitation', {
     Topic: {
       query: {},
       sort: 'id'
-    }
-  },
-  handlers: {
-    html: {
-      create: function(req, res) {
-        var invitation = this;
-        req.flash('info', '<div class="header">Check your email!</div>', '<p>An invitation has been sent to the email address you just gave us.  Join us by clicking the link in the invitation!</p>');
-        res.format({
-          json: function () {
-            res.status( 303 ).redirect('/invitations/' + invitation.id);
-          },
-          html: function () {
-            console.log('invitation http handler, create:', invitation);
-            
-            if (invitation.status == 'accepted') {
-              return res.redirect('/authentications/slack?next=/people/' + invitation.user );
-            }
-            
-            // TODO: determine why changing this to `/people` breaks messages
-            res.status( 302 ).redirect('/invitations');
-          }
-        });
-      }
     }
   },
 });
@@ -480,16 +453,21 @@ Reminder.post('create', calculateInvitationStats);
 maki.define('Example', {
   icon: 'idea',
   description: 'A list of applications Made With Maki.',
-  source: 'data/examples.json',
+  pitch: 'Open source by default.',
+  mission: 'Most apps made with Maki are completely transparent.',
+  source: __dirname + '/source/examples',
   components: {
-    query: 'maki-examples'
+    masthead: 'maki-pitch',
+    query: 'maki-example-showcase',
+    get: 'maki-example-view'
   },
   attributes: {
-    name:    { type: String , max: 80 },
-    slug:    { type: String , max: 80 , id: true },
+    id: { type: String , id: true },
+    title: { type: String , max: 240 },
     content: { type: String },
+    created: { type: Date , default: Date.now },
     screenshot: { type: 'File' }
-  },
+  }
 });
 
 maki.define('Release', {
@@ -533,6 +511,7 @@ maki.define('Index', {
     query: 'splash'
   },
   components: {
+    masthead: 'maki-pitch',
     query: 'maki-splash',
     get: 'maki-splash'
   },

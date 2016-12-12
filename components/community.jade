@@ -1,0 +1,37 @@
+dom-module#maki-community
+  template
+    .ui.vertical.stripe.segment.content
+      h2.ui.horizontal.header.divider
+        span {{data.length}}
+        |  People in our Community
+      .ui.five.doubling.cards
+        template(is="dom-repeat", items="{{data}}")
+          maki-person-card(src="/people/{{item.id}}")
+
+  script.
+    Polymer({
+      is: 'maki-community',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:COMMUNITY]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = data;
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:COMMUNITY]', 'ready');
+      }
+    });

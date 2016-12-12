@@ -1,28 +1,23 @@
-//- a human-friendly name for users
-dom-module#maki-person-card
+dom-module#maki-example-view
   template
-    a.image(href="/people/{{data.id}}")
-      img(src="{{data.image.avatar}}")
-    .content
-      a.header(href="/people/{{data.slug}}")
-        small(style="color: rgba(0,0,0,.4);") @
-        | {{data.username}}
-      .meta joined in 
-        abbr.tooltipped(title="{{data.created}}") {{data.created.getFullYear()}}
-      p {{data.bio}}
-    .extra.content
-      .ui.buttons
-        template(is="dom-repeat", items="{{data.profiles}}")
-          .ui.button {{item}}
+    .ui.segment
+      h1 {{data.title}}
+      #content {{data.content}}
+  
+    
   script.
     Polymer({
-      is: 'maki-person-card',
+      is: 'maki-example-view',
       properties: {
         src: { type: String , observer: '_load' },
         data: { type: Object },
         state: { type: String },
         source: { type: String },
         output: { type: String }
+      },
+      _render: function() {
+        console.log('[QUILL:READER]', '_render', this.source);
+        this.$.content.innerHTML = window.markdown(this.source || '');
       },
       _load: function(uri, back) {
         var self = this;
@@ -33,6 +28,8 @@ dom-module#maki-person-card
         // fabric.get(self.src, function(err, data) { ... });
         $.getJSON(self.src, function(data) {
           self.data = data;
+          self.source = data.content;
+          self._render();
           self.toggleClass('loading', false);
         });
 

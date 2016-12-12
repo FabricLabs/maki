@@ -12,7 +12,7 @@ dom-module#maki-application
     maki-masthead#masthead
       maki-made-with
 
-    maki-viewport#viewport
+    maki-viewport.ui.padded.container.content#viewport
       block content
         maki-splash
 
@@ -37,6 +37,7 @@ dom-module#maki-application
         components: { type: Object, value: {} },
         resources: { type: Object, observer: '_resourcesUpdated' },
         datastore: { type: Object },
+        config: { type: Object },
         worker: { type: Object },
         identity: { type: Object, notify: true },
         state: { type: String }
@@ -81,8 +82,9 @@ dom-module#maki-application
           console.log('[MAKI:APPLICATION]', '_route', 'comparing...', ctx.path);
           
           if (regex.test(ctx.path)) {
-            component = self.components[route];
             masthead = self.resourceMap[route].options.components.masthead;
+            
+            component = self.components[route];
             view = document.createElement(component);
             
             console.log('[MAKI:APPLICATION]', '_route', 'found:', component);
@@ -102,15 +104,30 @@ dom-module#maki-application
         }
         
         view.setAttribute('src', ctx.path);
+        
+        if (!view.type) console.log('wat?  no view type?', ctx.path , view);
         view.setAttribute('type', view.type.name);
-
-        self.$.masthead.component = masthead;
 
         while (viewport.hasChildNodes()) {
           viewport.removeChild(viewport.lastChild);
         }
 
         viewport.appendChild(view);
+
+
+        // handle masthead, if it exists
+        if (masthead) {
+          console.log('[MAKI:APPLICATION]', '_route', 'using component', masthead);
+          self.$.masthead.setAttribute('component', masthead);
+        
+          if (ctx.path === '/') {
+            console.log('[MAKI:APPLICATION]', '_route', 'is index.  using service config.');
+            document.querySelector(masthead).data = self.config.service;
+          } else {
+            console.log('[MAKI:APPLICATION]', '_route', 'is not index.  setting src', ctx.path);
+            document.querySelector(masthead).setAttribute('src', ctx.path);
+          }
+        }
 
       },
       /*
@@ -167,6 +184,7 @@ dom-module#maki-application
           success: function(data) {
             self.config = data.config;
             self.resources = data.resources;
+            self.$.masthead.data = data.service;
           }
         });
       },

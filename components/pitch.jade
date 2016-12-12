@@ -1,0 +1,46 @@
+dom-module#maki-pitch
+  template
+    h1.ui.inverted.header {{data.pitch}}
+    h2.ui.inverted.header {{data.mission}}
+    
+    .content.top-padded
+      template(is="dom-if", if="{{data.cta}}")
+        a.ui.massive.centered.right.labeled.green.icon.button(href="{{data.cta.link}}")
+          span#cta
+          i.right.chevron.icon
+  
+  script.
+    Polymer({
+      is: 'maki-pitch',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String , observer: '_render' },
+        output: { type: String },
+        context: { type: Object }
+      },
+      _render: function() {
+        var self = this;
+        console.log('[MAKI:PITCH]', '_render');
+        
+        if (!self.data || !self.data.cta) return;
+        
+        self.$.cta.innerHTML = window.markdown(self.data.cta.link || '');
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:PITCH]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = data;
+          self.toggleClass('loading', false);
+        });
+      },
+      ready: function() {
+        console.log('[MAKI:PITCH]', 'ready');
+      },
+    });

@@ -49,10 +49,23 @@ dom-module#maki-masthead
     Polymer({
       is: 'maki-masthead',
       properties: {
-        component: { type: String , observer: '_componentChanged' },        
+        src: { type: String , observer: '_srcChanged' },
+        component: { type: String , observer: '_componentChanged' },       
+        data: { type: Object , observer: '_dataChanged' } 
+      },
+      _srcChanged: function(src) {
+        var self = this;
+        console.log('[MAKI:MASTHEAD]', '_srcChanged', src);
+        document.querySelector(self.component).src = src;
+      },
+      _dataChanged: function(data) {
+        var self = this;
+        console.log('[MAKI:MASTHEAD]', '_dataChanged', data);
+        document.querySelector(self.component).data = data;
       },
       _componentChanged: function(name, old) {
         console.log('[MAKI:MASTHEAD]', '_componentChanged', name);
+        var self = this;
         var viewport = this.$.masthead;
         
         while (viewport.hasChildNodes()) {
@@ -60,7 +73,8 @@ dom-module#maki-masthead
         }
         
         if (name) {
-          var element = document.createElement(name);  
+          var element = document.createElement(name);
+          element.src = self.src;
           
           // ಠ_ಠ
           element.classList.add('ui');

@@ -1,0 +1,117 @@
+dom-module#maki-example-showcase
+  template
+    .ui.vertical.stripe.content.segment
+      h2.ui.horizontal.header.divider What shall we build?
+      .ui.three.stackable.cards
+        a.ui.link.card(href="/examples/infrastructure")
+          .image
+            img(src="/img/image.png")
+          .content
+            .header Infrastructure
+            .description You just want the REST API and messaging layers.
+        a.ui.link.card(href="/examples/content")
+          .image
+            img(src="/img/image.png")
+          .content
+            .header Simple Website
+            .description No frills, no frazz.  Just good looking content.
+        a.ui.link.card(href="/examples/robust")
+          .image
+            img(src="/img/image.png")
+          .content
+            .header Full-stack App
+            .description You're building something you think people will use.
+
+    .ui.vertical.stripe.segment.content
+      h2.ui.horizontal.header.divider Sample Projects
+      .ui.four.stackable.cards
+        .ui.card
+          .content
+            .header BitFaucet
+            .description A simple app that interacts with a remote RPC service (the Bitcoin daemon, in this case).
+          .extra.content
+            a.ui.fluid.button.primary(href="https://github.com/martindale/bitfaucet")
+              | Browse the Source
+              i.icon.right.chevron
+        .ui.card
+          .content
+            .header converse
+            .description Simple collaborative discussion forums, built with Maki.
+          .extra.content
+            a.ui.fluid.button.primary(href="https://github.com/martindale/converse")
+              | Browse the Source
+              i.icon.right.chevron
+        .ui.card
+          .content
+            .header Quill
+            .description Writing made simple, publishing made easy.
+          .extra.content
+            a.ui.fluid.button.primary(href="https://github.com/martindale/quill")
+              | Browse the Source
+              i.icon.right.chevron
+        .ui.card
+          .content
+            .header shipyard
+            .description Create better software, together.  Collaborative software development.
+          .extra.content
+            a.ui.fluid.button.primary(href="https://github.com/martindale/shipyard")
+              | Browse the Source
+              i.icon.right.chevron
+
+              
+    .ui.vertical.stripe.segment.content
+      h2.ui.horizontal.header.divider Other Examples
+
+      .ui.icon.message
+        i.icon.lab
+        .content
+          .header Building something cool?
+          p Go ahead and <a href="https://github.com/martindale/maki/edit/master/data/examples.json">add it to the list</a>!  We'd love to highlight what you've built.  <strong>Bonus points for being open source!</strong> 🍺
+
+
+      .ui.divided.items
+        template(is="dom-repeat", items="{{data}}")
+          .item
+            a.ui.tiny.image(href="/examples/{{data.id}}")
+              template(is="dom-if", if="{{data.image}}")
+                img(src="{{data.image}}")
+              template(is="dom-if", if="{{!data.image}}")
+                img(src="/img/image.png")
+            .content
+              .header
+                a(href="/examples/{{data.id}}") {{data.title}}
+                template(is="dom-if", if="{{data.source}}")
+                  |  
+                  a.ui.label(href="{{data.source}}")
+                    i.icon.code
+                    | Source
+              p.description {{data.description}}
+
+  script.
+    Polymer({
+      is: 'maki-example-showcase',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:EXAMPLE-SHOWCASE]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = data;
+          console.log('[MAKI:EXAMPLE-SHOWCASE]', '_load', 'loaded', data);
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:EXAMPLE-SHOWCASE]', 'ready');
+      }
+    });

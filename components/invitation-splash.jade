@@ -1,0 +1,29 @@
+dom-module#maki-invitation-splash
+  template
+    h1 Invite Your Friends
+    h2 Let's make this a place we <em>all</em> love.
+    
+    maki-invitation-form
+  
+    template(is="dom-if", if="{{context}}")
+      h4 You're logged in as <a href="/people/{{context.id}}">{{user.id}}</a>, so you'll get credit when these people join.  You can <a href="/sessions/{{context.session}}" on-tap="_destroySession">sign out</a> if you'd like.
+    template(is="dom-if", if="{{!context}}")
+      h4 You can &nbsp; <a href="/authentications/slack" on-tap="_authenticateSlack" class="ui micro icon primary button"> <i class="icon slack alt"></i> Sign in with Slack</a> if you'd like to get credit for this.
+
+  
+  script.
+    Polymer({
+      is: 'maki-invitation-splash',
+      properties: {
+        context: { type: Object }
+      },
+      _authenticateSlack: function() {
+        // TODO: implement
+      },
+      _destroySession: function() {
+        // TODO: implement
+      },
+      ready: function() {
+        console.log('[MAKI:INVITATION-SPLASH]', 'ready');
+      }
+    });

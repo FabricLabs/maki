@@ -1,14 +1,14 @@
-//- a human-friendly name for users
-dom-module#maki-person-card
+dom-module#maki-invitation-card
   template
-    a.image(href="/people/{{data.id}}")
-      img(src="{{data.image.avatar}}")
+    a.image(href="/invitations/{{data.id}}")
+      img(src="https://www.gravatar.com/avatar/{{data.avatar}}?s=500")
     .content
-      a.header(href="/people/{{data.slug}}")
+      a.header(href="/invitations/{{data.id}}")
         small(style="color: rgba(0,0,0,.4);") @
         | {{data.username}}
-      .meta joined in 
-        abbr.tooltipped(title="{{data.created}}") {{data.created.getFullYear()}}
+      .meta invited on
+        abbr.tooltipped(title="{{data.created}}") {{data.created}}
+        //-abbr.tooltipped(title="{{data.created}}") {{data.created.getFullYear()}}
       p {{data.bio}}
     .extra.content
       .ui.buttons
@@ -16,13 +16,14 @@ dom-module#maki-person-card
           .ui.button {{item}}
   script.
     Polymer({
-      is: 'maki-person-card',
+      is: 'maki-invitation-card',
       properties: {
         src: { type: String , observer: '_load' },
         data: { type: Object },
         state: { type: String },
         source: { type: String },
-        output: { type: String }
+        output: { type: String },
+        context: { type: Object }
       },
       _load: function(uri, back) {
         var self = this;
