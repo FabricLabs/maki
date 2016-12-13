@@ -74,8 +74,13 @@ dom-module#maki-masthead
         }
         
         if (name) {
+          var maki = document.querySelector('maki-application');
+
           var element = document.createElement(name);
-          element.src = self.src;
+          
+          element.setAttribute('pitch', maki.config.service.pitch);
+          element.setAttribute('mission', maki.config.service.mission);
+          element.cta = maki.config.service.cta;
           
           // ಠ_ಠ
           element.classList.add('ui');

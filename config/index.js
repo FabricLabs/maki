@@ -23,7 +23,7 @@ module.exports = {
       link: '/examples',
       // This example includes more complex markup
       //- TODO: consider converting to markdown?
-      text: 'Browse Examples',
+      text: 'Browse the Examples',
       icon: 'right chevron'
     },
     points: [

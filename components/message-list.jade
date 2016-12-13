@@ -23,8 +23,13 @@ dom-module#maki-message-list
         $.getJSON(self.src, function(data) {
           console.log('[MAKI:MESSAGE-LIST]', '_load', 'loaded', data);
           
-          data.sort(function(a, b) { return b.created - a.created; });
-          data = data.slice(0, 10).reverse();
+          data.sort(function(a, b) {
+            var one = new Date(a.created);
+            var two = new Date(b.created);
+            
+            return two - one;
+          });
+          data = data.slice(0, 10);
           
           self.data = data.map(function(message) {
             message.link = '/messages/' + message.id;
@@ -36,6 +41,9 @@ dom-module#maki-message-list
           self.toggleClass('loading', false);
         });
 
+      },
+      attached: function() {
+        
       },
       ready: function() {
         console.log('[MAKI:MESSAGE-LIST]', 'ready');

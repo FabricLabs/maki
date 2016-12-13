@@ -13,7 +13,7 @@ dom-module#maki-message
             a(href="{{data.parent.link}}") {{data.parent}}
       .text {{data.content}}
       .actions
-        template(is="dom-repeat", items="{{data.reactions}}")
+        //-template(is="dom-repeat", items="{{data.reactions}}")
           .ui.small.label.tooltipped(title="{{item}}") {{item}}
   script.
     Polymer({

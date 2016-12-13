@@ -4,7 +4,8 @@ dom-module#maki-profile
       .ui.grid.stackable
         .row
           .four.wide.column
-            maki-person-card.ui.fluid.card(src="{{data.link}}")
+            maki-person-card.ui.fluid.card.loading(src="{{data.link}}")
+              .ui.text.loader Loading
           .twelve.wide.column
             maki-message-list.ui.comments(src="{{messages}}")
 
