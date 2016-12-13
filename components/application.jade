@@ -10,11 +10,8 @@ dom-module#maki-application
     maki-navbar.ui.vertical.inverted.sidebar.right.large.menu
 
     maki-masthead#masthead
-      maki-made-with
 
     maki-viewport.ui.padded.container.content#viewport
-      block content
-        maki-splash
 
     .ui.inverted.vertical.footer.segment
       .ui.container
@@ -118,19 +115,13 @@ dom-module#maki-application
         viewport.appendChild(view);
         viewport.toggleClass('loading', false);
 
-
         // handle masthead, if it exists
         if (masthead) {
           console.log('[MAKI:APPLICATION]', '_route', 'using component', masthead);
+          self.$.masthead.setAttribute('src', ctx.path);
           self.$.masthead.setAttribute('component', masthead);
-        
-          if (ctx.path === '/') {
-            console.log('[MAKI:APPLICATION]', '_route', 'is index.  using service config.');
-            document.querySelector(masthead).data = self.config.service;
-          } else {
-            console.log('[MAKI:APPLICATION]', '_route', 'is not index.  setting src', ctx.path);
-            document.querySelector(masthead).setAttribute('src', ctx.path);
-          }
+        } else {
+          self.$.masthead.removeAttribute('component');
         }
         
         self.$.masthead.toggleClass('loading', false);

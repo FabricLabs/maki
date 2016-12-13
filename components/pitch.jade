@@ -13,19 +13,19 @@ dom-module#maki-pitch
     Polymer({
       is: 'maki-pitch',
       properties: {
+        src: { type: String , observer: '_srcChanged' },
         pitch: { type: String },
         mission: { type: String },
         cta: { type: Object },
-        source: { type: String , observer: '_render' },
-        
       },
-      _render: function() {
+      _srcChanged: function(src) {
         var self = this;
-        console.log('[MAKI:PITCH]', '_render');
+        console.log('[MAKI:PITCH]', '_srcChanged', src);
         
-        if (!self.data || !self.data.cta) return;
-        
-        self.$.target.innerHTML = window.markdown(self.source || '');
+        if (!src) return;
+        self.pitch = maki.config.service.pitch;
+        self.mission = maki.config.service.mission;
+        self.cta = maki.config.service.cta;
       },
       ready: function() {
         console.log('[MAKI:PITCH]', 'ready');

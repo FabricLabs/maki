@@ -16,47 +16,61 @@ dom-module#maki-masthead
       }
 
   template
-    .ui.inverted.vertical.masthead.segment
-      .ui.container
+    .ui.inverted.vertical.masthead.segment#segment
+      .ui.container#navigation
         maki-navbar.ui.large.secondary.inverted.pointing.menu
-      .ui.text.container#masthead
+      .ui.container#pitch
         template(is="dom-if", if="{{!component}}")
-          .ui.center.aligned.inverted.segment
-            h1.ui.inverted.header #{config.service.pitch}
-            h2.ui.inverted.header #{config.service.mission}
+          h1.ui.inverted.header #{config.service.pitch}
+          h2.ui.inverted.header #{config.service.mission}
 
-            .content.top-padded
-              if (config.service.cta)
-                if (config.service.cta.component)
-                  | !{config.service.cta.component}
-                else
-                  if (config.service.cta.icon)
-                    - var cta = config.service.cta
-                    a.ui.massive.centered.right.labeled.green.icon.button(href="#{cta.link}")
-                      i.right.chevron.icon(class="#{cta.icon}")
-                      | !{cta.text}
-                  else
-                    a.ui.massive.fluid.green.button(href="#{cta.link}") #{cta.text}
+          .content.top-padded
+            if (config.service.cta)
+              if (config.service.cta.component)
+                | !{config.service.cta.component}
               else
-                .ui.two.huge.buttons
-                  a.ui.huge.primary.button(href="/examples") See the Examples
-                  .or
-                  a.ui.huge.green.right.labeled.icon.button(href="/people")
-                    | Meet the Community
-                    i.right.chevron.icon
+                if (config.service.cta.icon)
+                  - var cta = config.service.cta
+                  a.ui.massive.centered.right.labeled.green.icon.button(href="#{cta.link}")
+                    i.right.chevron.icon(class="#{cta.icon}")
+                    | !{cta.text}
+                else
+                  a.ui.massive.fluid.green.button(href="#{cta.link}") #{cta.text}
+            else
+              .ui.two.huge.buttons
+                a.ui.huge.primary.button(href="/examples") See the Examples
+                .or
+                a.ui.huge.green.right.labeled.icon.button(href="/people")
+                  | Meet the Community
+                  i.right.chevron.icon
 
   script.
     Polymer({
       is: 'maki-masthead',
       properties: {
         src: { type: String , observer: '_srcChanged' },
+        // TODO: merge these two props into a shared behavior, a common root
+        // with `maki-navbar`
+        narrow: { type: Boolean , value: false , observer: '_setNarrow' },
+        centered: { type: Boolean , value: false , observer: '_setCentered' },
         component: { type: String , observer: '_componentChanged' },       
         data: { type: Object , observer: '_dataChanged' } 
+      },
+      _setNarrow: function(narrow) {
+        console.log('narrowChanged:', narrow);
+        this.$.navigation.classList.add('text');
+        this.$.pitch.classList.add('text');
+      },
+      _setCentered: function(centered) {
+        this.$.navigation.classList.add('center', 'aligned', 'inverted', 'segment');
+        this.$.pitch.classList.add('center', 'aligned', 'inverted', 'segment');
       },
       _srcChanged: function(src) {
         var self = this;
         console.log('[MAKI:MASTHEAD]', '_srcChanged', src);
-        document.querySelector(self.component).src = src;
+        var element = this.querySelector(self.component);
+        if (!element) return;    
+        element.src = src;
       },
       _dataChanged: function(data) {
         var self = this;
@@ -67,12 +81,15 @@ dom-module#maki-masthead
         console.log('[MAKI:MASTHEAD]', '_componentChanged', name);
         
         var self = this;
-        var viewport = this.$.masthead;
+        var viewport = this.$.pitch;
         
-        while (viewport.hasChildNodes()) {
-          viewport.removeChild(viewport.lastChild);
-        }
-        
+        // gross.
+        $(viewport).slideUp(function() {
+          while (viewport.hasChildNodes()) {
+            viewport.removeChild(viewport.lastChild);
+          }
+        });
+
         if (name) {
           var maki = document.querySelector('maki-application');
 
@@ -89,8 +106,17 @@ dom-module#maki-masthead
           element.classList.add('inverted');
           element.classList.add('segment');
           
-          this.$.masthead.appendChild(element);
-
+          viewport.appendChild(element);
+          
+          $(viewport).animate({
+            display: 'block',
+            height: '32em'
+          }, 200);
+          
+        } else {
+          while (viewport.hasChildNodes()) {
+            viewport.removeChild(viewport.lastChild);
+          }
         }
       },
       ready: function() {
