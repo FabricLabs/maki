@@ -19,6 +19,8 @@ dom-module#maki-masthead
     .ui.inverted.vertical.masthead.segment#segment
       .ui.container#navigation
         maki-navbar.ui.large.secondary.inverted.pointing.menu
+          a.right.toc.item
+            i.sidebar.icon
       .ui.container#pitch
         template(is="dom-if", if="{{!component}}")
           h1.ui.inverted.header #{config.service.pitch}

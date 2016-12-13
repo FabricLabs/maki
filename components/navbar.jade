@@ -19,8 +19,7 @@ dom-module#maki-navbar
           .ui.large.secondary.inverted.pointing.right.menu
             a.item(href="/people/#{user.id}") #{user.id}
             a.item(href="/sessions/#{session.hash}?method=delete") Logout
-        a.right.toc.item
-          i.sidebar.icon
+        content
 
   script.
     Polymer({
