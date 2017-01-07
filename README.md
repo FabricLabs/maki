@@ -1,10 +1,10 @@
 Maki
 ==============
+![Project Status](https://img.shields.io/badge/status-alpha-red.svg?style=flat-square)
 [![Build Status](https://img.shields.io/travis/martindale/maki.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki)
 [![Coverage Status](https://img.shields.io/coveralls/martindale/maki.svg?style=flat-square)](https://coveralls.io/r/martindale/maki)
-![Project Status](https://img.shields.io/badge/status-alpha-red.svg?style=flat-square)
-[![Community](https://chat.maki.io/badge.svg?style=flat-square)](https://chat.maki.io)
 [![Total Contributors](https://img.shields.io/github/contributors/martindale/maki.svg?style=flat-square)](https://github.com/martindale/maki/contributors)
+[![Sustainability](https://img.shields.io/gratipay/team/fabric-foundation.svg?style=flat-square)](https://gratipay.com/Fabric-Foundation)
 
 The complete stack for building extensible apps, faster than ever.  Hand-roll your application by telling Maki what your application does, and it takes care of the rest – without getting in your way if you want to customize it.
 
