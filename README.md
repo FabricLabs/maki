@@ -7,7 +7,7 @@ Maki
 The complete stack for building extensible apps, faster than ever.  Hand-roll your application by telling Maki what your application does, and it takes care of the rest – without getting in your way if you want to customize it.
 
 ## Heads Up!
-We're still in `alpha`!  For the latest work, please use [the `0.3` branch](https://github.com/martindale/maki/tree/0.3).
+We're still in `alpha`!  For the latest work, please use [the `0.3` branch](https://github.com/martindale/maki/tree/0.3).  Our progress can be tracked against [the `0.3` milestone](https://github.com/martindale/maki/milestone/4), and you can [join the #development channel](https://maki.io/topics/development) to speak with the developers.
 
 - **Write Once, Deploy Everywhere** Maki enables a standard definition for applications beyond simply web apps.  Because of our resource grammar, we can build desktop and native mobile applications directly – all in supplement to your web application.  All with the same code.
 - **Resource-Derived Infrastructure**  REST makes a lot of sense for APIs – we take it one step further and build the entire application around Resources as named channels, serving events and static documents alike.  Even Desktop applications built with Maki use the same, familiar API!
