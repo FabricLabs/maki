@@ -1,5 +1,6 @@
 Maki
 ==============
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ce3b4563148d4ba9a62c0a0b8bfdf74e)](https://www.codacy.com/app/martindale/maki?utm_source=github.com&utm_medium=referral&utm_content=martindale/maki&utm_campaign=badger)
 [![Build Status](https://img.shields.io/travis/martindale/maki.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki)
 [![Coverage Status](https://img.shields.io/coveralls/martindale/maki.svg?style=flat-square)](https://coveralls.io/r/martindale/maki)
 [![Community](https://chat.maki.io/badge.svg)](https://chat.maki.io/)
