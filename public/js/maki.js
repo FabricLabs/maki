@@ -10,11 +10,15 @@ if (loc.protocol === 'https:') {
 var retryTimes = [ 50, 250, 1000, 2500, 5000, 10000, 30000, 60000, 120000, 300000, 600000, 86400000 ]; //in ms
 var retryIndex = 0;
 
+// Jade hacks
+// TODO: automate creation of these
+var markdown = marked;
+
 // stub for a proper class
 var maki = {
     config: null
   , templates: {}
-  , routes: []
+  , routes: {}
   , socket: null // only one connected socket at a time (for now)
   , sockets: {
       subscriptions: [],
@@ -89,6 +93,9 @@ var maki = {
               case 'patch':
                 // TODO: update in-memory data (two-way binding);
                 console.log( data );
+                
+                // jade.render('index', {});
+
               break;
               default:
                 console.log('unhandled jsonrpc method ' , data.method);
@@ -162,8 +169,14 @@ $(window).on('ready', function() {
 
   $.ajax({
     type: 'OPTIONS',
-    url: '/'
+    url: '/',
+    headers: {
+      Accept: 'application/json'
+    }
   }).done(function(data) {
+    
+    console.log('OPTIONS request fulfilled.  data:', data);
+    
     if (!data || !data.resources) return console.log('failed to acquire resource list; disabling fancy stuff.');
     if (!data.config) return console.log('failed to acquire server config; disabling fancy stuff.');
 
@@ -174,54 +187,105 @@ $(window).on('ready', function() {
     maki.sockets.connect();
 
     // exit instead of binding client view handler
-    if (!maki.config.views || !maki.config.views.client || maki.config.views.client !== true) return console.log('client view rendering disabled.');
+    //if (!maki.config.views || !maki.config.views.client || maki.config.views.client !== true) return console.log('client view rendering disabled.');
 
     maki.resources = data.resources;
     maki.resources.forEach(function(resource) {
       // only support routing for lists and singles
       [ 'query', 'get' ].forEach(function(m) {
         var path = resource.paths[ m ];
-        if (path) maki.templates[ path ] = resource.templates[ m ];
+        if (path) {
+          maki.routes[path] = resource;
+          maki.templates[ path ] = resource.templates[ m ];
+        }
       });
     });
 
     // bind pushState stuff
+    // note that we expect all hyperlinks to be proper <a> tags!
     $( document ).on('click', 'a', function(e) {
       e.preventDefault();
       var $a = $(this);
       var href = $a.attr('href');
 
       var template;
+      var resource;
       Object.keys(maki.templates).forEach(function(route) {
+
         // HACK: don't bother matching routes of almost-zero length
         // TODO: fix this
-        if (href.length <= 1) return template = 'index';
+        if (href.length <= 1 || href === '/') return template = 'index';
 
         var string = route;
         var regex = new RegExp( eval( string ) );
         // TODO: do not match '/' –- see bugfix at top of this loop
-        if (regex.test( href )) template = maki.templates[ route ];
+        if (regex.test(href)) {
+          resource = maki.routes[route];
+          template = maki.templates[route];
+        }
       });
+
+      if (!jade.templates[template + '.jade']) {
+        console.log('no known template!');
+        template = 'resource';
+      }
 
       // TODO: use local factory / caching mechanism
       $.ajax({
           url: href
         , async: false
-      }).always(function( results ) {
+        , headers: {
+            Accept: 'application/json'
+          }
+      }).always(function(results) {
         if (!results) template = '500';
 
-        maki.sockets.unsubscribe( window.location.pathname );
+        maki.sockets.unsubscribe(window.location.pathname);
         maki.sockets.subscribe( href );
 
         var obj = {};
-        obj[ template ] = results;
+        if (resource) {
+          obj[ resource.names.query ] = results;
+          obj.resource = resource;
+          
+          if (results instanceof Array) {
+            obj.collection = results;
+          } else {
+            obj.item = results;
+          }
+          
+        }
 
-        maki.$viewport.html( Templates[ template ]( obj ) );
+        var locals = _.extend(obj, {
+          config: maki.config
+        });
+
+        // hacks abound!
+        jade.attr = function(key, val, escaped, terse) {
+          if ('boolean' == typeof val || null == val) {
+            if (val) {
+              return ' ' + (terse ? key : key + '="' + key + '"');
+            } else {
+              return '';
+            }
+          } else if (0 == key.indexOf('data') && 'string' != typeof val) {
+            return ' ' + key + "='" + JSON.stringify(val).replace(/'/g, '&apos;') + "'";
+          } else if (escaped) {
+            return ' ' + key + '="' + jade.escape(val) + '"';
+          } else {
+            return ' ' + key + '="' + val + '"';
+          }
+        };
+        jade.cls = function() { return ' F$%@'; }
+        
+        var html = jade.render(template, locals);
+
+        maki.$viewport.html(html);
 
         $('a.active').removeClass('active');
         $a.addClass('active');
 
-        history.pushState({}, '', href );
+        history.pushState({}, '', href);
       });
 
       return false;
