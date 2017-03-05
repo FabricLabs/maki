@@ -57,6 +57,22 @@ maki.use(snippets);
 maki.use(developers);
 maki.use(auth);
 
+maki.define('Doc', {
+  icon: 'book',
+  description: 'Resources and reference materials.',
+  source: __dirname + '/docs',
+  components: {
+    query: 'maki-api-index',
+    get: 'maki-doc-view'
+  },
+  attributes: {
+    id: { type: String , id: true },
+    title: { type: String , max: 240 },
+    content: { type: String },
+    created: { type: Date , default: Date.now },
+  }
+});
+
 maki.define('Example', {
   icon: 'idea',
   description: 'A list of applications Made With Maki.',
@@ -77,21 +93,22 @@ maki.define('Example', {
   }
 });
 
-maki.define('Doc', {
-  icon: 'book',
-  description: 'Resources and reference materials.',
-  source: __dirname + '/docs',
-  components: {
-    query: 'maki-api-index',
-    get: 'maki-doc-view'
-  },
+// TODO: create relative time system that uses absolute values for static events
+// but relative time for recurring events
+// i.e., an `end` time of 86400000 would be an event that consistently lasts one
+// full day from a relative `start` time of 0, with a `recurrence` value of any
+// enumerable value.
+var Event = maki.define('Event', {
+  icon: 'calendar',
+  description: 'A range of time',
   attributes: {
-    id: { type: String , id: true },
-    title: { type: String , max: 240 },
-    content: { type: String },
-    created: { type: Date , default: Date.now },
+    name: { type: String },
+    start: { type: Date },
+    end: { type: Date },
+    // TODO: consider creating a "Recurrence" object that also stores behavior
+    recurrence: { type: String , enum: ['daily', 'weekly', 'monthly', 'yearly'] }
   }
-});
+})
 
 var Topic = maki.define('Topic', {
   public: false,

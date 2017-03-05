@@ -1,0 +1,66 @@
+dom-module#maki-header
+  template
+    .ui.inverted.large.secondary.menu#container
+      a.logo.brand.item(href="/")
+        template(is="dom-if", if="{{logo}}")
+          img(src="{{logo}}")
+        template(is="dom-if", if="{{!logo && icon}}")
+          i(class="{{icon}}")
+        span.brand.normal #{config.service.name}
+      small.item #{config.service.pitch}
+
+      .right.menu
+        if (user)
+          a.item(href="/people/#{user.id}") #{user.id}
+          a.item(href="/sessions/#{session.hash}?method=delete") Logout
+        else
+          a.item(href="/authentications/slack")
+            i.sign.in.icon
+            | Sign In
+          a.item(href="/people#create")
+            i.add.user.icon
+            | Register
+    .ui.secondary.inverted.menu
+      a.item(href="/guides/what-is-maki")
+        i.home.icon
+        | About
+      //-a.item(href="/topics/community") <small>#</small>community
+      //-a.item(href="/topics/design") <small>#</small>design
+      //-a.item(href="/topics/development") <small>#</small>development
+        
+      each resource in resources
+        if (resource.public)
+          a.item(href="#{resource.routes.query}", title="#{resource.description}")
+            if (resource.options.icon)
+              i.icon(class="#{resource.options.icon}")
+            | #{resource.names.handle}
+
+      .right.menu
+        .item#search
+          .ui.inverted.transparent.icon.input
+            input(type="text", name="query", placeholder="Search...")
+            i.search.link.icon
+          
+      content
+
+  script.
+    Polymer({
+      is: 'maki-header',
+      properties: {
+        logo: { type: String , value: '/img/maki-icon.png' },
+        // TODO: merge these two props into a shared behavior, a common root
+        // with `maki-header`
+        narrow: { type: Boolean , value: false , observer: '_setNarrow' },
+        centered: { type: Boolean , value: false , observer: '_setCentered' },
+      },
+      _setNarrow: function(narrow) {
+        console.log('narrowChanged:', narrow);
+        //this.$.container.classList.add('text');
+      },
+      _setCentered: function(centered) {
+        //this.$.container.classList.add('center', 'aligned');
+      },
+      ready: function() {
+        
+      }
+    });

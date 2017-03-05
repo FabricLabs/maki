@@ -13,12 +13,12 @@ module.exports = {
     // heh.  this silly RFC.
     authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200' ,
     namespace: NAMESPACE ,
-    pitch: 'Make it with Maki!',
+    pitch: 'an experimental full-stack framework for cross-platform apps.',
     mission: process.env.MAKI_SERVICE_MISSION || 'Maki makes building beautiful apps a breeze.',
     description: process.env.MAKI_SERVICE_DESCRIPTION || 'Maki allows you to focus on your project, rather than laboring over architecture decisions.  With true isomorphism, you control how your application behaves, and can then customize how your features are exposed on specific platforms.',
     about: 'Maki is a noncommercial labor of love, built over many years as an experiment in application design.  We find it useful in our daily work, and hope you do, too.  <i class="heart icon"></i>',
     copyright: 'Maki is copy<em>left</em>, and encourages you to copy, clone, and <em>create</em>.  After all, without a rich public domain, how else can we innovate?<br /><br /><a href="https://github.com/martindale/maki/blob/master/LICENSE">Open Source Licenses May Apply</a>',
-    masthead: '/img/breeze.gif',
+    //masthead: '/img/breeze.gif',
     cta: {
       link: '/examples',
       // This example includes more complex markup

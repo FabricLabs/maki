@@ -118,8 +118,10 @@ dom-module#maki-application
         // handle masthead, if it exists
         if (masthead) {
           console.log('[MAKI:APPLICATION]', '_route', 'using component', masthead);
-          self.$.masthead.setAttribute('src', ctx.path);
           self.$.masthead.setAttribute('component', masthead);
+          
+          var now = self.$.masthead.component;
+          console.log('[MAKI:APPLICATION]', '_route', 'masthead component now:', now);
         } else {
           self.$.masthead.removeAttribute('component');
         }
@@ -172,6 +174,7 @@ dom-module#maki-application
         self.route = window.location.pathname;
         //self.worker = new Worker('/worker.js');
         // load the application configuration
+        // TODO: get rid of jquery!
         $.ajax({
           type: 'OPTIONS',
           url: '/',

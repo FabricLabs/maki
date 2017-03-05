@@ -18,13 +18,11 @@ dom-module#maki-masthead
   template
     .ui.inverted.vertical.masthead.segment#segment
       .ui.container#navigation
-        maki-navbar.ui.large.secondary.inverted.pointing.menu
-          a.right.toc.item
-            i.sidebar.icon
+        maki-header
       .ui.container#pitch
         template(is="dom-if", if="{{!component}}")
-          h1.ui.inverted.header #{config.service.pitch}
-          h2.ui.inverted.header #{config.service.mission}
+          //-h1.ui.inverted.header #{config.service.pitch}
+          h1.ui.inverted.header #{config.service.mission}
 
           .content.top-padded
             if (config.service.cta)
@@ -59,11 +57,13 @@ dom-module#maki-masthead
         data: { type: Object , observer: '_dataChanged' } 
       },
       _setNarrow: function(narrow) {
+        if (!this.narrow) return;
         console.log('narrowChanged:', narrow);
         this.$.navigation.classList.add('text');
         this.$.pitch.classList.add('text');
       },
       _setCentered: function(centered) {
+        if (!this.centered) return;
         this.$.navigation.classList.add('center', 'aligned', 'inverted', 'segment');
         this.$.pitch.classList.add('center', 'aligned', 'inverted', 'segment');
       },
@@ -83,19 +83,23 @@ dom-module#maki-masthead
         console.log('[MAKI:MASTHEAD]', '_componentChanged', name);
         
         var self = this;
-        var viewport = this.$.pitch;
+        var pitchport = this.$.pitch;
+        
+        console.log('[MAKI:MASTHEAD]', '_componentChanged', 'pitchport:', pitchport);
+        console.log('[MAKI:MASTHEAD]', '_componentChanged', 'name:', name);
         
         // gross.
-        $(viewport).slideUp(function() {
-          while (viewport.hasChildNodes()) {
-            viewport.removeChild(viewport.lastChild);
+        $(pitchport).slideUp(function() {
+          while (pitchport.hasChildNodes()) {
+            pitchport.removeChild(pitchport.lastChild);
           }
         });
 
         if (name) {
           var maki = document.querySelector('maki-application');
-
           var element = document.createElement(name);
+          
+          console.log('[MAKI:MASTHEAD]', '_componentChanged', 'maki.config.service:', maki.config.service);
           
           element.setAttribute('pitch', maki.config.service.pitch);
           element.setAttribute('mission', maki.config.service.mission);
@@ -108,17 +112,12 @@ dom-module#maki-masthead
           element.classList.add('inverted');
           element.classList.add('segment');
           
-          viewport.appendChild(element);
+          console.log('[MAKI:MASTHEAD]', '_componentChanged', 'element:', element);
+
+          pitchport.appendChild(element);
           
-          $(viewport).animate({
-            display: 'block',
-            height: '32em'
-          }, 200);
-          
-        } else {
-          while (viewport.hasChildNodes()) {
-            viewport.removeChild(viewport.lastChild);
-          }
+          $(pitchport).slideDown();
+
         }
       },
       ready: function() {
