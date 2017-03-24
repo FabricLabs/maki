@@ -1,0 +1,49 @@
+dom-module#maki-search-box
+  template
+    .ui.inverted.transparent.icon.input
+      input(type="text", name="query", placeholder="Search...", value="{{query::input}}")
+      i.search.link.icon
+  script.
+    Polymer({
+      is: 'maki-search-box',
+      properties: {
+        query: { type: String , observer: '_search' },
+        // internals
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _search: function(q, old) {
+        console.log('[MAKI:SEARCH-BOX]', '_search', q);
+        var results = app.search['all'].search(q);
+        console.log('[MAKI:SEARCH-BOX]', '_search', 'results', results);
+
+        self.data = results;
+        
+        //app.view = 'maki-search-results-view';
+        app.view = 'maki-search-results';
+        
+        var viewport = app.$.viewport;
+        var element = document.createElement(app.view);
+
+        viewport.toggleClass('loading', false);
+        element.setAttribute('src', app.path);
+        
+        while (viewport.hasChildNodes()) {
+          viewport.removeChild(viewport.lastChild);
+        }
+        
+        viewport.appendChild(element);
+        viewport.toggleClass('loading', false);
+        
+        element.data = results;
+         
+        // TODO: use internal search function (i.e., make search available at
+        // the datastore level)
+        /*app.datastore._search(q, function(err, results) {
+          console.log('results:', err, results);
+        });*/
+      },
+    });

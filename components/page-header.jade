@@ -1,0 +1,29 @@
+dom-module#maki-page-header
+  template
+    h1.ui.inverted.header {{pitch}}
+    h2.ui.inverted.header {{mission}}
+
+    template(is="dom-if", if="{{cta}}")    
+      .content.top-padded
+        a.ui.massive.centered.right.labeled.green.icon.button(href="{{cta.link}}")
+          span {{cta.text}}
+          i.right.chevron.icon
+
+  script.
+    Polymer({
+      is: 'maki-page-header',
+      properties: {
+        data: { type: Object , observer: '_dataChanged' },
+        pitch: { type: String },
+        mission: { type: String },
+        cta: { type: Object },
+      },
+      _dataChanged: function(data, old) {
+        console.log('[MAKI:PAGE-HEADER]', '_dataChanged', data);
+        this.pitch = data.pitch;
+        this.mission = data.mission;
+      },
+      ready: function() {
+        console.log('[MAKI:PAGE-HEADER]', 'ready');
+      },
+    });

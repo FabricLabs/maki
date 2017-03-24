@@ -1,0 +1,24 @@
+dom-module#maki-search-results
+  template
+    h1 search result
+      span {{data.query}}
+    .ui.list
+      template(dom-repeat="{{data.results}}")
+        .item
+          .header {{item}}
+  
+  script.
+    Polymer({
+      is: 'maki-search-results',
+      properties: {
+        // internals
+        src: { type: String , observer: '_load' },
+        data: { type: Object , observer: '_dataChanged' },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _dataChanged: function(data, old) {
+        console.log('[MAKI:SEARCH-RESULTS]', '_dataChanged', data);
+      }
+    });
