@@ -12,6 +12,7 @@ maki.use( passport );
 maki.use(require('maki-client-level'));
 maki.use(require('maki-client-polymer'));
 maki.use(require('maki-client-markdown'));
+maki.use(require('maki-client-search'));
 
 var AuthSlack = require('maki-auth-slack');
 var authSlack = new AuthSlack({
@@ -23,24 +24,46 @@ maki.use(authSlack);
 
 var CMS = require('maki-cms-local');
 var cms = new CMS({
+  public: true,
+  icon: 'book',
+  name: 'Doc',
+  description: 'Resources and reference materials.',
+  source: __dirname + '/docs',
+  components: {
+    query: 'maki-api-index',
+    get: 'maki-doc-view'
+  },
   base: '/docs',
   path: '/docs',
   view: process.env.PWD + '/views/page'
 });
 
+var guides = new CMS({
+  name: 'Guide',
+  base: '/guides',
+  path: '/source/guides',
+  view: process.env.PWD + '/views/page',
+  components: {
+    masthead: 'maki-page-header'
+  }
+});
+
 var tutorials = new CMS({
+  name: 'Tutorial',
   base: '/tutorials',
   path: '/source/tutorials',
   view: process.env.PWD + '/views/page'
 });
 
 var snippets = new CMS({
+  name: 'Snippet',
   base: '/snippets',
   path: '/source/snippets',
   view: process.env.PWD + '/views/page'
 });
 
 var developers = new CMS({
+  name: 'Developer',
   base: '/developers',
   path: '/source/developers',
   view: process.env.PWD + '/views/page'
@@ -52,26 +75,11 @@ var auth = new Auth({
 });
 
 maki.use(cms);
+maki.use(guides);
 maki.use(tutorials);
 maki.use(snippets);
 maki.use(developers);
 maki.use(auth);
-
-maki.define('Doc', {
-  icon: 'book',
-  description: 'Resources and reference materials.',
-  source: __dirname + '/docs',
-  components: {
-    query: 'maki-api-index',
-    get: 'maki-doc-view'
-  },
-  attributes: {
-    id: { type: String , id: true },
-    title: { type: String , max: 240 },
-    content: { type: String },
-    created: { type: Date , default: Date.now },
-  }
-});
 
 maki.define('Example', {
   icon: 'idea',

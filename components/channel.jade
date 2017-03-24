@@ -1,4 +1,6 @@
 dom-module#maki-channel
+  template
+    maki-channel-status#indicator
   script(src="/js/uuid.js", async)
   script(src="/js/jsonrpc.js", async)
   script.
@@ -103,9 +105,11 @@ dom-module#maki-channel
         var path = protocol + document.location.host; // + self.src;
         
         console.log('[MAKI:CHANNEL]', 'websocket connecting to: ', path);
+        self.$.indicator.status = 'connecting...';
         
         self.ws = new WebSocket(path);
         self.ws.onclose = function onClose() {
+          self.$.indicator.status = 'disconnected';
           if (self.reconnect === true) {
             setTimeout(function() {
               self._connect();
@@ -114,12 +118,14 @@ dom-module#maki-channel
         }
         self.ws.onmessage = self._handleMessage.bind(self);
         self.ws.onopen = function onOpen() {
+          self.$.indicator.status = 'connected';
           console.log('[MAKI:CHANNEL]', 'websocket open.');
         }
       },
       ready: function() {
         var self = this;
         console.log('[MAKI:CHANNEL]', 'ready');
+        self.$.indicator.status = 'ready';
         if (self.autoconnect === true) {
           self._connect();
         }

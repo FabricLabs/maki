@@ -4,7 +4,7 @@ dom-module#maki-invitation-card
       img(src="https://www.gravatar.com/avatar/{{data.avatar}}?s=500")
     .content
       a.header(href="/invitations/{{data.id}}")
-        small(style="color: rgba(0,0,0,.4);") @
+        small.subtle @
         | {{data.username}}
       .meta invited on
         abbr.tooltipped(title="{{data.created}}") {{data.created}}

@@ -112,9 +112,11 @@ dom-module#maki-datastore
         // TODO: middlewares
         var self = this;
         var name = self.name;
+
         self._bundle(val, function(err, obj) {
-          if (err) console.error(err);
           console.log('[MAKI:DATASTORE]', '_put', '_post', '_bundle', '_publish', 'output', obj);
+
+          if (err) console.error(err);
           if (!obj) console.log('[MAKI:DATASTORE]', '_put', 'grave concern!  no obj from bundle', path, val);
           if (!obj['@id']) console.log('[MAKI:DATASTORE]', '_put', 'grave concern!  no @id from bundle', obj);
             
@@ -124,13 +126,17 @@ dom-module#maki-datastore
           
           self.db._set(obj['@id'], obj, function(err) {
             if (err) console.error(err);
+
             console.log('[MAKI:DATASTORE]', name, '_put', '_publish', 'setting tip...', path, obj['@id']);
+
             self.tips._set(path, obj['@id'], function(err) {
               if (err) console.error(err);
+
               console.log('[MAKI:DATASTORE]', name, '_put', '_publish', 'set the tip!', path, obj);
 
               self._flatten(obj, function(err, doc) {
                 var application = document.querySelector(self.for + '-application');
+
                 // TODO: not do this.  maybe use the `private` property?
                 if (!application) {
                   console.error('[MAKI:DATASTORE]', name, '_put', '_publish', 'could not find application', self.for);
@@ -199,14 +205,19 @@ dom-module#maki-datastore
         });
       },
       // HTTP-emulated GET request
-      _get: function(path, cb) {
+      _get: function(uri, cb) {
         // TODO: middlewares
         var self = this;
         var name = self.name;
-        console.log('[MAKI:DATASTORE]', '_get looking for:', path);
+        console.log('[MAKI:DATASTORE]', '_get looking for:', uri);
         
-        var eventName = 'key-value:'+name+':open';
-        console.log('[MAKI:DATASTORE]', name, '_get', 'waiting for (eventName):', eventName);
+        var parser = document.createElement('a');
+        parser.href = key;
+        
+        console.log('[MAKI:DATASTORE]', '_get', 'parsed path name:', path);
+        
+        var path = parser.pathname;
+
         self.tips._get(path, function(err, tip) {
           if (err) console.error('[MAKI:DATASTORE]', '_get', path, err);
 

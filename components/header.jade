@@ -14,7 +14,7 @@ dom-module#maki-header
           a.item(href="/people/#{user.id}") #{user.id}
           a.item(href="/sessions/#{session.hash}?method=delete") Logout
         else
-          a.item(href="/authentications/slack")
+          a.item(href="/sessions#create")
             i.sign.in.icon
             | Sign In
           a.item(href="/people#create")
@@ -36,11 +36,8 @@ dom-module#maki-header
             | #{resource.names.handle}
 
       .right.menu
-        .item#search
-          .ui.inverted.transparent.icon.input
-            input(type="text", name="query", placeholder="Search...")
-            i.search.link.icon
-          
+        maki-search-box.item#search
+
       content
 
   script.

@@ -9,9 +9,9 @@ applications.
 ## Components
 At its core, Fabric consists of three primary components.
 
-- Peer-to-Peer Network
-- Content Storage Layer
-- Component Registry
+- A Peer-to-Peer Network
+- The Content Storage Layer
+- The Component Registry
 
 These components operate in concert to deliver all of the necessary
 infrastructure a distributed application requires to function.  By using this
@@ -23,7 +23,7 @@ Connections between participating members of the Fabric network are coupled with
 Payment Channels, a mechanism supported by the Bitcoin protocol for making
 rapidly-adjusted "micropayments" between those peers.
 
-Network clients may broadcast `request` messages, asking for the delivery of 
+Network clients may broadcast `request` messages, asking for the delivery of
 a particular piece of addressable content.
 
 Message relay fees are attached to each message, providing a maximum amount of
@@ -58,7 +58,7 @@ compile time.  This model relies on previous work in Functional Programming (FP)
 and extends Alan Kay's work on distributed messaging systems.
 
 ## How does Fabric work?
-Alice wants to run an application that Bob has published.  Bob, having shared 
+Alice wants to run an application that Bob has published.  Bob, having shared
 the name of his application, "melody", with Alice, is a developer that is using
 Maki to describe the behavior of his application to the Fabric network.  These
 behaviors are described in a registry, and bundled as a group in the application
@@ -95,7 +95,7 @@ As confirmations of matching results are received from the network, or from the
 mutation increase.
 
 ### Root Resources
-The following Resources are exposed by _all_ Maki-powered applications, and by 
+The following Resources are exposed by _all_ Maki-powered applications, and by
 default they require a `root` token to modify (by default).
 
 - `/components` - all components in use by the application (as a bundle, top-level, or individually at `/components/:name`)

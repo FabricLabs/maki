@@ -21,29 +21,7 @@ dom-module#maki-masthead
         maki-header
       .ui.container#pitch
         template(is="dom-if", if="{{!component}}")
-          //-h1.ui.inverted.header #{config.service.pitch}
-          h1.ui.inverted.header #{config.service.mission}
-
-          .content.top-padded
-            if (config.service.cta)
-              if (config.service.cta.component)
-                | !{config.service.cta.component}
-              else
-                if (config.service.cta.icon)
-                  - var cta = config.service.cta
-                  a.ui.massive.centered.right.labeled.green.icon.button(href="#{cta.link}")
-                    i.right.chevron.icon(class="#{cta.icon}")
-                    | !{cta.text}
-                else
-                  a.ui.massive.fluid.green.button(href="#{cta.link}") #{cta.text}
-            else
-              .ui.two.huge.buttons
-                a.ui.huge.primary.button(href="/examples") See the Examples
-                .or
-                a.ui.huge.green.right.labeled.icon.button(href="/people")
-                  | Meet the Community
-                  i.right.chevron.icon
-
+          maki-pitch
   script.
     Polymer({
       is: 'maki-masthead',
@@ -54,7 +32,7 @@ dom-module#maki-masthead
         narrow: { type: Boolean , value: false , observer: '_setNarrow' },
         centered: { type: Boolean , value: false , observer: '_setCentered' },
         component: { type: String , observer: '_componentChanged' },       
-        data: { type: Object , observer: '_dataChanged' } 
+        data: { type: Object , observer: '_dataChanged', value: {} } 
       },
       _setNarrow: function(narrow) {
         if (!this.narrow) return;
@@ -77,48 +55,54 @@ dom-module#maki-masthead
       _dataChanged: function(data) {
         var self = this;
         console.log('[MAKI:MASTHEAD]', '_dataChanged', data);
-        document.querySelector(self.component).data = data;
+        self.$.pitch.setAttribute('data', data);
       },
       _componentChanged: function(name, old) {
-        console.log('[MAKI:MASTHEAD]', '_componentChanged', name);
-        
-        var self = this;
-        var pitchport = this.$.pitch;
-        
-        console.log('[MAKI:MASTHEAD]', '_componentChanged', 'pitchport:', pitchport);
         console.log('[MAKI:MASTHEAD]', '_componentChanged', 'name:', name);
-        
+        var self = this;
         // gross.
-        $(pitchport).slideUp(function() {
-          while (pitchport.hasChildNodes()) {
-            pitchport.removeChild(pitchport.lastChild);
+        $(self.$.pitch).slideUp(function() {
+          console.log('[MAKI:MASTHEAD]', '_componentChanged', 'slideUp done');
+
+          var target = self.$.pitch;
+          while (target.hasChildNodes()) {
+            target.removeChild(target.lastChild);
+          }
+          
+          console.log('[MAKI:MASTHEAD]', '_componentChanged', 'children removed');
+
+          if (name) {
+            var maki = app;
+            var element = document.createElement(name);
+            
+            self.data = {
+              pitch: 'foo',
+              mission: 'bar'
+            }
+
+            console.log('[MAKI:MASTHEAD]', 'pitch', 'ready');
+            console.log('[MAKI:MASTHEAD]', 'pitch', 'setting data', self.data);
+            
+            element.setAttribute('pitch', self.data.pitch || maki.config.service.pitch);
+            element.setAttribute('mission', self.data.mission || maki.config.service.mission);
+
+            //element.cta = maki.config.service.cta;
+            
+            // ಠ_ಠ
+            element.classList.add('ui');
+            element.classList.add('center');
+            element.classList.add('aligned');
+            element.classList.add('inverted');
+            element.classList.add('segment');
+            
+            console.log('[MAKI:MASTHEAD]', '_componentChanged', 'element:', element);
+
+            Polymer.dom(self.$.pitch).appendChild(element);
+            Polymer.dom(self.$.pitch).flush();
+
+            $(self.$.pitch).slideDown();
           }
         });
-
-        if (name) {
-          var maki = document.querySelector('maki-application');
-          var element = document.createElement(name);
-          
-          console.log('[MAKI:MASTHEAD]', '_componentChanged', 'maki.config.service:', maki.config.service);
-          
-          element.setAttribute('pitch', maki.config.service.pitch);
-          element.setAttribute('mission', maki.config.service.mission);
-          element.cta = maki.config.service.cta;
-          
-          // ಠ_ಠ
-          element.classList.add('ui');
-          element.classList.add('center');
-          element.classList.add('aligned');
-          element.classList.add('inverted');
-          element.classList.add('segment');
-          
-          console.log('[MAKI:MASTHEAD]', '_componentChanged', 'element:', element);
-
-          pitchport.appendChild(element);
-          
-          $(pitchport).slideDown();
-
-        }
       },
       ready: function() {
         console.log('[MAKI:MASTHEAD]', 'ready');

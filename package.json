@@ -86,6 +86,7 @@
     "spdy": "^1.28.1",
     "speakingurl": "^1.1.5",
     "streamifier": "^0.1.0",
+    "uuid": "^3.0.1",
     "walk": "^2.3.9",
     "ws": "~0.4.31",
     "yaml-front-matter": "^3.4.0"

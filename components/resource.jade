@@ -1,5 +1,4 @@
 dom-module#maki-resource
-  script(src="/assets/nedb.min.js", async)
   script.
     Polymer({
       is: 'maki-resource',
@@ -17,13 +16,20 @@ dom-module#maki-resource
       _load: function() {
         var self = this;
         console.log('[MAKI:RESOURCE]', '_load', self.name);
-        /*self.store = new Nedb({
+
+        self.store = new Nedb({
           filename: self.name,
-          autoload: true
-        }); */
+          autoload: true,
+          onload: function(err) {
+            if (err) console.error('[MAKI:RESOURCE]', '_load', err);
+            self.fire('resource:store');
+          }
+        });
+        
       },
       ready: function() {
         var self = this;
         console.log('[MAKI:RESOURCE]', 'ready', self.name);
+        self._load();
       }
     });
