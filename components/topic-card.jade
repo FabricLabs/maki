@@ -6,6 +6,12 @@ dom-module#maki-topic-card
         | {{data.name}}
       p {{data.description}}
       .meta created by <a href="/people/{{data.creator}}">{{data.creator}}</a>
+      .meta published by 
+        template(is="dom-if", if="{{data.authors}}")
+          template(is="dom-repeat", items="{{data.authors}}")
+            a(href="/people/{{item.creator}}") {{item.creator}}
+        template(is="dom-if", if="{{data.authors}}")
+          a(href="/people/{{data.creator}}") {{data.creator}}
     .extra.content
       .ui.two.mini.statistics
         .ui.statistic
