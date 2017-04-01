@@ -3,6 +3,9 @@ dom-module#maki-search-result
     .content
       a.header(href="{{data.link}}") {{data.id}}
       .metadata
+        .right.floated.ui.buttons
+          a.ui.right.labeled.blue.icon.button(href="{{data.link}}")
+            i.right.chevron.icon
         | a  
         span {{meta.type}}
   script.
@@ -38,7 +41,10 @@ dom-module#maki-search-result
           
           var meta = {
             type: map['X-Fabric-Type'],
-            namespace: map['X-Fabric-Namespace']
+            namespace: map['X-Fabric-Namespace'],
+            name: map['X-Fabric-Name'],
+            //description: map['X-Fabric-Description'],
+            //image: map['X-Fabric-Image'],
           };
           
           self.meta = meta;
