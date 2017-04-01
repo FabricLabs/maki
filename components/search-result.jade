@@ -1,11 +1,10 @@
 dom-module#maki-search-result
   template
     .content
+      a.ui.right.floated.blue.icon.button(href="{{data.link}}")
+        i.right.chevron.icon
       a.header(href="{{data.link}}") {{data.id}}
       .metadata
-        .right.floated.ui.buttons
-          a.ui.right.labeled.blue.icon.button(href="{{data.link}}")
-            i.right.chevron.icon
         | a  
         span {{meta.type}}
   script.
@@ -23,6 +22,8 @@ dom-module#maki-search-result
       _load: function(uri, back) {
         var self = this;
         console.log('[MAKI:SEARCH-RESULT]', '_load', uri, back);
+        
+        $(self).addClass('loading');
 
         // TODO: use this API instead:
         // fabric.get(self.src, function(err, data) { ... });
@@ -51,6 +52,8 @@ dom-module#maki-search-result
           self.data = data;
           
           console.log('[MAKI:SEARCH-RESULT]', '_load', 'loaded', meta);
+          
+          $(self).removeClass('loading');
         });
 
       },

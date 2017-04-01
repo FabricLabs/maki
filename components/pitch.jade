@@ -1,0 +1,27 @@
+dom-module#maki-pitch
+  template
+    h1.ui.inverted.header
+      img.ui.mini.image(src="{{data.service.logo}}", style="margin-right: 1em;")
+      span {{data.service.name}}
+      | .
+    h2.ui.inverted.header {{data.service.mission}}
+    
+    template(is="dom-if", if="{{data.cta}}")
+      .content.top-padded
+        a.ui.right.labeled.icon.button(href="{{data.cta.link}}")
+          span {{data.cta.text}}
+          i.icon.right.chevron
+
+  script.
+    Polymer({
+      is: 'maki-pitch',
+      properties: {
+        data: { type: Object },
+        pitch: { type: String },
+        mission: { type: String },
+        cta: { type: Object },
+      },
+      ready: function() {
+        console.log('[MAKI:PITCH]', 'ready');
+      },
+    });

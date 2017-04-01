@@ -1,7 +1,7 @@
 dom-module#maki-page-header
   template
-    h1.ui.inverted.header {{pitch}}
-    h2.ui.inverted.header {{mission}}
+    h1.ui.inverted.header {{data.metadata.title}}
+    h2.ui.inverted.header {{data.metadata.description}}
 
     template(is="dom-if", if="{{cta}}")    
       .content.top-padded
@@ -14,14 +14,29 @@ dom-module#maki-page-header
       is: 'maki-page-header',
       properties: {
         data: { type: Object , observer: '_dataChanged' },
-        pitch: { type: String },
-        mission: { type: String },
-        cta: { type: Object },
+        // internals
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
       },
       _dataChanged: function(data, old) {
         console.log('[MAKI:PAGE-HEADER]', '_dataChanged', data);
         this.pitch = data.pitch;
         this.mission = data.mission;
+      },
+      _load: function(uri, back) {
+        var self = this;
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          if (data.metadata.edit && data.metadata.source) {
+            self.editable = true;
+          }
+          self.data = data;
+          self.source = data.content;
+        });
       },
       ready: function() {
         console.log('[MAKI:PAGE-HEADER]', 'ready');

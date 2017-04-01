@@ -75,18 +75,8 @@ dom-module#maki-masthead
             var maki = app;
             var element = document.createElement(name);
             
-            self.data = {
-              pitch: 'foo',
-              mission: 'bar'
-            }
-
-            console.log('[MAKI:MASTHEAD]', 'pitch', 'ready');
-            console.log('[MAKI:MASTHEAD]', 'pitch', 'setting data', self.data);
-            
-            element.setAttribute('pitch', self.data.pitch || maki.config.service.pitch);
-            element.setAttribute('mission', self.data.mission || maki.config.service.mission);
-
-            //element.cta = maki.config.service.cta;
+            element.setAttribute('src', window.location);
+            element.data = app.config;
             
             // ಠ_ಠ
             element.classList.add('ui');
