@@ -57,6 +57,7 @@
     "maki-client-level": "^0.1.0",
     "maki-client-markdown": "martindale/maki-client-markdown",
     "maki-client-polymer": "git://github.com/martindale/maki-client-polymer",
+    "maki-client-search": "martindale/maki-client-search",
     "maki-cms-local": "git://github.com/martindale/maki-cms-local#master",
     "maki-forms": "0.0.0",
     "maki-jsonrpc": "^0.1.1",
