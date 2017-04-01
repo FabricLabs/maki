@@ -1,0 +1,54 @@
+dom-module#maki-search-result
+  template
+    .content
+      a.header(href="{{data.link}}") {{data.id}}
+      .metadata
+        | a  
+        span {{meta.type}}
+  script.
+    Polymer({
+      is: 'maki-search-result',
+      properties: {
+        // internals
+        src: { type: String , observer: '_load' },
+        data: { type: Object , observer: '_dataChanged' },
+        meta: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:SEARCH-RESULT]', '_load', uri, back);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(uri, {}, function(data, status, xhr) {
+          var headers = xhr.getAllResponseHeaders();
+          var fields = headers.split('\n');
+          var map = {};
+          
+          fields.forEach(function(header) {
+            var pair = header.split(':').map(function(input) {
+              return input.trim();
+            });
+            
+            map[pair[0]] = pair[1];
+          });
+          
+          var meta = {
+            type: map['X-Fabric-Type'],
+            namespace: map['X-Fabric-Namespace']
+          };
+          
+          self.meta = meta;
+          self.data = data;
+          
+          console.log('[MAKI:SEARCH-RESULT]', '_load', 'loaded', meta);
+        });
+
+      },
+      _dataChanged: function(data, old) {
+        console.log('[MAKI:SEARCH-RESULT]', '_dataChanged', data);
+      }
+    });

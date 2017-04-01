@@ -6,13 +6,7 @@ dom-module#maki-search-results
       span {{data.query}}
     .ui.cards
       template(is="dom-repeat", items="{{data}}")
-        .ui.card
-          .content
-            .header {{item.id}}
-            .metadata a 
-              span {{item.type}}
-        //-maki-tile.ui.card(src="{{item.ref}}")
-  
+        maki-search-result.ui.fluid.card(src="{{item.ref}}")
   script.
     Polymer({
       is: 'maki-search-results',
@@ -23,17 +17,6 @@ dom-module#maki-search-results
         state: { type: String },
         source: { type: String },
         output: { type: String }
-      },
-      _load: function(uri, back) {
-        var self = this;
-        console.log('[MAKI:SEARCH-RESULTS]', '_load', uri, back);
-
-        // TODO: use this API instead:
-        // fabric.get(self.src, function(err, data) { ... });
-        $.getJSON(uri, function(data) {
-          self.data = _.shuffle(data);
-        });
-
       },
       _dataChanged: function(data, old) {
         console.log('[MAKI:SEARCH-RESULTS]', '_dataChanged', data);

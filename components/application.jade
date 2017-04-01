@@ -170,7 +170,7 @@ dom-module#maki-application
           });
           
           if (window.lunr) {
-            console.log('[MAKI:APPLICATION]', 'search', true);
+            console.log('[MAKI:SEARCH]', 'search is enabled.', 'Building index...');
 
             self.data[definition.names['query']] = {};
             self.search[definition.names['query']] = lunr(function() {
@@ -190,8 +190,11 @@ dom-module#maki-application
             });
 
             // TODO: use fabric
-            $.getJSON(definition.routes['query'], function(data) {
-              var mapped = data.filter(function(x) {
+            var endpoint = definition.routes['query'];
+            $.getJSON(endpoint, function(data) {
+              console.log('[MAKI:SEARCH]', definition.name, endpoint, 'retrieved seed:', data);
+              
+              var mapped = data.map(function(x) {
                 x.content = JSON.stringify(x);
                 return x;
               });
