@@ -1,22 +1,16 @@
 //- a human-friendly name for users
-dom-module#maki-person-card
+dom-module#maki-tile
   template
-    a.image(href="/people/{{data.id}}")
+    a.image(href="{{data.link}}")
       img(src="{{data.image.avatar}}")
     .content
-      a.header(href="/people/{{data.slug}}")
+      a.header(href="{{data.link}}")
         small.subtle @
         | {{data.id}}
-      .meta joined in 
-        abbr.tooltipped(title="{{data.created}}") {{humanFriendlyDate(data.created)}}
-      p {{data.bio}}
-    .extra.content
-      .ui.buttons
-        template(is="dom-repeat", items="{{data.profiles}}")
-          .ui.button {{item}}
+
   script.
     Polymer({
-      is: 'maki-person-card',
+      is: 'maki-tile',
       properties: {
         src: { type: String , observer: '_load' },
         data: { type: Object },
@@ -30,18 +24,16 @@ dom-module#maki-person-card
       },
       _load: function(uri, back) {
         var self = this;
-        console.log('[MAKI:PERSON-CARD]', '_load', uri, back);
-        self.toggleClass('loading', true);
+        console.log('[MAKI:TILE]', '_load', uri, back);
 
         // TODO: use this API instead:
         // fabric.get(self.src, function(err, data) { ... });
         $.getJSON(self.src, function(data) {
           self.data = data;
-          self.toggleClass('loading', false);
         });
 
       },
       ready: function() {
-        console.log('[MAKI:PERSON-CARD]', 'ready');
+        console.log('[MAKI:TILE]', 'ready');
       }
     });

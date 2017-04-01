@@ -9,7 +9,7 @@ dom-module#maki-search-box
       properties: {
         query: { type: String , observer: '_search' },
         // internals
-        src: { type: String , observer: '_load' },
+        src: { type: String },
         data: { type: Object },
         state: { type: String },
         source: { type: String },
@@ -38,6 +38,7 @@ dom-module#maki-search-box
         viewport.appendChild(element);
         viewport.toggleClass('loading', false);
         
+        //element.setAttribute('data', results);
         element.data = results;
          
         // TODO: use internal search function (i.e., make search available at
