@@ -44,7 +44,22 @@ var guides = new CMS({
   path: '/source/guides',
   view: process.env.PWD + '/views/page',
   components: {
-    masthead: 'maki-page-header'
+    masthead: 'maki-page-header',
+    get: 'maki-page-view'
+  }
+});
+
+var examples = new CMS({
+  name: 'Example',
+  base: '/examples',
+  path: '/source/examples',
+  icon: 'idea',
+  public: true,
+  view: process.env.PWD + '/views/page',
+  components: {
+    masthead: 'maki-page-header',
+    query: 'maki-example-showcase',
+    get: 'maki-page-view',
   }
 });
 
@@ -76,30 +91,11 @@ var auth = new Auth({
 
 maki.use(cms);
 maki.use(guides);
+maki.use(examples);
 maki.use(tutorials);
 maki.use(snippets);
 maki.use(developers);
 maki.use(auth);
-
-maki.define('Example', {
-  icon: 'idea',
-  description: 'A list of applications Made With Maki.',
-  pitch: 'Open source by default.',
-  mission: 'Most apps made with Maki are completely transparent.',
-  source: __dirname + '/source/examples',
-  components: {
-    masthead: 'maki-example-promise',
-    query: 'maki-example-showcase',
-    get: 'maki-example-view'
-  },
-  attributes: {
-    id: { type: String , id: true },
-    title: { type: String , max: 240 },
-    content: { type: String },
-    created: { type: Date , default: Date.now },
-    screenshot: { type: 'File' }
-  }
-});
 
 // TODO: create relative time system that uses absolute values for static events
 // but relative time for recurring events

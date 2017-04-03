@@ -19,8 +19,7 @@ var app = require('maki')();
 
 var CMS = require('maki-cms-local');
 var cms = new CMS({
-  path: '/pages',
-  view: process.env.PWD + '/views/page'
+  path: '/pages'
 });
 
 app.use(cms).start();

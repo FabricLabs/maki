@@ -52,7 +52,7 @@ dom-module#maki-page-view
           pitch: self.data.metadata.title,
           mission: self.data.metadata.description,
         }
-        app.$.masthead.setAttribute('component', 'maki-page-header');
+        app.$.masthead.setAttribute('component', self.data.metadata.masthead);
       },
       _load: function(uri, back) {
         var self = this;
