@@ -1,0 +1,32 @@
+dom-module#maki-dropdown
+  template
+    .ui.fluid.search.selection.dropdown
+      input.input(type="hidden", name="family")
+      i.dropdown.icon
+      .default.text Language
+      .menu
+        template(is="dom-repeat", items="{{data}}")
+          // TODO: bind client behaviors to data change; 2-way pipelines
+          .item(data-value="{{item.id}}") {{item.name}}
+  script.
+    Polymer({
+      is: 'maki-dropdown',
+      properties: {
+        // internals
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:DROPDOWN]', '_load', uri, back);
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = data;
+        });
+
+      },
+    });
