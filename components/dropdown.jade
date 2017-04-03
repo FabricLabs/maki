@@ -27,6 +27,8 @@ dom-module#maki-dropdown
         $.getJSON(self.src, function(data) {
           self.data = data;
         });
-
       },
+      attached: function() {
+        $('.dropdown').dropdown();
+      }
     });
