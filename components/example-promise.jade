@@ -1,0 +1,31 @@
+dom-module#maki-example-promise
+  template
+    .ui.left.aligned.text.container
+      h2.ui.inverted.header View the source, Luke. 
+        i.code.icon
+      h3.ui.inverted.header Maki apps are transparent by default.  You can peek at the source any time you see the code icon to learn how something is done.
+
+      .content.top-padded
+        .ui.two.huge.stackable.buttons
+          a.ui.huge.primary.labeled.icon.button(href="/examples#selection")
+            i.icon.code.fork
+            | Pick a Path
+          .or
+          a.ui.huge.green.right.labeled.icon.button(href="/examples#samples")
+            | Browse the Samples
+            i.right.chevron.icon
+
+  script.
+    Polymer({
+      is: 'maki-example-promise',
+      properties: {
+        src: { type: String },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      ready: function() {
+        console.log('[MAKI:EXAMPLE-PROMISE]', 'ready');
+      }
+    });

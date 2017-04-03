@@ -88,7 +88,7 @@ maki.define('Example', {
   mission: 'Most apps made with Maki are completely transparent.',
   source: __dirname + '/source/examples',
   components: {
-    masthead: 'maki-pitch',
+    masthead: 'maki-example-promise',
     query: 'maki-example-showcase',
     get: 'maki-example-view'
   },
