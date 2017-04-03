@@ -593,8 +593,6 @@ var Person = maki.define('Person', {
     get: 'maki-profile'
   },
   attributes: {
-    _id: { type: String }, // TODO: remove
-    id: { type: String }, // TODO: incorporate into main library
     username: { type: String , max: 80 , required: true , slug: true },
     name:     {
       family: { type: String , max: 80 },

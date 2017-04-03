@@ -1,6 +1,10 @@
 dom-module#maki-community
   template
     .ui.vertical.stripe.segment.content
+      h2.ui.horizontal.header.divider Featured Conversations
+      maki-topic-list.ui.three.stackable.cards(src="/topics?filter={\"stats.subscribers\": { \"$gte\": 20 \"\" } }")
+        
+    .ui.vertical.stripe.segment.content
       h2.ui.horizontal.header.divider
         span {{data.length}}
         |  People in our Community
