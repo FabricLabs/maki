@@ -23,16 +23,13 @@ dom-module#maki-profile
       _load: function(uri, back) {
         var self = this;
         console.log('[QUILL:READER]', '_load', uri, back);
-        self.toggleClass('loading', true);
 
         // TODO: use this API instead:
         // fabric.get(self.src, function(err, data) { ... });
-        $.getJSON(self.src, function(data) {
-          data.link = '/people/' + data.id;
+        $.getJSON(uri, function(data) {
           self.messages = '/messages?filter=%7B%22author%22%3A%22'+data.id+'%22%7D';
           
           self.data = data;
-          self.toggleClass('loading', false);
         });
 
       },

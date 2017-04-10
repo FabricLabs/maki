@@ -63,12 +63,28 @@ dom-module#maki-application
 
         for (var route in self.routes) {
           var regex = self.routes[route];
-          
+          var resource = self.resourceMap[route];
           console.log('[MAKI:APPLICATION]', '_route', 'routing', route, regex);
           console.log('[MAKI:APPLICATION]', '_route', 'comparing...', ctx.path, 'to', regex);
 
           if (regex.test(self.path)) {
-            masthead = self.resourceMap[route].options.components.masthead;
+            console.log('test matched, resource is:', resource, 'and the route is', route);
+            Object.keys(resource.routes).forEach(function(method) {
+              var match = resource.routes[method];
+              if (route === match) {
+                if (method === 'query') {
+                  masthead = resource.options.components.masthead;
+                }
+              }
+            });
+            /*if (resource[route]) {
+              masthead = resource.options.components.masthead;
+            }*/
+    
+            
+            //masthead = self.resourceMap[route].options.components.masthead;
+            
+            
             component = self.components[route];
             view = document.createElement(component);
             

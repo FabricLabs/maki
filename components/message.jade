@@ -1,3 +1,12 @@
+//- THIS IS A SAMPLE
+//- there are some obvious improvements to be made, but not for now
+//- we'll be adding the data layer using Service Workers, which can handle all
+//- outbound requests from the page automatically.  By relaying requests as
+//- messages, we can process them locally and provide an almost-instantaneous
+//- response.  If we so choose, we can also queue a query to the network,
+//- requesting further streams of events that might apply to a particular
+//- named resource.  Should anyone have any changes, we can consider them for
+//- application against our local "view" of the world.
 dom-module#maki-message
   template
     a.avatar(href="{{data.author.link}}")
@@ -13,7 +22,7 @@ dom-module#maki-message
             a(href="{{data.parent.link}}") {{data.parent}}
       .text {{data.content}}
       .actions
-        //-template(is="dom-repeat", items="{{data.reactions}}")
+        template(is="dom-repeat", items="{{data.reactions}}")
           .ui.small.label.tooltipped(title="{{item}}") {{item}}
   script.
     Polymer({
