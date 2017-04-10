@@ -16,11 +16,10 @@ dom-module#maki-message-list
       _load: function(uri, back) {
         var self = this;
         console.log('[MAKI:MESSAGE-LIST]', '_load', uri, back);
-        self.toggleClass('loading', true);
 
         // TODO: use this API instead:
         // fabric.get(self.src, function(err, data) { ... });
-        $.getJSON(self.src, function(data) {
+        $.getJSON(uri, function(data) {
           console.log('[MAKI:MESSAGE-LIST]', '_load', 'loaded', data);
           
           data.sort(function(a, b) {
@@ -29,16 +28,9 @@ dom-module#maki-message-list
             
             return two - one;
           });
-          data = data.slice(0, 10);
-          
-          self.data = data.map(function(message) {
-            message.link = '/messages/' + message.id;
-            return message;
-          });
+          self.data = data.slice(0, 10);
           
           console.log('message list:', self.data);
-          
-          self.toggleClass('loading', false);
         });
 
       },

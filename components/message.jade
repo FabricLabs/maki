@@ -28,16 +28,16 @@ dom-module#maki-message
       _load: function(uri, back) {
         var self = this;
         console.log('[MAKI:MESSAGE]', '_load', uri, back);
-        self.toggleClass('loading', true);
 
         // TODO: use this API instead:
         // fabric.get(self.src, function(err, data) { ... });
-        $.getJSON(self.src, function(data) {
+        $.getJSON(uri, function(data) {
           console.log('[MAKI:MESSAGE]', '_load', 'loaded', data);
-          
-          data.link = '/messages/' + data.id;
-          self.data = data;
-          self.toggleClass('loading', false);
+          // TODO: add population to Fabric API
+          $.getJSON('/people/'+data.author, function (author) {
+            data.author = author;
+            self.data = data;
+          });
         });
 
       },

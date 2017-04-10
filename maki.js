@@ -197,15 +197,18 @@ var Message = maki.define('Message', {
   icon: 'speech',
   description: 'Messages about the Topics under discussion.',
   public: false,
+  components: {
+    'query': 'maki-chat-interface'
+  },
   attributes: {
     // TODO: make this a special field at the Fabric layer, and make it part of
     // the API.  Remove from schema definition, potentially don't even have
     // access to it within application scope.  External anyway, right?
     '@context': { type: String },
-    id: { type: String , max: 80 , required: true , slug: true },
+    id: { type: String , max: 80 , required: true , slug: true , id: true },
     topic: { type: String , ref: 'Topic' },
     parent: { type: String , ref: 'Message' },
-    author: { type: String , ref: 'Person' , populate: ['query', 'get'] },
+    author: { type: String , ref: 'Person' },
     content: { type: String },
     created: { type: Date , default: Date.now },
     reactions: {},
@@ -589,7 +592,7 @@ var Person = maki.define('Person', {
     get: 'maki-profile'
   },
   attributes: {
-    username: { type: String , max: 80 , required: true , slug: true },
+    username: { type: String , max: 80 , required: true , slug: true , id: true },
     name:     {
       family: { type: String , max: 80 },
       given: { type: String , max: 80 }

@@ -1,13 +1,14 @@
 dom-module#maki-search-results
   template
-    .ui.segment
-      h1
-        span {{data.length}}
-        |  Search Results
-        span {{data.query}}
-      .ui.cards
-        template(is="dom-repeat", items="{{data}}")
-          maki-search-result.ui.fluid.card(src="{{item.ref}}")
+    .ui.vertical.stripe.segment.content
+      .ui.text.container
+        h2.ui.horizontal.header.divider
+          span {{data.length}}
+          |  Search Results
+          span {{data.query}}
+        .ui.cards
+          template(is="dom-repeat", items="{{data}}")
+            maki-search-result.ui.fluid.card(src="{{item.ref}}")
   script.
     Polymer({
       is: 'maki-search-results',
