@@ -1,8 +1,9 @@
 dom-module#maki-channel-status
   template
-    span.ui.icon.label
-      i.lightning.icon
-      | {{status}}
+    template(is="dom-if", if="{{debug}}")
+      .ui.icon.label
+        i.lightning.icon
+        span {{status}}
   script.
     Polymer({
       is: 'maki-channel-status',
