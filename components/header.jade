@@ -4,10 +4,10 @@ dom-module#maki-header
       a.toc.item
         i.sidebar.icon
       a.logo.brand.item(href="/")
-        template(is="dom-if", if="{{logo}}")
-          img(src="{{logo}}")
-        template(is="dom-if", if="{{!logo && icon}}")
-          i(class="{{icon}}")
+        if (config.service.logo)
+          img(src="#{config.service.logo}")
+        else if (config.service.icon)
+          i.icon(class="#{config.service.icon} icon")
         span.brand.normal #{config.service.name}
       small.item #{config.service.pitch}
 
@@ -63,6 +63,6 @@ dom-module#maki-header
         //this.$.container.classList.add('center', 'aligned');
       },
       ready: function() {
-        
+        //this.config = app.config;
       }
     });
