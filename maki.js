@@ -691,5 +691,7 @@ var analytics = new Analytics({ id: 'UA-57746323-2' });
 
 maki.use( analytics ).serve(['http']).start();*/
 maki.start(function() {
-  console.log('routes:', maki.routes);
+  //console.log('routes:', maki.routes);
 });
+
+module.exports = maki;
