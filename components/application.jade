@@ -1,7 +1,7 @@
 dom-module#maki-application
   template
     maki-navbar.ui.large.top.fixed.hidden.menu
-    maki-navbar.ui.vertical.inverted.sidebar.right.large.menu
+    maki-navbar.ui.vertical.inverted.sidebar.menu
 
     maki-masthead#masthead
 
@@ -17,9 +17,8 @@ dom-module#maki-application
             //-maki-service
             //-maki-peer-manager(autoconnect, limit="128", strategy="lowest-latency")
     
-    
-    if (config.analytics && config.analytics.id)
-      maki-analytics
+    //- TODO: troubleshoot
+    maki-analytics
 
   script(src="/js/page.min.js", async)
   script(src="/assets/objectid.js", async)
@@ -29,6 +28,7 @@ dom-module#maki-application
       is: 'maki-application',
       properties: {
         src: { type: String },
+        data: { type: Object },
         for: { type: String },
         path: { type: String },
         view: { type: String , observer: '_viewChanged' },
@@ -42,6 +42,14 @@ dom-module#maki-application
         worker: { type: Object },
         identity: { type: Object, notify: true },
         state: { type: String }
+      },
+      //- TODO: implement
+      preload: function (done) {
+        /*/
+        fabric.preload(done);
+        /*/
+        return done(null, this.data);
+        /**/
       },
       _route: function(ctx) {
         var self = this;
@@ -66,7 +74,7 @@ dom-module#maki-application
           var resource = self.resourceMap[route];
           console.log('[MAKI:APPLICATION]', '_route', 'routing', route, regex);
           console.log('[MAKI:APPLICATION]', '_route', 'comparing...', ctx.path, 'to', regex);
-
+          
           if (regex.test(self.path)) {
             console.log('test matched, resource is:', resource, 'and the route is', route);
             Object.keys(resource.routes).forEach(function(method) {
@@ -83,8 +91,7 @@ dom-module#maki-application
     
             
             //masthead = self.resourceMap[route].options.components.masthead;
-            
-            
+
             component = self.components[route];
             view = document.createElement(component);
             
@@ -167,12 +174,16 @@ dom-module#maki-application
         
         if (window.lunr) {
           self.search = {};
+          self.spider = new Worker('/search.js');
         }
         
         console.log('[MAKI:APPLICATION]', '_resourcesUpdated', resources);
         
         Object.keys(resources).forEach(function(name) {
           var definition = resources[name];
+          
+          console.log('[MAKI:APPLICATION]', 'configuring resource', name, definition);
+
           ['get', 'query'].forEach(function(action) {
             var route = definition.routes[action];
             if (!route) return;
@@ -187,7 +198,6 @@ dom-module#maki-application
           
           if (window.lunr) {
             console.log('[MAKI:SEARCH]', 'search is enabled.', 'Building index...');
-
             self.data[definition.names['query']] = {};
             self.search[definition.names['query']] = lunr(function() {
               this.field(definition.fields['id']);
