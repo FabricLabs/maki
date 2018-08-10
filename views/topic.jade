@@ -1,0 +1,189 @@
+extends layouts/default
+
+block masthead
+  - if (page && page.masthead)
+    style.
+      .masthead {
+        background: url('#{page.masthead}') no-repeat;
+        background-size: cover;
+      }
+
+block content
+  //- TODO: allow "requirements" to set the local variable names
+  - var favorites = messages.slice(0);
+  - favorites.sort(function(a, b) { return b.stats.reactions - a.stats.reactions; });
+
+  .ui.vertical.stripe.segment.content
+    //-h2.ui.horizontal.header.divider
+      small(style="color: rgba(0,0,0,.4);") &#35;
+      | #{topic.id}
+
+    .ui.grid.stackable
+      .row
+        .four.wide.column
+          .ui.fluid.card
+            .content
+              a.header(href="/topics/#{topic.id}")
+                small(style="color: rgba(0,0,0,.4);") &#35;
+                | #{topic.name}
+              p #{topic.description}
+              .meta created by <a href="/people/#{topic.creator}">#{topic.creator}</a>
+            .extra.content
+              .ui.two.mini.statistics
+                .ui.statistic
+                  .value #{topic.stats.messages}
+                  .label messages
+                .ui.statistic
+                  .value #{topic.stats.subscribers}
+                  .label people
+            if (!user)
+              .extra.content.registration.transition.smooth
+                include partials/signup
+
+        .nine.wide.column
+          if (!topic.description)
+            .ui.warning.icon.message
+              i.icon.warning.sign
+              .content
+                .header
+                  small(style="color: rgba(0,0,0,.4);") &#35;
+                  | #{topic.name} is missing a description!
+                p Can you <a href="https://github.com/martindale/maki/issues/new?title=Suggested%20Description%20for%20#{topic.name}&body=I'd%20like%20to%20suggest%20the%20following%20description%20for%20the%20topic%3A%0A%0A%3E%20#{topic.name}%20is%20a%20place%20to%20talk%20about...">come up with a suggestion</a>?  Maybe look over <a href="/topics">some of the other topics</a> for some inspiration.
+          if (!topic.topic)
+            .ui.warning.icon.message
+              i.icon.warning.sign
+              .content
+                .header
+                  small(style="color: rgba(0,0,0,.4);") &#35;
+                  | #{topic.name} isn't currently discussing anything!
+                p Maybe you can <a href="https://chat.maki.io/?topic=#{topic.id}&amp;message=What's%20the%20first%20thing%20someone%20should%20know%20about%20#{topic.id}%3F">start the conversation</a>?
+          
+          //-pre
+            code.json.
+              #{JSON.stringify(topic, null, '  ')}
+          
+          //-if (favorites.length)
+            .ui.message
+              .content
+                .header Highlights
+                .ui.comments
+                  - var message = _.shuffle(favorites.slice(0, 3))[0]
+                  include partials/message
+          
+          if (topic.topic)
+            .ui.segment
+              h4 Currently discussing...
+              p !{markdown(topic.topic)}
+          .ui.comments
+            - messages.sort(function(a, b) { return b.created - a.created; });
+            - messages = messages.slice(0, 10).reverse();
+            for message in messages
+              include partials/message
+            include partials/message-input
+          if (!user)
+            .ui.buttons
+              a.ui.labeled.icon.primary.button(href="/authentications/slack")
+                i.icon.slack.alt
+                | Sign in with Slack
+              .or
+              a.ui.right.labeled.green.icon.button(href="/people")
+                i.leaf.icon
+                | Join the Community
+
+        .three.wide.column
+          .ui.vertical.fluid.menu
+            - var limit = 12
+            - var online = people.filter(function(x) {
+            -   return x.status === 'active';
+            - }).sort(function(a, b) {
+            -   return (a.id < b.id) ? -1 : (a.id > b.id) ? 1 : 0;
+            - });
+            - var offline = people.filter(function(x) {
+            -   return x.status !== 'active';
+            - }).sort(function(a, b) {
+            -   return (a.id < b.id) ? -1 : (a.id > b.id) ? 1 : 0;
+            - });
+            - var joined = _.union(online, offline).slice(0, limit);
+            a.header.item(on-tap="launch-join-modal", href="/topics/#{topic.id}/people")
+              | #{topic.stats.subscribers} People
+              .ui.small.green.icon.label.tooltopped(title="#{online.length} people are online now!")
+                | #{online.length} online
+            for person in joined
+              a.item(href="/people/#{person.id}")
+                | #{person.id}
+                if (person.status === 'active')
+                  i.green.circle.tooltipped.icon(title="#{person.id} is online!")
+            if (topic.stats.subscribers > limit)
+              a.item(on-tap="launch-join-modal", href="/topics/#{topic.id}/people")
+                strong #{topic.stats.subscribers - limit} more
+                i.icon.right.chevron
+
+  .ui.modal#join-modal
+    .header Add yourself to the community to participate!
+    .content
+      h4.header #{people.length} others in this conversation
+      maki-avatar-list(src="/topics/#{topic.id}/people")
+      p
+        .ui.tiny.centered.images
+          - var shuffled = _.shuffle(people);
+          for person in shuffled.slice(0, 8)
+            a(href="/people/#{person.id}")
+              img.ui.bordered.image.tooltipped(src="#{person.image.avatar}", title="@#{person.id}")
+          a(href="/community")
+            img.ui.bordered.image.tooltipped(src="/img/image.png", title="more")
+      form.ui.form(action="/invitations", method="POST")
+        if (channelsToJoin)
+          input(type="hidden", name="topics", value="#{channelsToJoin.join(',')}")
+
+        .ui.massive.field
+          label Your email address:
+
+        .field
+          .ui.massive.action.input
+            input(type="email", name="email", placeholder="e.g., you@yourdomain.com", required)
+            button.ui.icon.massive.green.button(type="submit")
+              i.icon.leaf
+              | &nbsp;&nbsp;Get Started &nbsp;
+              i.icon.right.chevron
+
+        h4.header Already have an account? &nbsp;&nbsp;&nbsp;
+          a.ui.large.primary.labeled.icon.button(href="/authentications/slack")
+            i.icon.slack.alt
+            | Sign in with Slack
+
+        //-if (channelsToJoin)
+          .ui.field
+            label(for="topics") What channels would you like to join?
+            select.ui.fluid.search.dropdown(multiple, name="topics")
+              for channel in channelsToJoin
+                option(value="#{channel}", selected) ##{channel}
+
+block scripts
+  script.
+    //$(document).on('click', '*[on-tap=open-register]', openRegister);
+    //$(window).on('load', focusInput);
+
+    $(document).on('click', '*[on-tap=launch-join-modal]', function(e) {
+      e.preventDefault();
+      $('#join-modal').modal('show');
+      return false;
+    });
+    
+    function openRegister (e) {
+      e.preventDefault();
+      $('.registration').slideToggle();
+      $('.registration input[name=email]').focus();
+      return false;
+    }
+    
+    $('.ui.form').form({
+      fields: {
+        email: {
+          identifier: 'email',
+          rules: [
+            { type: 'empty', prompt: 'Please enter your email address' },
+            { type: 'email', prompt: 'Please enter a valid email address' }
+          ]
+        }
+      }
+    });

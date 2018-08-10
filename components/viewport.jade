@@ -1,0 +1,22 @@
+dom-module#maki-viewport
+  template
+    style.
+      :host ::content .ui.vertical.segment:last-child {
+        margin-bottom: 6em;
+      }
+  
+    #content
+  script.
+    Polymer({
+      is: 'maki-viewport',
+      properties: {
+        src: { type: String }
+      },
+      _route: function(src, back) {
+
+      },
+      ready: function() {
+        console.log('[MAKI:VIEWPORT]', 'ready');
+        this.src = this.src || '';
+      }
+    });

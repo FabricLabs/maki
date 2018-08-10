@@ -1,0 +1,50 @@
+extends layouts/default
+
+block masthead
+  if (page && page.masthead)
+    style.
+      .masthead {
+        background: url('#{page.masthead}');
+      }
+
+  if (page && page.title)
+    h2.ui.inverted.header #{page.title}
+  if (page && page.published)
+    h3.ui.inverted.header
+      | #{moment(page.published).format('dddd, MMMM Do, YYYY')}
+  if (page && page.image)
+    img.ui.image.right.floated.small(src="#{page.image}")
+  if (page && page.description)
+    h3.ui.inverted.header #{page.description}
+
+block content
+  .ui.text.container
+    .ui.segment(style="margin-top: 2em;")
+      if (page && page.edit)
+        .ui.right.close.rail
+          .ui.card.sticky
+            .content
+              .right.floated.meta
+                a.ui.right.labeled.icon.secondary.mini.button(href="#{page.edit}")
+                  | edit
+                  i.icon.pencil
+              .header Improve This!
+              .description Have a suggestion?  This content is open-source, so lend a hand!
+            .extra.content
+              //- TODO: change this to shipyard, when ready.
+              a.ui.primary.large.right.floated.right.labeled.icon.button(href="#{page.source}")
+                i.icon.right.chevron
+                | View 
+                span
+                  i.icon.code(alt="code")
+                |  on 
+                span
+                  i.icon.github.alt
+                | GitHub
+      | !{content}
+
+block scripts
+  script.
+    $('.ui.sticky').sticky({
+      offset: 80
+    });

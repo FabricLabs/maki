@@ -1,0 +1,27 @@
+dom-module#maki-page-list
+  template
+    h2 List of Pages
+    .ui.list
+      template(is="dom-repeat", items="{{data}}")
+        maki-page-card
+  script.
+    Polymer({
+      is: 'maki-page-list',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String },
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:PAGE-LIST]', '_load', uri, back);
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = datal
+        });
+
+      },
+    });

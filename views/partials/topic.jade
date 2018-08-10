@@ -1,0 +1,17 @@
+.ui.fluid.card
+  .content
+    a.ui.tiny.right.floated.label.tooltipped(href="/topics/#{topic.id}#subscribers", title="#{topic.stats.subscribers} people talking about #{topic.name}")
+      i.icon.user
+      | #{topic.stats.subscribers}
+    a.header(href="/topics/#{topic.id}")
+      small(style="color: rgba(0,0,0,.4);") &#35;
+      | #{topic.name}
+    p #{topic.description}
+  .extra.content
+    p <strong>Currently:</strong> #{topic.topic}
+  if (cta)
+    a.ui.bottom.attached.primary.right.labeled.icon.button(href="/topics/#{topic.id}#join") !{cta}
+  else
+    a.ui.bottom.attached.primary.right.labeled.icon.button(href="/topics/#{topic.id}#join")
+      | Join <strong>#{topic.stats.subscribers}</strong> others in <small>&#35;</small>#{topic.name}
+      i.right.chevron.icon

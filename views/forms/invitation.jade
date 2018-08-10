@@ -1,0 +1,29 @@
+form.ui.inverted.form(action="/invitations", method="POST")
+  if (user)
+    //- TODO: how might be make this a simple object? cc: @chrisinajar
+    //- i.e.,: input(type="hidden", name="from", value="#{user}")
+    input(type="hidden", name="from", value="#{user.id}")
+    
+  if (channels)
+    input(type="hidden", name="channels", value="#{channels.join(',')}")
+
+  .field
+    .ui.massive.action.input
+      input(type="email", name="email", placeholder="e.g., your.friend@whomever.com", required)
+      .ui.icon.massive.button(on-tap="showSettings")
+        i.icon.setting
+        i.icon.down.caret
+      button.ui.icon.massive.green.button(type="submit")
+        | Send &nbsp;
+        i.mail.send.icon
+      
+  .settings(style="display: none;")
+    .field
+      label(for="message") Leave your friend a message:
+      textarea(name="message", rows="2")
+    if (topics)
+      .field
+        label(for="topics") What do you think they'll be interested in?
+        select.ui.fluid.search.dropdown(multiple, name="topics")
+          for topic in topics
+            option(value="#{topic.id}") ##{topic.id}

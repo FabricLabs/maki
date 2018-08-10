@@ -1,0 +1,70 @@
+//- everything up to the following mark, indentation-wise, should be excised at
+//- some point.  These are repeated > 95% of the time in all view definitions,
+//- and often represent entire components.  Perhaps these should be named
+//- properties on an object.
+//v--- that point.  One indentation.
+extends layouts/default
+
+block masthead 
+  h1 Invite Your Friends
+  h2 Let's make this a place we <em>all</em> love.
+
+  include forms/invitation
+
+  if (user)
+    //- TODO: how might we handle edge node authentication more smoothly?  Sessions aren't great.
+    //- (nor are method overrides, for that matter.  `maki-forms` needs some help.)
+    h4 You're logged in as <a href="/people/#{user.id}">#{user.id}</a>, so you'll get credit when these people join.  You can <a href="/sessions/#{session.hash}?method=destroy">sign out</a> if you'd like.
+  else
+    h4 You can &nbsp; <a href="/authentications/slack" class="ui micro icon primary button"> <i class="icon slack alt"></i> Sign in with Slack</a> if you'd like to get credit for this.
+    
+    //- nice login agnostic version:
+    //-h4 You can <a href="/sessions">sign in</a> if you'd like to get credit for this referral.  <a href="/snippets/incentives" class="ui primary right floated button">Learn more about our referral program <i class="icon right chevron"></i></a>
+
+block content
+  .ui.vertical.stripe.segment.content(style="margin-top: inherit")
+    if (user)
+      h2.ui.horizontal.header.divider #{invitations.length} Invitations So Far
+      .ui.three.stackable.cards
+        for invitation in invitations
+          include partials/invitation
+    else
+      h2.center.aligned.header Sign in to see a list of invitations.
+      
+block scripts
+  script.
+    maki.sockets.connect();
+  
+    //- emulate the upcoming Polymer API
+    $(document).on('click', '*[on-tap=showSettings]', function(e) {
+      e.preventDefault();
+      $('.settings').slideToggle();
+      return false;
+    });
+    $(document).on('click', '*[on-tap=remind]', function(e) {
+      e.preventDefault();
+      var $self = $(this);
+      var id = encodeURIComponent($self.data('target'));
+      // first attribute binding.
+      // TODO: implement this in Maki proper.
+      var $target = $('.statistic[src="/invitations/'+id+'/stats/reminders"]').children('.value');
+      var val = $target.text();
+      val = parseInt(val) + 1;
+      $target.html(val);
+      
+      //- monadic decomposition
+      //- TODO: implement in Maki
+      maki.sockets.call('/invitations/'+id+'/stats/reminders', 'add', 1);
+
+      //- creating a resource instead
+      $.ajax({
+        type: 'POST',
+        url: '/reminders',
+        dataType: 'json',
+        data: {
+          invitation: id
+        }
+      });
+      
+      return false;
+    });

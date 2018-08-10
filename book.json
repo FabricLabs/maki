@@ -1,0 +1,10 @@
+{
+  "theme": "dark",
+  "plugins": ["exercises", "edit-link", "page-toc"],
+  "pluginsConfig": {
+    "edit-link": {
+      "base": "https://github.com/martindale/maki/edit/community",
+      "label": "Edit This Page"
+    }
+  }
+}

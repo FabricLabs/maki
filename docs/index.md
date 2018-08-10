@@ -1,3 +1,10 @@
+---
+title: Maki Docs
+description: Learn how to use Maki, a full-stack application framework.
+source: https://github.com/martindale/maki/blob/community/docs/index.md
+edit: https://github.com/martindale/maki/edit/community/docs/index.md
+---
+
 <style type="text/css">
   img {
     max-width: 100%;
@@ -5,14 +12,36 @@
 </style>
 
 ## Welcome to Maki.
+Maki is a full-stack application framework with a robust plugin ecosystem and a
+convenient and extensible resource-oriented API.
 
-### Architecture
-Maki's architecture is Resource-centric.  All aspects of the datastore, its query pipeline, the business logic, and view layer are derived from the definition of the Resources your application exposes.
+<p class="ui message"><strong>Ready to get started?</strong>  Jump straight to 
+<a href="/tutorials/hello-world">Hello World with Maki</a>.</p>
 
-![Maki Architecture Overview](https://raw.githubusercontent.com/martindale/maki/master/public/img/maki-architecture.png)
+### Resources
+Resources are the heart and soul of Maki, which exists solely to provide a
+reasonable framework for automation surrounding their definition, as they apply
+to your application.
 
-#### Messaging
-Maki's messaging infrastructure is based on JSON-RPC.  We implement the following methods:
+You can think of Resources just like Objects in your traditional Object-Oriented
+Programming (OOP) model.  With Maki, all Objects inherit from a common base
+class, including a common messaging framework and event-driven state mutations.
+
+<a href="/docs/resources" class="ui right floated primary button">Learn about Resources<i class="ui icon right chevron"></i></a>
+<br style="clear: both;" />
+
+### Services
+Resources are exposed by Maki in the form of Services.  A prime example of a
+Service would be the `http` service, which provides Resources to web clients in
+the form of JSON or even HTML.
+
+<a href="/docs/services" class="ui right floated primary button">Learn about Services<i class="ui icon right chevron"></i></a>
+<br style="clear: both;" />
+
+### Messaging
+Maki's messaging infrastructure is based on JSON-RPC, a convenient wrapper for 
+calling remote methods and retrieving their results.  All Maki Resources
+implement the following methods:
 
 - `ping` should be responded to with a "pong" result.
 - `patch` will provide an array of operations to execute on a resource.
@@ -20,15 +49,6 @@ Maki's messaging infrastructure is based on JSON-RPC.  We implement the followin
 - `subscribe` to add an additional channel to your existing socket.
 - `unsubscribe` to remove a channel from your socket.
 
-### [Resources](/docs/resources)
-Resources are the heart and soul of Maki, which exists solely to provide a
-reasonable framework for automation surrounding their definition, as they apply
-to your application.
-
-### [Services](/docs/services)
-Resources are exposed by Maki in the form of Services.  A prime example of a
-Service would be the `http` service, which provides Resources to web clients in
-the form of JSON or even HTML.
 
 ### Default Directory Structure
 Maki is meant to be understood without context or documentation, and as such the directory structure [and the code itself, for that matter] _should_ be fairly self-explanatory.  Nevertheless, here's an explicit declaration for each of the default folders and their intended use.
@@ -48,3 +68,9 @@ Maki is meant to be understood without context or documentation, and as such the
 ├── tests           # Tests.  Write them.
 └── views           # composable elements for rendering HTML, JSON, or XML
 ```
+
+
+### Architecture
+Maki's architecture is Resource-centric.  All aspects of the datastore, its query pipeline, the business logic, and view layer are derived from the definition of the Resources your application exposes.
+
+![Maki Architecture Overview](https://raw.githubusercontent.com/martindale/maki/master/public/img/maki-architecture.png)

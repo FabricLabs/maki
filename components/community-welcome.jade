@@ -1,0 +1,19 @@
+dom-module#maki-community-welcome
+  template
+    .ui.left.aligned.text.container
+      h2.ui.inverted.header Come build with us!
+        a.ui.blue.link.label(on-tap="focus-input-email")
+          i.icon.chat 
+          span {{online}}
+          | online now!
+      include ../views/forms/register
+      h3.ui.inverted.center.aligned.header We're building a community of people who love to make things.  Let's build together!
+      maki-people-row(src="/people")
+
+  script.
+    Polymer({
+      is: 'maki-community-welcome',
+      ready: function() {
+        console.log('[MAKI:COMMUNITY-WELCOME]', 'ready');
+      }
+    });

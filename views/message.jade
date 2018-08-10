@@ -1,0 +1,15 @@
+extends layouts/default
+
+block content
+  .ui.vertical.stripe.segment.content
+    if (parent)
+      .ui.comments
+        +MessageItem(parent, 1, 2, message)
+    else
+      .ui.huge.comments
+        +MessageItem(message, 1, 2)
+
+block scripts
+  script.
+    //$(document).on('click', '*[on-tap=open-register]', openRegister);
+    //$(window).on('load', focusInput);

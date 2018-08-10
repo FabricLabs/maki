@@ -1,0 +1,56 @@
+//- THIS IS A SAMPLE
+//- there are some obvious improvements to be made, but not for now
+//- we'll be adding the data layer using Service Workers, which can handle all
+//- outbound requests from the page automatically.  By relaying requests as
+//- messages, we can process them locally and provide an almost-instantaneous
+//- response.  If we so choose, we can also queue a query to the network,
+//- requesting further streams of events that might apply to a particular
+//- named resource.  Should anyone have any changes, we can consider them for
+//- application against our local "view" of the world.
+dom-module#maki-message
+  template
+    a.avatar(href="{{data.author.link}}")
+      img(src="{{data.author.image.avatar}}")
+    .content
+      a.author(href="/people/{{data.author.id}}") {{data.author.id}}
+      .metadata
+        a.date(href="{{data.link}}", title="{{data.created}") {{data.created}}
+        template(is="dom-if", if="{{data.topic}}")
+          a(href="{{data.topic.link}}") {{data.topic.id}}
+        template(is="dom-if", if="{{data.parent}}")
+          span in reply to 
+            a(href="{{data.parent.link}}") {{data.parent}}
+      .text {{data.content}}
+      .actions
+        template(is="dom-repeat", items="{{data.reactions}}")
+          .ui.small.label.tooltipped(title="{{item}}") {{item}}
+  script.
+    Polymer({
+      is: 'maki-message',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:MESSAGE]', '_load', uri, back);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(uri, function(data) {
+          console.log('[MAKI:MESSAGE]', '_load', 'loaded', data);
+          // TODO: add population to Fabric API
+          $.getJSON('/people/'+data.author, function (author) {
+            data.author = author;
+            self.data = data;
+          });
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:MESSAGE]', 'ready');
+      }
+    });

@@ -1,0 +1,49 @@
+dom-module#maki-crypto-worker
+  script(src="/js/sha3.min.js", async)
+  script.
+    Polymer({
+      is: 'maki-crypto-worker',
+      properties: {
+        worker: { type: Object },
+        queue: {
+          type: Object,
+          value: {}
+        }
+      },
+      _keygen: function(cb) {
+      
+      },
+      _digest: function(input, cb) {
+        var self = this;
+        
+        console.log('[MAK:CRYPTO-WORKER]', '_digest', input);
+        
+        if (typeof input !== 'string') {
+          input = JSON.stringify(input);
+        }
+        function handleResponse(e) {
+          var msg = JSON.parse(e.data);
+          if (!self.queue[msg.id]) return;// cb('No such message.');
+          self.queue[msg.id].result = msg.result;
+          self.worker.removeEventListener('message', handleResponse);
+          return cb(null, msg.result);
+        }
+        self.worker.addEventListener('message', handleResponse);
+        self._call('digest', [input]);
+      },
+      _call: function(method, params) {
+        var self = this;
+        var msg = {
+          "jsonrpc": "2.0",
+          "id": Math.random().toString(),
+          "method": method,
+          "params": params
+        };
+        self.queue[msg.id] = msg;
+        self.worker.postMessage(JSON.stringify(msg));
+      },
+      ready: function() {
+        var self = this;
+        self.worker = new Worker('/assets/crypto.worker.js');
+      }
+    });

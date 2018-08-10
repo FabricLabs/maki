@@ -1,0 +1,42 @@
+dom-module#maki-topic-list
+  template
+    template(is="dom-repeat", items="{{data}}")
+      .ui.fluid.card
+        .content
+          a.ui.tiny.right.floated.label.tooltipped(href="{{item.link}}#subscribers", title="{{item.stats.subscribers}} people talking about {{item.name}}")
+            i.icon.user
+            span {{item.stats.subscribers}}
+          a.header(href="{{item.link}}")
+            small.subtle &#35;
+            span {{item.name}}
+          p {{item.description}}
+        .extra.content
+          p <strong>Currently:</strong>
+            span {{item.topic}}
+        a.ui.bottom.attached.primary.right.labeled.icon.button(href="{{item.link}}#join")
+          | Join <strong>{{item.stats.subscribers}}</strong> others in <small class="subtle">&#35;</small>{{item.name}}
+          i.right.chevron.icon
+  script.
+    Polymer({
+      is: 'maki-topic-list',
+      properties: {
+        // internals
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:TOPIC-LIST]', '_load', uri, back);
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(uri, function(data) {
+          self.data = _.sample(data, 3);
+        });
+      },
+      ready: function() {
+        console.log('[MAKI:TOPIC-LIST]', 'ready');
+      }
+    });

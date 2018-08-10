@@ -1,0 +1,39 @@
+//- a human-friendly name for users
+dom-module#maki-tile
+  template
+    a.image(href="{{data.link}}")
+      img(src="{{data.image.avatar}}")
+    .content
+      a.header(href="{{data.link}}")
+        small.subtle @
+        | {{data.id}}
+
+  script.
+    Polymer({
+      is: 'maki-tile',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String },
+      },
+      humanFriendlyDate: function(date) {
+        var when = new Date(date);
+        return when.getFullYear();
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:TILE]', '_load', uri, back);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = data;
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:TILE]', 'ready');
+      }
+    });

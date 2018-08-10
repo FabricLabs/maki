@@ -1,0 +1,48 @@
+dom-module#maki-footer
+  template
+    //-.ui.stackable.inverted.divided.equal.height.stackable.grid
+      maki-inspector(src="")
+    .ui.stackable.inverted.divided.equal.height.stackable.grid
+      .six.wide.column
+        h4.ui.inverted.header About
+        p !{config.service.about}
+        //-.ui.inverted.link.list
+          a.item(href="#") Protocol
+          a.item(href="#") Whitepaper
+          a.item(href="#") Roadmap
+          a.item(href="#") Contact Us
+      .seven.wide.column
+        h4.ui.inverted.header Copyright
+        p !{config.service.copyright}
+      .three.wide.column
+        if (config.service.links)
+          h4.ui.inverted.header Elsewhere
+          .ui.inverted.link.list
+            each link, name in config.service.links
+              a.item(href="#{link}", rel="me")
+                i.icon(class="#{name}")
+                |  #{name}
+          //-
+            a.item(href="https://github.com/martindale/maki", rel="me")
+              i.icon.github
+              |  GitHub
+            a.item(href="https://twitter.com/martindale", rel="me")
+              i.icon.twitter
+              |  Twitter
+            a.item(href="https://facebook.com/eric.martindale", rel="me")
+              i.icon.facebook
+              |  Facebook
+            //-a.item(href="#", rel="me")
+              i.icon.medium
+              |  Medium
+
+    .ui.stackable.inverted.divided.equal.height.stackable.grid
+      content
+
+  script.
+    Polymer({
+      is: 'maki-footer',
+      ready: function() {
+        console.log('[MAKI:FOOTER]', 'ready');
+      }
+    });

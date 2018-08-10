@@ -1,0 +1,30 @@
+dom-module#maki-people-row
+  template
+    .ui.tiny.centered.images
+      template(is="dom-repeat", items="{{data}}")
+        a(href="{{item.link}}")
+          img.ui.bordered.rounded.avatar.image.tooltipped(src="{{item.image.avatar}}", title="@{{data.id}}")
+  script.
+    Polymer({
+      is: 'maki-people-row',
+      properties: {
+        // internals
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:PEOPLE-ROW]', '_load', uri, back);
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(uri, function(data) {
+          self.data = _.sample(data, 8);
+        });
+      },
+      ready: function() {
+        console.log('[MAKI:PEOPLE-ROW]', 'ready');
+      }
+    });

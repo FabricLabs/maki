@@ -1,0 +1,17 @@
+extends layouts/default
+
+block content
+  .ui.vertical.stripe.segment.content
+    h2.ui.horizontal.header.divider Maki Plugins
+  
+    .ui.divided.items
+      for plugin in plugins
+        a.item(href="https://github.com/martindale/#{plugin.name}")
+          //-if (plugin.image)
+            .image
+              img(src="#{plugin.image}")
+          .content
+            .header #{plugin.name}
+              .ui.label #{plugin.version}
+              .ui.label #{plugin.coverage}%
+            .description #{plugin.description}

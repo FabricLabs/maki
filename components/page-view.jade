@@ -1,0 +1,74 @@
+dom-module#maki-page-view
+  template
+    .ui.vertical.stripe.segment.content
+      template(is="dom-if", if="{{editable}}")
+        .ui.right.close.rail
+          .ui.card.sticky
+            .content
+              .right.floated.meta
+                a.ui.right.labeled.icon.secondary.mini.button(href="{{data.metadata.edit}}")
+                  | edit
+                  i.icon.pencil
+              .header Improve This!
+              .description Have a suggestion?  This content is open-source, so lend a hand!
+            .extra.content
+              //- TODO: change this to shipyard, when ready.
+              a.ui.primary.large.right.floated.right.labeled.icon.button(href="{{data.metadata.source}}")
+                i.icon.right.chevron
+                | View 
+                span
+                  i.icon.code(alt="code")
+                |  on 
+                span
+                  i.icon.github.alt
+                | GitHub
+
+      .ui.text.container
+        h1.ui.horizontal.header.divider {{data.title}}
+        .description#content
+
+  script.
+    Polymer({
+      is: 'maki-page-view',
+      properties: {
+        editable: { type: Boolean , value: false },
+        // internals
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _render: function() {
+        var self = this;
+        console.log('[MAKI:PAGE-VIEW]', '_render', this.source);
+        this.$.content.innerHTML = window.markdown(this.source || '');
+        
+        if (!self.data.metadata.masthead) {
+          return app.$.masthead.removeAttribute('component');
+        }
+        
+        var masthead = {
+          pitch: self.data.metadata.title,
+          mission: self.data.metadata.description,
+        }
+        app.$.masthead.setAttribute('component', self.data.metadata.masthead);
+      },
+      _load: function(uri, back) {
+        var self = this;
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          if (data.metadata.edit && data.metadata.source) {
+            self.editable = true;
+          }
+          self.data = data;
+          self.source = data.content;
+          self._render();
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:PAGE-VIEW]', 'ready');
+      }
+    });

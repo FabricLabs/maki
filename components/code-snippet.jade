@@ -1,0 +1,31 @@
+dom-module#maki-code-snippet
+  template
+    #content {{data}}
+  script.
+    Polymer({
+      is: 'maki-code-snippet',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:CODE-SNIPPET]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = data;
+          console.log('[MAKI:CODE-SNIPPET]', '_load', 'loaded', data);
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:CODE-SNIPPET]', 'ready');
+      }
+    });

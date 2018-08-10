@@ -1,0 +1,261 @@
+dom-module#maki-peer-manager
+  template
+    //-maki-datastore(name="fabric")
+  script(src="/assets/peer.min.js", async)
+  script.
+    Polymer({
+      is: 'maki-peer-manager',
+      properties: {
+        peer: {
+          type: Object
+        },
+        connections: {
+          type: Object,
+          value: {}
+        },
+        peers: {
+          type: Object,
+          value: {},
+          //observer: '_peersChanged',
+          notify: true
+        }
+      },
+      observers: [
+        //'_peersChanged(peers)'
+        '_peersChangedDeep(peers.*)'
+      ],
+      _broadcast: function(msg) {
+        var self = this;
+        console.log('[MAKI:PEER-MANAGER]', '_broadcast', msg);
+        if (typeof msg !== 'string') {
+          msg = JSON.stringify(msg);
+        }
+        
+        Object.keys(self.connections).forEach(function(id) {
+          var conn = self.connections[id];
+          console.log('[MAKI:PEER-MANAGER]', 'connection iterator:', id);
+          conn.send(msg);
+        });
+      },
+      _relay: function(msg) {
+        var self = this;
+        console.log('[MAKI:PEER-MANAGER]', '_relay', msg);
+        self._broadcast(msg);
+      },
+      _peerWith: function(id) {
+        var self = this;
+        if (!self.peer) return console.error('[MAKI:PEER-MANAGER]', 'no local peer');
+        console.log('[MAKI:PEER-MANAGER]', '_peerWith', id, 'from:', self.peer.id)//, id);
+        if (id === self.peer.id) return console.error('[MAKI:PEER-MANAGER]', 'cannot peer with self');
+        if (self.connections[id]) {
+          console.log('[MAKI:PEER-MANAGER]', 'connection exists!');
+        } else {
+          var conn = self.peer.connect(id);
+          conn.on('open', function() {
+            conn.on('data', function(data) {
+              console.log('[MAKI:PEER-MANAGER]', 'connection data:', data);
+              
+              var channel = document.querySelector('maki-channel');
+              channel._handleMessage({
+                data: data
+              });
+              
+            });
+            self.connections[id] = conn;
+          });
+        }
+      },
+      _peersChangedDeep: function(change) {
+        var self = this;
+        console.log('[MAKI:PEER-MANAGER]', '_peersChangedDeep', change);
+        
+        var peer = change.value;
+      
+        if (peer && peer.state !== 'connected') {
+          return self._peerWith(peer.id);
+        }
+
+      },
+      _peersChanged: function(peers, old) {
+        var self = this;
+        console.log('[MAKI:PEER-MANAGER]', '_peersChanged', peers, old);
+        
+        Object.keys(peers).forEach(function(id) {
+          console.log('[MAKI:PEER-MANAGER]', 'iterating over:', id);
+          var peer = self.peers[id];
+          if (peer && peer.state !== 'connected') {
+            return self._peerWith(id);
+          }
+        });
+
+        //setTimeout(self._connect.bind(self), 2500);
+      },
+      _receivePeerChange: function(e) {
+        var self = this;
+        var db = document.querySelector('maki-datastore[name=melody]');
+        console.log('[MAKI:PEER-MANAGER]', 'found datastore change:', e);//, detail);
+        if (e.detail.key === '/peers') {
+          var knownPeerIDs = Object.keys(self.peers);
+          var others = e.detail.val.map(function(x) {
+            return x.id;
+          });
+          
+          var newPeerIDs = _.difference(others, knownPeerIDs);
+          
+          /*newPeerIDs.forEach(function(id) {
+            self._peerWith(id);
+          });*/
+          
+          console.log('[MAKI:PEER-MANAGER]', 'peering with:', newPeerIDs[0]);
+          
+          self._peerWith(newPeerIDs[0]);
+          
+          console.log('[MAKI:PEER-MANAGER]', 'currently known', knownPeerIDs);
+          console.log('[MAKI:PEER-MANAGER]', 'others', others);
+          console.log('[MAKI:PEER-MANAGER]', 'newPeerIDs', newPeerIDs);
+          
+        }
+      },
+      _register: function(done) {
+        var self = this;
+        console.log('[MAKI:PEER-MANAGER]', '_register', self.peer);
+        
+        var obj = {
+          id: self.peer.id
+        };
+        
+        $.ajax({
+          type: 'POST',
+          url: '/peers',
+          data: obj,
+          headers: {
+            'Accept': 'application/json'
+          }
+        }).done(function(data) {
+          console.log('[MAKI:PEER-MANAGER]', '_register success:', data);
+          done();
+        }).error(function(data) {
+          console.log('[MAKI:PEER-MANAGER]', '_register error:', data);
+          done();
+        });
+      },
+      ready: function() {
+        var self = this;
+        console.log('[MAKI:PEER-MANAGER]', 'ready');
+        /*var db = document.querySelector('maki-datastore[name=melody]');
+        db.addEventListener('datastore:change', function(e) {
+          console.log('[MAKI:PEER-MANAGER]', 'found datastore change:', e);
+        });*/
+        // TODO: get peerJS server working directly on the edge node
+        /*var options = {
+          host: window.location.hostname,
+          port: window.location.port,
+          path: '/peerjs'
+        };*/
+        
+        var options = {
+          key: 'i31eg2i9x5p9o1or'
+        };
+        // TODO: pass a peer ID based on a cryptographic identity
+        var peer = new Peer(options);
+        self.peer = peer;
+        
+        peer.on('connection', function(conn) {
+          console.log('[MAKI:PEER-MANAGER]', 'inbound connection', conn);
+          self.connections[conn.peer] = conn;
+        });
+
+        peer.on('open', function() {
+          console.log('[MAKI:PEER-MANAGER]', 'peer id:', peer.id);
+          self._register(function(err) {
+            self.peers[peer.id] = peer;
+            self.set('peers.' + peer.id, peer);
+            self.notifyPath('peers', self.peers);
+
+            var db = document.querySelector('maki-datastore[name=melody]');
+            db.addEventListener('datastore:change', self._receivePeerChange.bind(self));
+            console.log('[MAKI:PEER-MANAGER]', 'peers now:', self.peers);
+          });
+        });
+
+        /*var alice = new Peer({
+          initiator: true,
+          trickle: false
+        });
+        alice.on('error', function(err) {
+          console.error('[MAKI:PEER-MANAGER]', '(alice) error:', err);
+        });
+        alice.on('signal', function(data) {
+          console.log('[MAKI:PEER-MANAGER]', '(alice) signal:', data);
+          bob.signal(data);
+        });
+        alice.on('message', function(msg) {
+          console.log('[MAKI:PEER-MANAGER]', '(alice) message:', msg);
+        });
+        alice.on('connect', function() {
+          console.log('[MAKI:PEER-MANAGER]', '(alice) connect');
+          alice.send('Well hello there!');
+        });
+
+        var bob = new Peer({
+          //initiator: true,
+          trickle: false
+        });
+        bob.on('error', function(err) {
+          console.error('[MAKI:PEER-MANAGER]', '(bob) error:', err);
+        });
+        bob.on('signal', function(data) {
+          console.log('[MAKI:PEER-MANAGER]', '(bob) signal:', data);
+          alice.signal(data);
+        });
+        bob.on('message', function(msg) {
+          console.log('[MAKI:PEER-MANAGER]', '(bob) message:', msg);
+        });
+        bob.on('connect', function() {
+          console.log('[MAKI:PEER-MANAGER]', '(bob) connect');
+          bob.send('Well hello there!');
+        });*/
+      
+      },
+      _connect: function() {
+        console.log('[MAKI:PEER-MANAGER]', '_connect');
+        
+        // TODO: get peerJS server working directly in Maki server
+        var options = {
+          host: window.location.hostname,
+          port: window.location.port,
+          path: '/peerjs'
+        };
+        
+        var options = {
+          key: 'i31eg2i9x5p9o1or'
+        };
+        
+        var alice = new Peer('alice', options);
+        var aliceConn = alice.connect('bob');
+        aliceConn.on('open', function() {
+          console.log('[MAKI:PEER-MANAGER]', '(alice) open');
+          aliceConn.send('ahem.  hello there.');
+        });
+        alice.on('connection', function(peer) {
+          console.log('[MAKI:PEER-MANAGER]', '(alice) connection:', peer);
+          peer.on('data', function(data) {
+            console.log('[MAKI:PEER-MANAGER]', '(alice) data:', data);
+          });
+        });
+        
+        var bob = new Peer('bob', options);
+        var bobConn = bob.connect('alice');
+        bobConn.on('open', function() {
+          console.log('[MAKI:PEER-MANAGER]', '(bob) open');
+          bobConn.send('ahem.  hello there.');
+        });
+        bob.on('connection', function(peer) {
+          console.log('[MAKI:PEER-MANAGER]', '(bob) connection:', peer);
+          peer.on('data', function(data) {
+            console.log('[MAKI:PEER-MANAGER]', '(bob) data:', data);
+          });
+        });
+
+      },
+    });

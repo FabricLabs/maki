@@ -1,0 +1,20 @@
+//- TODO: .asHTML() (toJSON -> toHTML) or .as('html')
+form.ui.form.comment(on-tap="#{(user) ? undefined : 'launch-join-modal'}", action="/messages", method="POST")
+  input(type="hidden", name="topic", value="#{topic.id}")
+  if (user)
+    input(type="hidden", name="author", value="#{user.id}")
+    if (user.tokens)
+      input(type="hidden", name="@context", value="#{user.tokens.slack}")
+
+  .avatar
+    if (user)
+      img(src="#{user.image.avatar}")
+    else
+      img(src="/img/image.png")
+  .content
+    .text
+      .ui.fluid.action.input(class=((user) ? undefined : 'disabled'))
+        input.inline(type="text", name="content", placeholder="Start typing", disabled=((user) ? undefined : true))
+        button.ui.right.labeled.icon.button(type="submit", class=((user) ? undefined : 'disabled'))
+          i.share.icon
+          | send

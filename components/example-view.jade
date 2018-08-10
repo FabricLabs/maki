@@ -1,0 +1,40 @@
+dom-module#maki-example-view
+  template
+    .ui.segment
+      h1 {{data.title}}
+      #content {{data.content}}
+  
+    
+  script.
+    Polymer({
+      is: 'maki-example-view',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _render: function() {
+        console.log('[QUILL:READER]', '_render', this.source);
+        this.$.content.innerHTML = window.markdown(this.source || '');
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:TILE]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = data;
+          self.source = data.content;
+          self._render();
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:TILE]', 'ready');
+      }
+    });

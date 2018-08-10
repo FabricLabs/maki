@@ -1,0 +1,58 @@
+extends layouts/default
+
+block masthead
+  - var shuffled = _.shuffle(people);
+  - if (page && page.masthead)
+    style.
+      .masthead {
+        background: url('#{page.masthead}');
+      }
+
+  h2.ui.inverted.header Come build with us!
+    a.ui.blue.link.label(on-tap="focus-input-email")
+      i.icon.chat 
+      | #{online} online now!
+  include forms/register
+    
+  p      
+    .ui.tiny.centered.images
+      for person in shuffled.slice(0, 8)
+        a(href="/people/#{person.id}")
+          img.ui.bordered.image.tooltipped(src="#{person.image.avatar}", title="@#{person.id}")
+      
+  h3.ui.inverted.center.aligned.header We're building a community of people who love to make things.  Let's build together!
+
+block content
+  //- This is a local interpretation of data.  We download the full dataset once
+  //- and then, _only_ then, run our processing (in our case, a subdivision of
+  //- the data into groups).  If this gets expensive, we simply store the result
+  //- instead of re-calculating it every time.  We might even re-publish our
+  //- work to the network as a resource!
+  - var shuffled = _.shuffle(topics); // topics is defined by Maki automatically
+  - var featured = shuffled.filter(function(x) { return (x.description.length > 0 && x.topic.length > 0 && x.stats.subscribers > 20); }).slice(0, 3);
+  .ui.vertical.stripe.segment.content(style="margin-top: inherit")
+    h2.ui.horizontal.header.divider Featured Conversations
+    .ui.three.stackable.cards
+      for topic in featured
+        include partials/topic
+
+  - var shuffled = _.shuffle(people);
+  .ui.vertical.stripe.segment.content(style="margin-top: inherit")
+    h2.ui.horizontal.header.divider #{people.length} People in our Community
+    .ui.five.doubling.cards
+      if (people.length > 8)
+        include partials/invitation-card
+      for person in shuffled
+        include partials/person
+      include partials/invitation-card
+
+block scripts
+  script.
+    $(document).on('click', '*[on-tap=focus-input-email]', focusInput);
+    $(window).on('load', focusInput);
+
+    function focusInput(e) {
+      e.preventDefault();
+      $('input[name=email]').focus();
+      return false;
+    }

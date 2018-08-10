@@ -1,0 +1,29 @@
+.ui.card
+  .content
+    img.ui.left.floated.tiny.image(src="https://s.gravatar.com/avatar/#{invitation.id}")
+    .content
+      .header #{invitation.email}
+      if (invitation.from)
+        .meta invited by <a href="/people/#{invitation.from}">#{invitation.from}</a> on #{moment(invitation.created).format('dddd, MMMM Do')}.
+      else
+        .meta invited on #{moment(invitation.created).format('dddd, MMMM Do')}.
+      .description
+        p You have &infin; reminders to give.  
+          a.ui.mini.label(href="/payments") Learn More &raquo;
+        .ui.two.statistics
+          .ui.small.statistic(src="/invitations/#{invitation.id}/stats/reminders")
+            .value #{invitation.stats.reminders}
+            .label reminders sent
+          .ui.small.statistic
+            .value #{invitation.stats.people}
+            .label people asking
+
+  if (invitation.status !== 'accepted')
+    .extra.content
+      .ui.two.stackable.buttons
+        .ui.green.labeled.button(on-tap="remind", data-target="#{invitation.id}")
+          i.icon.announcement
+          | Remind
+        .ui.blue.button
+          i.icon.users
+          | Who else?

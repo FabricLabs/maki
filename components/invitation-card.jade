@@ -1,0 +1,44 @@
+dom-module#maki-invitation-card
+  template
+    a.image(href="/invitations/{{data.id}}")
+      img(src="https://www.gravatar.com/avatar/{{data.avatar}}?s=500")
+    .content
+      a.header(href="/invitations/{{data.id}}")
+        small.subtle @
+        | {{data.username}}
+      .meta invited on
+        abbr.tooltipped(title="{{data.created}}") {{data.created}}
+        //-abbr.tooltipped(title="{{data.created}}") {{data.created.getFullYear()}}
+      p {{data.bio}}
+    .extra.content
+      .ui.buttons
+        template(is="dom-repeat", items="{{data.profiles}}")
+          .ui.button {{item}}
+  script.
+    Polymer({
+      is: 'maki-invitation-card',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String },
+        context: { type: Object }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:TILE]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = data;
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:TILE]', 'ready');
+      }
+    });

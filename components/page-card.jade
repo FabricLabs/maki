@@ -1,0 +1,10 @@
+dom-module#maki-page-card
+  template
+    .ui.card
+      .content
+        a.header(href="{{data.link}}") {{data.title}}
+        
+  script.
+    Polymer({
+      is: 'maki-page-card'
+    });

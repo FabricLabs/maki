@@ -1,0 +1,44 @@
+dom-module#maki-navbar
+  template
+    .ui.container#container
+      a.logo.brand.item(href="/")
+        template(is="dom-if", if="{{logo}}")
+          img(src="{{logo}}")
+        template(is="dom-if", if="{{!logo && icon}}")
+          i(class="{{icon}}")
+        span.brand.normal #{config.service.name}
+        
+      block navbar
+        each resource in resources
+          if (resource.public)
+            a.item(href="#{resource.routes.query}", title="#{resource.description}")
+              if (resource.options.icon)
+                i.icon(class="#{resource.options.icon}")
+              | #{resource.names.handle}
+        if (user)
+          .ui.large.secondary.inverted.pointing.right.menu
+            a.item(href="/people/#{user.id}") #{user.id}
+            a.item(href="/sessions/#{session.hash}?method=delete") Logout
+        content
+
+  script.
+    Polymer({
+      is: 'maki-navbar',
+      properties: {
+        logo: { type: String },
+        // TODO: merge these two props into a shared behavior, a common root
+        // with `maki-navbar`
+        narrow: { type: Boolean , value: false , observer: '_setNarrow' },
+        centered: { type: Boolean , value: false , observer: '_setCentered' },
+      },
+      _setNarrow: function(narrow) {
+        console.log('narrowChanged:', narrow);
+        this.$.container.classList.add('text');
+      },
+      _setCentered: function(centered) {
+        this.$.container.classList.add('center', 'aligned');
+      },
+      ready: function() {
+        
+      }
+    });
