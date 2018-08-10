@@ -107,11 +107,12 @@ brew install mongodb
 read and follow.  We recommend you start MongoDB automatically, _and_ start it
 immediately:
 
+```bash
+To have launchd start mongodb now and restart at login:
+  brew services start mongodb
+Or, if you don't want/need a background service you can just run:
+  mongod --config /usr/local/etc/mongod.conf
 ```
-("code missing from tutorial")
-```
-
-<div class="ui message">**Disclaimer:** we don't know exactly what the command is, so someone will have to tell us or edit this file directly by clicking the "edit" button at the top of this page!</div>
 
 ## Step 4: Hello World
 You're done, and ready to follow [the Hello World
