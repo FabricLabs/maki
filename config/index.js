@@ -58,6 +58,9 @@ module.exports = {
   dns: {
     name: process.env.MAKI_DNS_NAME || 'localhost'
   },
+  fabric: {
+    port: 1337
+  },
   services: {
     http: {
       port: process.env.MAKI_HTTP_PORT || 9200 ,
