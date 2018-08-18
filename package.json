@@ -10,6 +10,7 @@
     "start": "node maki.js",
     "test": "NODE_ENV=test mocha --recursive",
     "coverage": "NODE_ENV=test istanbul cover _mocha -- --recursive",
+    "make:docs": "jsdoc lib/ README.md -d docs/",
     "updates": "rm -rf bower_components && bower install semantic && cp -r bower_components/semantic/rtl/less private/less/semantic && rm -rf bower_components"
   },
   "repository": {

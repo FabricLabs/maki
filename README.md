@@ -1,10 +1,9 @@
-Maki &middot; platform-agnostic serverless apps
+Maki &middot; write once, deploy everywhere.
 ==============
 ![Project Status](https://img.shields.io/badge/status-alpha-red.svg?style=flat-square)
 [![Build Status](https://img.shields.io/travis/FabricLabs/maki.svg?branch=master&style=flat-square)](https://travis-ci.org/FabricLabs/maki)
 [![Coverage Status](https://img.shields.io/coveralls/FabricLabs/maki.svg?style=flat-square)](https://coveralls.io/r/FabricLabs/maki)
 [![Total Contributors](https://img.shields.io/github/contributors/FabricLabs/maki.svg?style=flat-square)](https://github.com/FabricLabs/maki/contributors)
-[![Sustainability](https://img.shields.io/gratipay/team/fabric-foundation.svg?style=flat-square)](https://gratipay.com/Fabric-Foundation)
 
 The complete stack for building extensible apps, faster than ever.  Hand-roll your application by telling Maki what your application does, and it takes care of the rest – without getting in your way if you want to customize it.
 

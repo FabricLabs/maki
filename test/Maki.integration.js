@@ -12,7 +12,6 @@ var JSONRPC = require('maki-jsonrpc');
 var config = require('../config');
 
 config.services.http.port = 9201;
-config.services.spdy.port = config.services.http.port + 443 - 80;
 config.database.name = 'maki-test';
 
 var Maki = require('../lib/Maki');
@@ -53,8 +52,8 @@ maki.define('Unfile', {
 function resource( path , options ) {
   var options  = options || {};
   var protocol = (options.ssl) ? 'https' : 'http';
-  var host     = (options.ssl) ? maki.config.services.spdy.host : maki.config.services.http.host;
-  var port     = (options.ssl) ? maki.config.services.spdy.port : maki.config.services.http.port;
+  var host     = maki.config.services.http.host;
+  var port     = maki.config.services.http.port;
 
   return protocol + '://' + host + ':' + port + path;
 }
@@ -444,32 +443,6 @@ describe('https', function(){
     https.get( uri , function(res) {
       assert.equal( res.statusCode , 200 );
     });
-  });
-});
-
-describe('spdy', function(){
-  var spdy = require('spdy');
-  var https = require('https');
-  var http = require('http');
-
-  var agent = spdy.createAgent({
-    host: '127.0.0.1',
-    port: config.services.spdy.port
-  });
-
-  xit('should be listening for spdy', function( next ) {
-    http.get({
-      host: config.services.spdy.host,
-      path: '/',
-      agent: agent
-    }, function(res) {
-
-      assert.equal( res.statusCode , 201 );
-      agent.close();
-
-      next();
-
-    }).end();
   });
 });
 
