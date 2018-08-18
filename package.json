@@ -36,7 +36,7 @@
     "body-parser": "~1.2.2",
     "browserify": "^11.0.1",
     "browserify-shim": "^3.8.12",
-    "coalescent": "^0.5.0-alpha.3",
+    "coalescent": "github:martindale/coalescent#async",
     "colors": "^1.0.3",
     "connect-busboy": "0.0.2",
     "cookie-parser": "~1.1.0",
