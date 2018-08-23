@@ -3,21 +3,21 @@
    This is done using the module.exports function,
    which sets them when require('./thisfile') is run. */
 
-var NAMESPACE = process.env.MAKI_SERVICE_NAMESPACE || 'maki';
-var DATABASE  = process.env.MAKI_DATABASE_NAME || NAMESPACE;
+const NAMESPACE = process.env.MAKI_SERVICE_NAMESPACE || 'maki';
+const DATABASE  = process.env.MAKI_DATABASE_NAME || NAMESPACE;
 
 module.exports = {
   service: {
     name: process.env.MAKI_SERVICE_NAME || 'Maki' ,
-    source: 'https://github.com/martindale/maki',
+    source: 'https://github.com/FabricLabs/maki',
     // heh.  this silly RFC.
-    authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200' ,
+    authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200',
     namespace: NAMESPACE ,
     pitch: 'an experimental full-stack framework for cross-platform apps.',
     mission: process.env.MAKI_SERVICE_MISSION || 'Maki makes building beautiful apps a breeze.',
-    description: process.env.MAKI_SERVICE_DESCRIPTION || 'Maki allows you to focus on your project, rather than laboring over architecture decisions.  With true isomorphism, you control how your application behaves, and can then customize how your features are exposed on specific platforms.',
-    about: 'Maki is a noncommercial labor of love, built over many years as an experiment in application design.  We find it useful in our daily work, and hope you do, too.  <i class="heart icon"></i>',
-    copyright: 'Maki is copy<em>left</em>, and encourages you to copy, clone, and <em>create</em>.  After all, without a rich public domain, how else can we innovate?<br /><br /><a href="https://github.com/martindale/maki/blob/master/LICENSE">Open Source Licenses May Apply</a>',
+    description: process.env.MAKI_SERVICE_DESCRIPTION || 'From 0 to MVP in 15 minutes.  By building your app with Maki, you\'ll have builds for all major platforms right out of the box.  Write once, deploy everywhere!',
+    about: 'We built Maki as a rapid-prototyping tool for <a href="https://fabric.pub">Fabric</a> apps.  We\'ve found it fairly useful, so we hope you enjoy. <i class="heart icon"></i>',
+    copyright: 'We encourage you to copy, clone, and <em>create</em>.  After all, without a rich public domain, how else can we innovate?  By all means, go forth and <em>build</em>.',
     //masthead: '/img/breeze.gif',
     cta: {
       link: '/examples',
@@ -58,14 +58,13 @@ module.exports = {
   dns: {
     name: process.env.MAKI_DNS_NAME || 'localhost'
   },
+  fabric: {
+    port: 1337
+  },
   services: {
     http: {
       port: process.env.MAKI_HTTP_PORT || 9200 ,
       host: process.env.MAKI_HTTP_HOST || 'localhost'
-    },
-    spdy: {
-      host: process.env.MAKI_HTTP_HOST || 'localhost',
-      port: process.env.MAKI_SPDY_PORT || 9643
     }
   },
   database: {

@@ -1,10 +1,9 @@
-Maki
+Maki &middot; write once, deploy everywhere.
 ==============
 ![Project Status](https://img.shields.io/badge/status-alpha-red.svg?style=flat-square)
-[![Build Status](https://img.shields.io/travis/martindale/maki.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki)
-[![Coverage Status](https://img.shields.io/coveralls/martindale/maki.svg?style=flat-square)](https://coveralls.io/r/martindale/maki)
-[![Total Contributors](https://img.shields.io/github/contributors/martindale/maki.svg?style=flat-square)](https://github.com/martindale/maki/contributors)
-[![Sustainability](https://img.shields.io/gratipay/team/fabric-foundation.svg?style=flat-square)](https://gratipay.com/Fabric-Foundation)
+[![Build Status](https://img.shields.io/travis/FabricLabs/maki.svg?branch=master&style=flat-square)](https://travis-ci.org/FabricLabs/maki)
+[![Coverage Status](https://img.shields.io/coveralls/FabricLabs/maki.svg?style=flat-square)](https://coveralls.io/r/FabricLabs/maki)
+[![Total Contributors](https://img.shields.io/github/contributors/FabricLabs/maki.svg?style=flat-square)](https://github.com/FabricLabs/maki/contributors)
 
 The complete stack for building extensible apps, faster than ever.  Hand-roll your application by telling Maki what your application does, and it takes care of the rest – without getting in your way if you want to customize it.
 
@@ -15,7 +14,7 @@ The complete stack for building extensible apps, faster than ever.  Hand-roll yo
 ## Quick Start
 You'll need [node.js](http://nodejs.org) to build a Maki application.   Additionally, [MongoDB](http://mongodb.org) and [Redis](http://redis.org) are the default storage and messaging engines, so you will need to install and configure them to use the defaults, or override them if you'd like to use something different.  We'll be changing this in an upcoming release – see #58 for progress!
 
-1. Install Maki: `npm install martindale/maki`
+1. Install Maki: `npm install FabricLabs/maki`
 2. Create your app, perhaps in `yourapp.js`:
   ```javascript
   var Maki = require('maki');

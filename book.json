@@ -3,7 +3,7 @@
   "plugins": ["exercises", "edit-link", "page-toc"],
   "pluginsConfig": {
     "edit-link": {
-      "base": "https://github.com/martindale/maki/edit/community",
+      "base": "https://github.com/martindale/maki/edit/release-0.3",
       "label": "Edit This Page"
     }
   }
