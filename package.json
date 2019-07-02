@@ -30,6 +30,8 @@
   "readmeFilename": "README.md",
   "gitHead": "22dbaa6e09ffb728b79cecf128f4694fe12d5661",
   "dependencies": {
+    "@fabric/core": "FabricLabs/fabric#pruning",
+    "@fabric/http": "FabricLabs/web#fabric-0.1.0-develop",
     "async": "~0.7.0",
     "body-parser": "~1.2.2",
     "browserify": "^11.0.1",
