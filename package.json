@@ -1,10 +1,10 @@
 {
-  "name": "maki",
+  "name": "@fabric/maki",
   "version": "0.3.0-dev",
   "description": "Framework for hand-rolling web applications.",
   "main": "index.js",
   "bin": {
-    "maki": "bin/maki.js"
+    "maki": "scripts/maki.js"
   },
   "scripts": {
     "coverage": "NODE_ENV=test istanbul cover _mocha tests -- --recursive",

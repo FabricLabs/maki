@@ -4,7 +4,7 @@ Maki
 [![Build Status](https://img.shields.io/travis/martindale/maki.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki)
 [![Coverage Status](https://img.shields.io/coveralls/martindale/maki.svg?style=flat-square)](https://coveralls.io/r/martindale/maki)
 [![Total Contributors](https://img.shields.io/github/contributors/martindale/maki.svg?style=flat-square)](https://github.com/martindale/maki/contributors)
-[![Sustainability](https://img.shields.io/gratipay/team/fabric-foundation.svg?style=flat-square)](https://gratipay.com/Fabric-Foundation)
+[![Community](https://img.shields.io/matrix/maki:fabric.pub.svg?style=flat-square)](https://chat.fabric.pub)
 
 The complete stack for building extensible apps, faster than ever.  Hand-roll your application by telling Maki what your application does, and it takes care of the rest – without getting in your way if you want to customize it.
 
@@ -13,21 +13,25 @@ The complete stack for building extensible apps, faster than ever.  Hand-roll yo
 - **Robust Plugin Ecosystem** Maki is an extensible framework – and there's already a huge list of plugins to provide common (and some not so common!) functionality to your application with almost zero-configuration.  For example, Maki's identity protocol allows us to support both username/password auth and cryptographic identity!
 
 ## Quick Start
-You'll need [node.js](http://nodejs.org) to build a Maki application.   Additionally, [MongoDB](http://mongodb.org) and [Redis](http://redis.org) are the default storage and messaging engines, so you will need to install and configure them to use the defaults, or override them if you'd like to use something different.  We'll be changing this in an upcoming release – see #58 for progress!
+You'll need [node.js](http://nodejs.org) to build a Maki application.
 
-1. Install Maki: `npm install martindale/maki`
-2. Create your app, perhaps in `yourapp.js`:
+1. Install Maki: `npm install --save @fabric/maki`
+2. Create your application, perhaps in `app.js`:
   ```javascript
-  var Maki = require('maki');
-  var myApp = new Maki();
+  const Maki = require('@fabric/maki');
 
-  myApp.define('Widget', {
-    attributes: {
-      name: String
-    }
-  });
+  async function main () {
+    const app = new Maki();
+    await app.define('Widget', {
+      attributes: {
+        name: { type: String }
+      }
+    });
 
-  myApp.start();
+    await app.start();
+  }
+
+  main();
   ```
 3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
 
@@ -35,8 +39,12 @@ You'll need [node.js](http://nodejs.org) to build a Maki application.   Addition
 Maki applications allow you to construct pipelines, as follows:
 
 ```javascript
-// same as above
-var Widget = myApp.define('Widget', { attributes: { name: String } });
+// same as above...
+const Widget = await app.define('Widget', {
+  attributes: {
+    name: { type: String }
+  }
+});
 
 Widget.pre('create', function(next, done) {
   var widget = this;
