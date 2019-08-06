@@ -7,9 +7,9 @@
     "maki": "bin/maki.js"
   },
   "scripts": {
-    "test": "NODE_ENV=test mocha --recursive",
-    "coverage": "NODE_ENV=test istanbul cover _mocha -- --recursive",
-    "start": "node examples/app.js"
+    "coverage": "NODE_ENV=test istanbul cover _mocha tests -- --recursive",
+    "start": "node examples/app.js",
+    "test": "NODE_ENV=test mocha tests"
   },
   "repository": {
     "type": "git",

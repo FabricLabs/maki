@@ -1,1 +1,1 @@
-module.exports = require('./lib/Maki');
+module.exports = require('./types/app');
