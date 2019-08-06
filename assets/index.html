@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Making beautiful apps a breeze. &middot; @fabric/maki</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" type="text/css" href="/styles/screen.css" />
+  <link rel="stylesheet" type="text/css" href="/styles/semantic.css" />
+</head>
+<body class="ui inverted" data-bind="5c2e91d4b347a0b2871933278b44f739ee4ac35b132799f0531122c9bcadac99">
+  <fabric-application route="/" integrity="sha256-x3baoVHFQyDyD3GXXTA/QNIrAdx1g+ln2figIDMPxyY=" class="window">
+    <header>
+      <!-- <fabric-grid-row id="menu"><fabric-menu class="ui fixed inverted menu">
+      <div class="ui container"><a href="/" title="" class="tooltipped item brand">@fabric/http</a><div class="right menu" id="identity-menu"><fabric-wallet-card class="item"></fabric-wallet-card></div></div></fabric-menu></fabric-grid-row> -->
+      <fabric-grid-row id="details" class="ui container" style="display: none;">
+        <img src="" class="bordered" />
+        <h1><a href="/">@fabric/maki</a></h1>
+        <p>Making beautiful apps a breeze.</p>
+      </fabric-grid-row>
+    </header>
+    <fabric-grid-row id="browser">
+      <fabric-browser address="/">
+        <fabric-grid rows="3" columns="3" class="ui grid container">
+          <div class="four wide column">
+            <maki-sidebar id="sidebar-left" class="ui left visible inverted vertical pointing menu">
+              <div class="brand image item"><a href="/"><strong>@fabric/http</strong><br /><small>version <code class="code">0.1.0-dev</code></small></a></div>
+            </maki-sidebar>
+          </div>
+          <div class="browser twelve wide column">
+            <fabric-browser-content id="browser-content" class="ui container">
+              <div class="ui segment loading">
+                <h1 class="header">Preparing content...</h1>
+                <p>The application is compiling your document. Unless you've enabled JavaScript or are using the Fabric Browser, this message should not remain visible for long.</p>
+              </div>
+            </fabric-browser-content>
+          </div>
+        </fabric-grid>
+        <div class="four wide column">
+          <maki-sidebar id="sidebar-right" class="ui right inverted vertical menu"></maki-sidebar>
+        </div>
+      </fabric-browser>
+    </fabric-grid-row>
+    <footer>
+      <fabric-grid-row class="ui inverted vertical footer segment">
+        <div class="ui container">
+          <h2>Debug Information</h2>
+          <fabric-grid-row>
+            <fabric-channel></fabric-channel>
+            <nav data-bind="controls">
+              <button data-action="_generateIdentity" class="ui button">create new identity</button>
+              <button data-action="_toggleFullscreen" class="ui button">fullscreen</button>
+            </nav>
+            <div>
+              <p><code>Version:</code> <code>undefined</code></p>
+              <p><code>Clock:</code> <code data-bind="/clock">undefined</code></p>
+              <p><strong>Source:</strong> <a href="https://github.com/FabricLabs/web">fabric:github.com/FabricLabs/web</a>
+            </div>
+          </fabric-grid-row>
+        </div>
+      </fabric-grid-row>
+      <!-- [0]: README [dot] md -->
+      <!--
+    # RPG `@fabric/rpg`
+    ## STOP HERE AND READ ME FIRST!
+    Before continuing, let us be the first to welcome you to THE SOURCE.  While it
+    might be confusing at first, there's a lot you can learn if you make the time.
+
+    Use this URI:
+    https://www.roleplaygateway.com/
+
+    From there, links like `hub.roleplaygateway.com` might "pop up" from time to
+    time.  With a bit of navigating around, you can earn credit for your progress.
+
+    - Continue: https://chat.roleplaygateway.com/
+    - Offline: https://www.roleplaygateway.com/medals/beta-tester
+
+    Remember: never be afraid to explore!  Curiosity might have killed the cat, but
+    that's why he had nine lives.
+
+    Good luck, have fun (`gl;hf o/`), and enjoy!
+
+                                             — the RPG team
+    -->
+    </footer>
+    <div id="ephemeral-content"></div>
+    <!-- TODO: rollup semantic into build process -->
+    <!-- <script type="text/javascript" src="/scripts/semantic.min.js"></script> -->
+    <script type="text/javascript" src="/scripts/index.min.js"></script>
+  </fabric-application>
+</body>
+</html>
