@@ -1,0 +1,158 @@
+dom-module#maki-step-ladder
+  style.
+    .hidden {
+      display: none;
+    }
+  template
+    .ui.three.steps
+      .active.step(data-step="generate")
+        i.leaf.icon
+        .content
+          .title Generate
+          .description Create a key.
+      .step(data-step="secure")
+        i.icon.lock
+        .content
+          .title Secure
+          .description Keep it safe.
+      .step(data-step="configure")
+        i.icon.setting
+        .content
+          .title Configure
+          .description Name yourself.
+      template(is="dom-repeat", items="{{steps}}")
+        .step x:{{item}}
+    
+    .step-view(data-step="generate")
+      .ui.bottom.attached.clearing.segment
+        h3 This is a different way.
+        p Instead of remembering passwords, your computer will always remember you.  You can re-invent yourself any time you want, and even switch back and forth.
+        p But it's important to keep this one thing, <strong>the seed</strong>.  The seed is a short list of words that can be used to restore your identity.  Once we give it to you, we don't have it anymore.
+        p If you're ready to save your seed, generate it by using the button below.
+        .right.floated.buttons
+          a.ui.yellow.huge.fluid.button(on-tap="_startGenerator")
+            i.icon.plug
+            | Generate Seed
+    .step-view(data-step="secure")
+      .ui.bottom.attached.clearing.segment
+        h3 Write this down.
+        p This is your seed.  It can be used to sign in as you anywhere, any time.  Write it down and put it somewhere very safe.
+        pre
+          code {{words}}
+        p If you lose your seed, it's gone.  We cannot recover it for you.  Make sure you've really got it.
+        a.ui.huge.fluid.green.button(on-tap="_moveToConfigure")
+          i.icon.checkmark
+          | Yep, I've written it down.
+    .step-view(data-step="configure")
+      .ui.bottom.attached.clearing.segment
+        h3 Give yourself a name!
+        p This is how other people will see you!  You can change it at any time, but then people might forget you.  Make it memorable!
+        .ui.large.form
+          .field
+            label Your Name
+            input(type="text", placeholder="SomeUsername", name="name", value="{{identity.name}}")
+          .button.ui.positive.right.labeled.huge.icon.fluid.button(type="submit", on-tap="_setName") I'm happy.
+            i.right.chevron.icon
+  script.
+    Polymer({
+      is: 'maki-step-ladder',
+      properties: {
+        words: {
+          type: String
+        },
+        steps: {
+          type: Object
+        },
+        step: {
+          type: String,
+          observer: '_stepChanged',
+          notify: true
+        }
+      },
+      _createIdentity: function() {
+        var self = this;
+        var manager = document.querySelector('maki-identity');
+        var button = document.querySelector('.step-view[data-step=generate] .segment .button');
+        var step = document.querySelector('.step[data-step=generate]');
+        var next = document.querySelector('.step[data-step=secure]');
+        manager._generate(function(err, identity) {
+          console.log('generate complete:', err);
+          button.classList.remove('loading');
+          step.classList.remove('active');
+          next.classList.add('active');
+          self.words = manager.words;
+          self.step = 'secure';
+        });
+      },
+      _setName: function(e) {
+        e.preventDefault();
+        var self = this;
+        var manager = document.querySelector('maki-identity');
+        var name = $('*[data-step=configure] input[name=name]').val();
+        var step = document.querySelector('.step[data-step=configure]');
+        
+        $('*[data-step=configure] input[name=name]').val('');
+        
+        console.log('[MAKI:STEP-LADDER]', '_setName', name);
+        // hack.
+        // TODO: fix this
+        manager.identity.name = name;
+        manager.identityFull.name = name;
+        // other old dust.  unsure if necessary.
+        manager.set('identity.name', name);
+        manager.isNamed = true;
+        
+        console.log('[MAKI:STEP-LADDER]', '_setName', 'result:', manager.identity.name);
+
+        manager._save(function(err) {
+          step.classList.remove('active');
+          manager._register();
+          manager._closeGeneratorModal();
+          self.step = 'generate';
+        });
+      },
+      _moveToConfigure: function() {
+        var self = this;
+        var step = document.querySelector('.step[data-step=secure]');
+        var next = document.querySelector('.step[data-step=configure]');
+        step.classList.remove('active');
+        next.classList.add('active');
+        self.step = 'configure';
+      },
+      _stepChanged: function(step) {
+        var self = this;
+        console.log('[MAKI:STEP-LADDER]', '_stepChanged', step);
+
+        var steps = document.querySelectorAll('.step-view');
+        console.log('[MAKI:STEP-LADDER]', 'pages found:', steps);
+
+        for (var i = 0; i < steps.length; i++) {
+          var el = steps[i];
+          var name = el.getAttribute('data-step');
+          var cond = (self.step !== name);
+          var step = document.querySelector('.step[data-step='+name+']');
+
+          console.log('[MAKI:STEP-LADDER]', '_stepChanged cond', cond);
+          if (cond) {
+            el.classList.add('hidden');
+            step.classList.remove('active');
+          } else {
+            el.classList.remove('hidden');
+            step.classList.add('active');
+          }
+        }
+      },
+      _startGenerator: function(e) {
+        var self = this;
+        var button = document.querySelector('.step-view[data-step=generate] .segment .button');
+        
+        button.classList.add('loading');
+        
+        self._createIdentity();
+
+      },
+      attached: function() {
+        var self = this;
+        self.step = 'generate';
+      }
+    });

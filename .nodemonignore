@@ -1,2 +1,6 @@
 public/*     # static files
 #/views/*
+data/*
+docs/*
+examples/*
+node_modules/*

@@ -1,0 +1,25 @@
+dom-module#maki-content-store
+  template
+    maki-crypto-worker
+    //- TODO: replace this with maki-peer-manager
+    maki-key-value(name="fabric")
+  script.
+    Polymer({
+      is: 'maki-content-store',
+      _get: function(key, cb) {
+        var db = document.querySelector('maki-key-value[name=fabric]');
+        db._retrieve(key, cb);
+      },
+      _store: function(doc, cb) {
+        var db = document.querySelector('maki-key-value[name=fabric]');
+        var worker = document.querySelector('maki-crypto-worker');
+        if (typeof doc !== 'string') {
+          doc = JSON.stringify(doc);
+        }
+        worker._digest(doc, function(err, hash) {
+          db._store(hash, doc, function(err) {
+            cb(err, hash);
+          });
+        });
+      }
+    });

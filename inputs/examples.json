@@ -1,0 +1,83 @@
+[
+  {
+    "name": "DECENTRALIZE",
+    "uri": "https://decentralize.fm",
+    "source": "https://github.com/martindale/decentralize",
+    "description": "DECENTRALIZE is the podcast for the decentralization movement – the hackers, scholars, artists, entrepreneurs, and hobbyists building technologies free of central control.",
+    "image": "/img/decentralize.png"
+  },
+  {
+    "name": "MailPimp",
+    "uri": "https://github.com/martindale/mailpimp",
+    "source": "https://github.com/martindale/mailpimp",
+    "description": "Open-source replacement for MailChimp.  Create mailing lists, use double opt-in, offer unsubscribes, and send generic mails without relying on a centralized server."
+  },
+  {
+    "name": "Para, the Parallel World",
+    "uri": "http://para.io",
+    "description": "Para is the world's first persistent augmented reality network.  Place virtual objects in the real world that others can interact with.",
+    "image": "http://para.io/img/Lukeville_2.jpg"
+  },
+  {
+    "name": "Aris",
+    "uri": "http://aris.io",
+    "description": "Hyper-personalized education, using machine learning to manage space-repetition reinforcement learning."
+  },
+  {
+    "name": "converse",
+    "uri": "http://converse.fm/",
+    "source": "https://github.com/martindale/converse",
+    "description": "Open-source discussion board.",
+    "image": "/img/converse.png"
+  },
+  {
+    "name": "soundtrack.io",
+    "uri": "https://soundtrack.io/",
+    "source": "https://github.com/martindale/soundtrack.io",
+    "description": "soundtrack.io is a collaborative online jukebox for listening to music with your friends.",
+    "image": "/img/soundtrack.io.png"
+  },
+  {
+    "name": "Coachie",
+    "uri": "https://coachie.ericmartindale.com/",
+    "source": "https://github.com/unchaz/coachie",
+    "description": "eSports training made easy.  Easy pairing of trainers and trainees, including team training options."
+  },
+  {
+    "name": "shipright",
+    "uri": "http://shipright.ericmartindale.com/",
+    "source": "https://github.com/martindale/shipright",
+    "description": "Open-source replacement for GitHub, written in NodeJS."
+  },
+  {
+    "name": "confluence",
+    "uri": "https://github.com/martindale/confluence",
+    "source": "https://github.com/martindale/confluence",
+    "description": "Automatically construct a single stream from many social media profiles."
+  },
+  {
+    "name": "EVE Ship Viewer",
+    "uri": "http://shipviewer.ericmartindale.com/",
+    "source": "https://github.com/martindale/shipviewer",
+    "description": "View EVE Online ships in the browser.",
+    "image": "/img/shipviewer.png"
+  },
+  {
+    "name": "CrowdCoin",
+    "uri": "https://crowdcoin.ericmartindale.com/",
+    "source": "https://github.com/unchaz/crowdcoin",
+    "description": "Simple group fundraising.  Set an objective, receive contributions (in Bitcoin), and retrive money only when funding is complete."
+  },
+  {
+    "name": "Coursefork",
+    "uri": "http://coursefork.org/",
+    "description": "Coursefork is a new way of collaborating in education; it open-sources the process of compiling educational materials and teaching them."
+  },
+  {
+    "name": "snarl & CodingSoundtrack.org",
+    "uri": "https://codingsoundtrack.org",
+    "source": "https://github.com/martindale/snarl",
+    "description": "Automatic tracking bot for collaborative music site, plug.dj.  Deprecated by soundtrack.io.",
+    "image": "/img/codingsoundtrack.png"
+  }
+]

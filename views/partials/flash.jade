@@ -1,17 +1,17 @@
-if (messages)
+if (messages && (messages.info || messages.warning || messages.error || messages.success))
   for info in messages.info
     .ui.info.message
       i.icon.close(type="button", data-dismiss="alert")
-      p.header !{info}
+      h4.header !{info}
   for warning in messages.warning
     .ui.error.message
       i.icon.close(type="button", data-dismiss="alert")
-      p.header !{warning}
+      h4.header !{warning}
   for error in messages.error
     .ui.error.message
       i.icon.close(type="button", data-dismiss="alert")
-      p.header !{error}
+      h4.header !{error}
   for success in messages.success
     .ui.success.message
       i.icon.close(type="button", data-dismiss="alert")
-      p.header !{success}
+      h4.header !{success}

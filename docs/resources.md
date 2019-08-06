@@ -1,3 +1,11 @@
+---
+title: Resource Definitions
+description: Documentation for configuring Resources, including attributes and behaviors.
+source: https://github.com/martindale/maki/blob/maki.io/source/tutorials/adding-resources.md
+edit: https://github.com/martindale/maki/edit/maki.io/source/tutorials/adding-resources.md
+masthead: /img/digital-texture.jpg
+---
+
 ## Resources
 Resources define the "object model" that your application exposes.  Here's how
 a single resource is created:
@@ -115,6 +123,14 @@ maki.define('Widget', {
 });
 ```
 
+##### References
+When specifying a value for a referenced field (that is, `ref:`), several types
+can be used.
+
+`simple` for a top-level link (defers to consensus).  Example: `person: 'martindale'`
+`path` for a hinted type (defers to local node).  Example: `person: '/people/martindale'`
+`target` for another namespace's version (defers to remote node).  Example: `person: soundtrack/people/martindale`
+`exact` for a specific document (defers to the content).  Example: `https://maki.io/messages/328250f68b47a76cdeee7be76526f560ce959d70969978c74e60d89a2c13b43e`
 
 #### Special Types
 Certain special types of Resource attributes exist.  These control some behavior
@@ -326,6 +342,26 @@ maki.define('Example', {
   }
 });
 ```
+
+##### New Feature: Named Requirements
+Requirements can be named arbitrarily, by simply supplying the property name as
+the key, and providing a `resource` string to the configuration:
+
+```javascript
+maki.define('Example', {
+  requires: {
+    'featured': {
+      resource: 'Example',
+      filter: function() {
+        return { featured: true }
+      }
+    }
+  }
+});
+```
+
+Responses will now have a named attribute `featured`, which contains the results
+from the requirement collector.
 
 #### Population
 Not unlike [Requirements](#requirements), Resources with nested objects can have

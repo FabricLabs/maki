@@ -1,0 +1,13 @@
+dom-module#maki-channel-status
+  template
+    template(is="dom-if", if="{{debug}}")
+      .ui.icon.label
+        i.lightning.icon
+        span {{status}}
+  script.
+    Polymer({
+      is: 'maki-channel-status',
+      properties: {
+        status: { type: String , value: 'ready' }
+      }
+    });

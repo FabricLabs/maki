@@ -1,0 +1,290 @@
+dom-module#maki-application
+  template
+    maki-navbar.ui.large.top.fixed.hidden.menu
+    maki-navbar.ui.vertical.inverted.sidebar.menu
+
+    maki-masthead#masthead
+
+    maki-viewport.ui.padded.container.content#viewport
+
+    .ui.inverted.vertical.footer.segment
+      .ui.container
+        block footer
+          maki-footer
+            maki-content-store(name="#{config.service.namespace}")
+            maki-datastore(name="#{config.service.namespace}", for="#{config.service.namespace}")
+            maki-channel(autoconnect, reconnect="true")
+            //-maki-service
+            //-maki-peer-manager(autoconnect, limit="128", strategy="lowest-latency")
+    
+    //- TODO: troubleshoot
+    maki-analytics
+
+  script(src="/js/page.min.js", async)
+  script(src="/assets/objectid.js", async)
+  script(src="/assets/async.min.js", async)
+  script.
+    window.maki = Polymer({
+      is: 'maki-application',
+      properties: {
+        src: { type: String },
+        data: { type: Object },
+        for: { type: String },
+        path: { type: String },
+        view: { type: String , observer: '_viewChanged' },
+        viewData: { type: String , observer: '_viewDataChanged' },
+        route: { type: String },
+        routes: { type: Object, value: {} },
+        components: { type: Object, value: {} },
+        resources: { type: Object, observer: '_resourcesUpdated' },
+        datastore: { type: Object },
+        config: { type: Object },
+        worker: { type: Object },
+        identity: { type: Object, notify: true },
+        state: { type: String }
+      },
+      //- TODO: implement
+      preload: function (done) {
+        /*/
+        fabric.preload(done);
+        /*/
+        return done(null, this.data);
+        /**/
+      },
+      _route: function(ctx) {
+        var self = this;
+        var viewport = this.$.viewport;
+        var component = 'maki-undefined';
+        var masthead = null;
+        var view = null;
+        var route = null;
+
+        if (!viewport) {
+          console.warn('[MAKI:APPLICATION]', 'no viewport provided');
+          return false;
+        }
+        
+        viewport.toggleClass('loading', true);
+        self.$.masthead.toggleClass('loading', true);
+        
+        self.path = ctx.path;
+
+        for (var route in self.routes) {
+          var regex = self.routes[route];
+          var resource = self.resourceMap[route];
+          console.log('[MAKI:APPLICATION]', '_route', 'routing', route, regex);
+          console.log('[MAKI:APPLICATION]', '_route', 'comparing...', ctx.path, 'to', regex);
+          
+          if (regex.test(self.path)) {
+            console.log('test matched, resource is:', resource, 'and the route is', route);
+            Object.keys(resource.routes).forEach(function(method) {
+              var match = resource.routes[method];
+              if (route === match) {
+                if (method === 'query') {
+                  masthead = resource.options.components.masthead;
+                }
+              }
+            });
+            /*if (resource[route]) {
+              masthead = resource.options.components.masthead;
+            }*/
+    
+            
+            //masthead = self.resourceMap[route].options.components.masthead;
+
+            component = self.components[route];
+            view = document.createElement(component);
+            
+            console.log('[MAKI:APPLICATION]', '_route', 'found:', component);
+            console.log('[MAKI:APPLICATION]', '_route', 'selected:', view);
+            console.log('[MAKI:APPLICATION]', '_route', 'masthead:', masthead);
+
+            view.action = self.actionMap[route];
+            view.type = self.resourceMap[route];
+            view.type.route = route;
+
+            break;
+          }
+        }
+
+        self.view = component;
+
+        if (!view) {
+          view = document.createElement(component);
+        }
+        
+        view.setAttribute('src', ctx.path);
+        
+        if (!view.type) console.log('wat?  no view type?', self.path , view);
+        view.setAttribute('type', view.type.name);
+
+        while (viewport.hasChildNodes()) {
+          viewport.removeChild(viewport.lastChild);
+        }
+
+        viewport.appendChild(view);
+        viewport.toggleClass('loading', false);
+
+        // handle masthead, if it exists
+        if (masthead) {
+          console.log('[MAKI:APPLICATION]', '_route', 'using component', masthead);
+          self.$.masthead.setAttribute('component', masthead);
+          
+          var now = self.$.masthead.component;
+          console.log('[MAKI:APPLICATION]', '_route', 'masthead component now:', now);
+          console.log('[MAKI:APPLICATION]', '_route', 'masthead data now:', now.data);
+        } else {
+          self.$.masthead.removeAttribute('component');
+        }
+        
+        self.$.masthead.toggleClass('loading', false);
+
+      },
+      _viewDataChanged: function(data, old) {
+        
+      },
+      _viewChanged: function(view, old) {
+        var viewport = this.$.viewport;
+        var element = document.createElement(view);
+
+        viewport.toggleClass('loading', false);
+        element.setAttribute('src', self.path);
+        
+        while (viewport.hasChildNodes()) {
+          viewport.removeChild(viewport.lastChild);
+        }
+        
+        viewport.appendChild(element);
+        viewport.toggleClass('loading', false);
+
+      },
+      /*
+          Configures the Router, which provides human-friendly URLs 
+      
+       */
+      _resourcesUpdated: function(resources) {
+        var self = this;
+        var _route = self._route.bind(self);
+        
+        self.resourceMap = {};
+        self.actionMap = {};
+        self.routes = {};
+        // TODO: in-memory representation of local data
+        self.data = {};
+        
+        if (window.lunr) {
+          self.search = {};
+          self.spider = new Worker('/search.js');
+        }
+        
+        console.log('[MAKI:APPLICATION]', '_resourcesUpdated', resources);
+        
+        Object.keys(resources).forEach(function(name) {
+          var definition = resources[name];
+          
+          console.log('[MAKI:APPLICATION]', 'configuring resource', name, definition);
+
+          ['get', 'query'].forEach(function(action) {
+            var route = definition.routes[action];
+            if (!route) return;
+
+            self.routes[route] = new RegExp(eval(definition.paths[action]));
+            self.components[route] = definition.components[action];
+            self.resourceMap[route] = definition;
+            self.actionMap[route] = action;
+            
+            page(route, _route);
+          });
+          
+          if (window.lunr) {
+            console.log('[MAKI:SEARCH]', 'search is enabled.', 'Building index...');
+            self.data[definition.names['query']] = {};
+            self.search[definition.names['query']] = lunr(function() {
+              this.field(definition.fields['id']);
+              this.field(definition.fields['name']);
+              this.field(definition.fields['description']);
+              this.field('content');
+              this.field('type');
+              this.ref(definition.fields['id']);
+            });
+
+            self.search['all'] = lunr(function() {
+              this.field('id');
+              this.field('content');
+              this.field('type');
+              this.ref('link');
+            });
+
+            // TODO: use fabric
+            var endpoint = definition.routes['query'];
+            $.getJSON(endpoint, function(data) {
+              console.log('[MAKI:SEARCH]', definition.name, endpoint, 'retrieved seed:', data);
+              
+              var mapped = data.map(function(x) {
+                x.content = JSON.stringify(x);
+                return x;
+              });
+
+              self.data[definition.names['query']] = data;
+
+              mapped.forEach(function(x) {
+                self.search[definition.names['query']].add(x);
+                self.search['all'].add(x);
+              });
+              
+              console.log('[MAKI:APPLICATION]', 'prepared', name, 'with', data);
+            });
+          }
+          
+        });
+        
+        self.routes['/'] = new RegExp(/^\/$/);
+        self.components['/'] = (resources.Index && resources.Index.components) ? resources.Index.components.query : 'maki-index';
+
+        page('/', _route);
+        page('*', _route);
+        
+        page();
+      },
+      created: function() {
+        var self = this;
+        console.log('[MAKI:APPLICATION]', 'created');
+        self.route = window.location.pathname;
+        //self.worker = new Worker('/worker.js');
+        // load the application configuration
+        // TODO: get rid of jquery!
+        $.ajax({
+          type: 'OPTIONS',
+          url: '/',
+          headers: {
+            'Accept': 'application/json'
+          },
+          success: function(data) {
+            self.config = data.config;
+            self.resources = data.resources;
+            self.$.masthead.data = data.service;
+          }
+        });
+      },
+      ready: function() {
+        console.log('[MAKI:APPLICATION]', 'ready');
+        
+        window.app = this;
+
+        $('.tooltipped').popup();
+        // fix menu when passed
+        $('.masthead').visibility({
+          once: false,
+          onBottomPassed: function() {
+            $('.fixed.menu').transition('fade in');
+          },
+          onBottomPassedReverse: function() {
+            $('.fixed.menu').transition('fade out');
+          }
+        });
+
+        // create sidebar and attach to menu open
+        $('.ui.sidebar').sidebar('attach events', '.toc.item');
+
+      }
+    });

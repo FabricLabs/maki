@@ -1,0 +1,66 @@
+extends layouts/default
+
+block masthead
+  - if (page && page.masthead)
+    style.
+      .masthead {
+        background: url('#{page.masthead}');
+      }
+
+block content
+  //- TODO: allow "requirements" to set the local variable names
+  - var favorites = messages.slice(0);
+  - favorites.sort(function(a, b) { return b.stats.reactions - a.stats.reactions; });
+  
+  .ui.vertical.stripe.segment.content
+    //-h2.ui.horizontal.header.divider
+      small(style="color: rgba(0,0,0,.4);") @
+      | #{person.id}
+    .ui.grid.stackable
+      .row
+        .four.wide.column
+          include partials/person
+          
+          .ui.vertical.fluid.menu
+            - topicMemberships.sort(function(a, b) { return b.people.length - a.people.length; });
+          
+            a.header.item #{topicMemberships.length} memberships
+            for topic in topicMemberships
+              a.item(href="/topics/#{topic.id}")
+                small(style="color: rgba(0,0,0,.4);") &#35;
+                |  #{topic.id}
+                .ui.icon.label
+                  i.users.icon
+                  | #{topic.people.length}
+        .twelve.wide.column
+          if (favorites.length)
+            .ui.message
+              .content
+                .header Top Contribution
+                .ui.comments
+                  - var message = favorites[0]
+                  +MessageItem(message, 1, 1)
+          if (user && user.id === person.id)
+            form.ui.form(action="/messages", method="post")
+              input(type="hidden", name="author", value="#{user.id}")
+              if (user.tokens)
+                input(type="hidden", name="@context", value="#{user.tokens.slack}")
+              .field
+                textarea(rows="3", name="content", placeholder="Say something...")
+              button.ui.right.floated.primary.right.labeled.icon.button(type="submit")
+                | Share
+                i.icon.share.alt
+              div(style="clear: both;")
+          .ui.comments
+            - messages.sort(function(a, b) { return b.created - a.created; });
+            - messages = messages.slice(0, 10);
+            for message in messages
+              +MessageItem(message, 1, 1)
+            else
+              .ui.warning.icon.message
+                i.icon.warning.sign
+                .content
+                  .header
+                    small(style="color: rgba(0,0,0,.4);") @
+                    | #{person.id} hasn't said very much!
+                  p Say hello!

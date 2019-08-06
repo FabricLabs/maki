@@ -1,0 +1,45 @@
+dom-module#maki-message-list
+  template
+    template(is="dom-repeat", items="{{data}}")
+      maki-message.ui.comment(src="{{item.link}}")
+
+  script.
+    Polymer({
+      is: 'maki-message-list',
+      properties: {
+        // TODO: only display avatar on oldest message
+        lastAuthor: { type: String },
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:MESSAGE-LIST]', '_load', uri, back);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(uri, function(data) {
+          console.log('[MAKI:MESSAGE-LIST]', '_load', 'loaded', data);
+          
+          data.sort(function(a, b) {
+            var one = new Date(a.created);
+            var two = new Date(b.created);
+            
+            return two - one;
+          });
+          self.data = data.slice(0, 10);
+          
+          console.log('message list:', self.data);
+        });
+
+      },
+      attached: function() {
+        
+      },
+      ready: function() {
+        console.log('[MAKI:MESSAGE-LIST]', 'ready');
+      }
+    });

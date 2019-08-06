@@ -1,0 +1,26 @@
+dom-module#maki-search-results
+  template
+    .ui.vertical.stripe.segment.content
+      .ui.text.container
+        h2.ui.horizontal.header.divider
+          span {{data.length}}
+          |  Search Results
+          span {{data.query}}
+        .ui.cards
+          template(is="dom-repeat", items="{{data}}")
+            maki-search-result.ui.fluid.card(src="{{item.ref}}")
+  script.
+    Polymer({
+      is: 'maki-search-results',
+      properties: {
+        // internals
+        src: { type: String },
+        data: { type: Object , observer: '_dataChanged' },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _dataChanged: function(data, old) {
+        console.log('[MAKI:SEARCH-RESULTS]', '_dataChanged', data);
+      }
+    });

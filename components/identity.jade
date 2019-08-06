@@ -1,0 +1,404 @@
+dom-module#maki-identity
+  template
+    maki-crypto-worker(name="identity")
+    maki-datastore(name="identity", for$="{{for}}", private)
+    a.item(href="/", on-tap="_reset") Reset
+    //- TODO: this should be a /people thing, not an identity
+    template(is="dom-if", if="{{!hasIdentities}}")
+      a.item(on-tap="_onboard")
+        i.icon.sign.in
+        | Sign In
+    template(is="dom-if", if="{{hasIdentities}}")
+      template(is="dom-if", if="{{!isLoggedIn}}")
+        .ui.dropdown.item
+          i.icon.sign.in
+          | Sign In
+          i.icon.dropdown
+          maki-identity-list.menu
+            template(is="dom-repeat", items="{{identities}}")
+              maki-identity-card.item(identity="{{item}}", on-tap="_selectIdentity") {{item.name}}
+            .green.icon.labeled.item(on-tap="_onboard")
+              i.icon.leaf
+              | Start Fresh
+      template(is="dom-if", if="{{isLoggedIn}}")
+        //-a.item(href="/settings")
+          i.icon.setting
+        a.item(href="/people/{{identity.name}}")
+          template(is="dom-if", if="{{isNamed}}") {{identity.name}}
+          template(is="dom-if", if="{{!isNamed}}") anonymous
+        .ui.button.item(on-tap="_logout")
+          i.icon.sign.out
+          | Sign Out
+
+    maki-modal.ui.modal#identity-confirm
+      .header Let's introduce ourselves.  How?
+      .content
+        .description
+          .ui.two.massive.stackable.buttons
+            .ui.blue.labeled.icon.button(on-tap="_importFromSeed")
+              i.icon.eyedropper
+              | Existing Seed
+            .or
+            .ui.green.right.labeled.icon.button(on-tap="_displayGeneratorModal")
+              i.icon.leaf
+              | Fresh Start
+          
+          .ui.icon.fluid.message
+            i.icon.idea
+            .content
+              .header Forget your worries, not your passwords.
+              p Maki-powered apps remember you, so you never have to click "forgot password" again.  
+                a(href="/") Learn More &raquo;
+              
+      .actions
+        .ui.right.labeled.icon.button(on-tap="_closeSelectionModal") Some other time.
+          i.remove.icon
+
+    maki-modal.ui.modal#identity-create
+      .header Identity Generator
+      .content
+        .description
+          maki-step-ladder
+          .clearing
+
+      .actions
+        .ui.cancel.labeled.icon.button.hidden(on-tap="_displayNameModal") Nevermind, I'm done here.
+          i.remove.icon
+
+  script(src="/js/lodash.min.js", async)
+  script(src="/assets/bitcore.min.js", async)
+  script(src="/assets/bitcore-mnemonic.min.js", async)
+  script.
+    Polymer({
+      is: 'maki-identity',
+      properties: {
+        for:           { type: String },
+        seed:          { type: String },
+        words:         { type: String },
+        identity:      { type: Object, notify: true, observer: '_identityChanged' },
+        identityFull:  { type: Object, },
+        isLoggedIn:    { type: Boolean, value: false },
+        autoselect:    { type: Boolean, value: false },
+        hasIdentities: { type: Boolean, value: false },
+        isNamed:       { type: Boolean, value: false },
+        display:       { type: String }
+      },
+      _generate: function(cb) {
+        var self = this;
+        console.log('[MAKI:IDENTITY]', '_generate');
+        // TODO: do this in a Web Worker to prevent UI jank
+        var Mnemonic = require('bitcore-mnemonic');
+        var mnemonic = new Mnemonic();
+
+        var key = mnemonic.toHDPrivateKey();
+        var sub = key.derive('m/0');
+
+        self.seed = mnemonic;
+        self.words = mnemonic.toString();
+        
+        var identity = {
+          id: sub.hdPublicKey.toString(),
+          _id: ObjectId().toString(),
+          seed: mnemonic.toString(),
+          //address: sub.hdPublicKey.toAddress(),
+          key: {
+            hd: true,
+            private: key.toString(),
+            public: sub.hdPublicKey.toString()
+          }
+        };
+        
+        var clone = _.cloneDeep(identity);
+        delete clone.seed;
+        delete clone.key.private;
+
+        self.identity = clone;
+        self.identityFull = identity;
+
+        self._save(cb);
+      },
+      _save: function(cb) {
+        var self = this;
+        var datastore = document.querySelector('maki-datastore[name=identity]');
+        var identity = self.identityFull;
+        console.log('[MAKI:IDENTITY]', '_save', identity);
+
+        datastore._upsert('/identities', {
+          'key.public': identity.key.public
+        }, identity, function(err) {
+          if (err) console.log('err', err);
+          
+          console.log('[MAKI:IDENTITY]', '_upsert', 'callback', err, identity);
+          
+          datastore._query('/identities', {
+            'key.public': identity.key.public
+          }, function(err, identities) {
+            if (err) console.error('[MAKI-IDENTITY]', '_save', '_query', err);
+            console.log('[MAKI-IDENTITY]', '_save', '_query', 'identities', identities);
+            cb(err, identities);
+          });
+        });
+      },
+      // publishes to the local application scoped for this control
+      // makes the application aware of an identity
+      _publish: function(cb) {
+        var self = this;
+        console.log('[MAKI:IDENTITY]', '_publish');
+        if (!cb) cb = new Function();
+        
+        var clone = _.cloneDeep(self.identity);
+        delete clone.seed;
+        delete clone.key.private;
+        
+        // a simple stub to emulate only having a single identity.
+        // just queries the application datastore and assumes the first identity
+        // it finds is ours.  net effect: will always overwrite one user.
+        var datastore = document.querySelector('maki-datastore[for='+self.for+']');
+        console.log('[MAKI:IDENTITY]', '_publish', 'query', datastore);
+        // TODO: add unique keys to `maki-datastore` and/or `maki-resource`.
+        datastore._query('/identities', {
+          'key.public': clone.key.public
+        }, function(err, identities) {
+          console.log('[MAKI:IDENTITY]', '_publish', 'melody knows these identities:', err, identities);
+          console.log('[MAKI:IDENTITY]', '_publish', 'you are:', clone.key.public);
+          
+          async.filter(identities, function(identity, callback) {
+            var doesMatch = (identity.key.public === clone.key.public);
+            console.log('[MAKI:IDENTITY]', '_publish', 'comparing:', identity.key.public, clone.key.public);
+            callback(null, doesMatch);
+          }, function(err, known) {
+            console.log('[MAKI:IDENTITY]', '_publish', 'matching', err, known);
+            if (!known.length) {
+              // TODO: transform into JSON-LD
+              datastore._post('/identities', clone, function(err, stored) {
+                console.log('[MAKI:IDENTITY]', '_publish', 'datastore put, identity return:', err, stored);
+                cb(err, stored);
+              });
+            } else {
+            console.log('[MAKI:IDENTITY]', '_publish', 'datastore returning obj:', known[0]);
+              cb(err, known[0]);
+            }
+          });
+        });
+
+        /*$.ajax({
+          type: 'POST',
+          url: '/identities',
+          data: clone,
+          headers: {
+            Accept: 'application/json'
+          },
+          success: function(data) {
+            console.log('[MAKI:IDENTITY]', 'published:', data);
+            self.identity._id = data._id;
+            cb(null, data);
+          }
+        });*/
+      },
+      _reset: function() {
+        var dbs = [
+          'IDBWrapper-fabric-key-value',
+          'IDBWrapper-identity-key-value',
+          'IDBWrapper-identity:tips-key-value',
+          'IDBWrapper-melody-key-value',
+          'IDBWrapper-melody:tips-key-value',
+          'NeDB',
+          'fabric-identity',
+        ];
+        
+        dbs.forEach(function(name) {
+          var req = indexedDB.deleteDatabase(name);
+          req.onsuccess = function () {
+            console.log('[MAKI:IDENTITY]', "Deleted database successfully");
+          };
+          req.onerror = function () {
+            console.log('[MAKI:IDENTITY]', "Couldn't delete database");
+          };
+          req.onblocked = function () {
+            console.log('[MAKI:IDENTITY]', "Couldn't delete database due to the operation being blocked");
+          };
+        });
+
+      },
+      _authenticate: function() {
+        
+      },
+      _displaySelectionModal: function() {
+        $('.modal#identity-confirm').modal('show');
+      },
+      _closeSelectionModal: function() {
+        $('.modal#identity-confirm').modal('hide');
+      },
+      _displayGeneratorModal: function() {
+        $('.modal#identity-create').modal('show');
+      },
+      _closeGeneratorModal: function() {
+        $('.modal#identity-create').modal('hide');
+      },
+      _initializeDropdown: function() {
+        $('.ui.dropdown').dropdown({
+          action: 'nothing'
+        });
+      },
+      _initiateGeneration: function() {
+        var self = this;
+        self._closeSelectionModal();
+        self._generate();
+      },
+      _onboard: function() {
+        var self = this;
+        self._select();
+      },
+      _sign: function(input, done) {
+        var Message = require('bitcore-message');
+      },
+      _identityChanged: function(identity, old) {
+        var self = this;
+        self.identityFull = identity;
+        
+        if (self.identity) {
+          self.isLoggedIn = true;
+        }
+        if (self.identities) {
+          self.hasIdentities = true;
+        }
+        if (identity && identity.name) {
+          self.isNamed = true;
+          self.fire('identity', identity);
+        }
+      },
+      _register: function() {
+        var self = this;
+        console.log('[MAKI:IDENTITY]', '_register', 'calling publish...');
+        self._publish(function(err, identity) {
+          if (err) console.error(err);
+            
+          var identity = self.identity;
+          console.log('[MAKI:IDENTITY]', '_register', '_publish', 'identity:', identity);
+
+          var datastore = document.querySelector('maki-datastore[name=melody]');
+          datastore._bundle(identity, function(err, ident) {
+            console.log('[MAKI:IDENTITY]', '_register', '_publish', 'bundled:', ident);
+            console.log('[MAKI:IDENTITY]', '_register', '_publish', 'querying...', ident['@id']);
+            datastore._query('/people', {
+              identity: ident['@id']
+            }, function(err, known) {
+              console.log('[MAKI:IDENTITY]', '_register', '_publish', 'melody knew:', err, known);
+              if (err || known.length) {
+                return console.log('[MAKI:IDENTITY]', '_register', 'application "melody" knew identity:', ident['@id'], 'as', known[0].name);
+              }
+            
+              datastore._post('/people', {
+                id: identity.name.toLowerCase(),
+                _id: ObjectId().toString(),
+                name: identity.name,
+                slug: identity.name.toLowerCase(),
+                identity: ident['@id']
+              }, function(err, person) {
+                console.log('[MAKI:IDENTITY]', '_register', 'datastore put, person return:', err, person);
+              });
+            });
+
+
+          });
+
+          /* $.ajax({
+            type: 'POST',
+            url: '/people',
+            data: {
+              name: identity.name,
+              identity: identity.key.public,
+              _identity: identity._id
+            },
+            headers: {
+              Accept: 'application/json'
+            },
+            success: function(data, res) {
+              console.log('[MAKI:IDENTITY]', '_register result:', res);
+            }
+          }); */
+        });
+      },
+      _select: function() {
+        var self = this;
+        var db = document.querySelector('maki-datastore[name=identity]');
+        var melody = document.querySelector('melody-application');
+        
+        console.log('[MAKI:IDENTITY]', '_select');
+        db._get('/identities', function(err, identities) {
+          console.log('[MAKI:IDENTITY]', 'retrieved', identities);
+          self.identities = identities || [];
+          self._displaySelectionModal();
+        });
+      },
+      _selectIdentity: function(e, detail) {
+        var self = this;
+        console.log('[MAKI:IDENTITY]', '_selectIdentity', e, detail);
+        var manager = document.querySelector('maki-identity');
+        e.target.classList.add('loading');
+        manager.identity = e.target.identity;
+        manager._register();
+      },
+      _startAgent: function() {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/worker.js').then(function(reg) {
+            console.log('[MAKI:IDENTITY]', 'service worker installled!');
+            
+            navigator.serviceWorker.addEventListener('message', function(event) {
+              console.log('[MAKI:IDENTITY]', 'serviceworker message:', event );
+            });
+            
+          }).catch(function(err) {
+            console.log('[MAKI:IDENTITY]', 'service worker failed:', err);
+          });
+        }
+      },
+      _attach: function() {
+        var self = this;
+        var localIdentityStore = document.querySelector('maki-datastore[name=identity]');
+        console.log('[MAKI:IDENTITY]', '_attach', 'querying...');
+        //self._startAgent();
+        // this emulates the HTTP API, but don't be fooled – this could be
+        // replaced with anything.  use the tools you have, right?  :)
+        // TODO: look at this.
+        //localIdentityStore._get('/identities', function(err, identities) {
+        localIdentityStore._query('/identities', {}, function(err, identities) {
+          console.log('[MAKI:IDENTITY]', '_attach', 'recovered:', identities);
+
+          if (err) console.warn('[MAKI:IDENTITY]', 'retrieved', identities);
+          if (!identities) identities = [];
+          self.identities = identities;
+          if (identities.length) {
+            self.hasIdentities = true;
+            if (self.autoselect) {
+              self.identity = identities[0];
+              console.warn('[MAKI:IDENTITY]', 'autoselect _register', self.identity);
+              self._register();
+            }
+          }
+          self._initializeDropdown();
+        });
+      },
+      _logout: function() {
+        var self = this;
+        self.identity = null;
+        self.isLoggedIn = false;
+        console.log('[MAKI:IDENTITY]', '_logout', self.identity);
+        self.fire('identity', null);
+        // TODO: why is a delay required here?
+        setTimeout(function() {
+          self._initializeDropdown();
+        }, 50);
+      },
+      attached: function() {
+        var self = this;
+        console.log('[MAKI:IDENTITY]', 'attached');
+        self._initializeDropdown();
+      },
+      ready: function() {
+        var self = this;
+        console.log('[MAKI:IDENTITY]', 'ready');
+        document.addEventListener('datastore:identity:open', self._attach.bind(self), false);
+        //self.addEventListener('identity', self._initializeDropdown.bind(self), false);
+      }
+    });

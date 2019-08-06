@@ -1,0 +1,6 @@
+@primaryColor   : @seafoam;
+@secondaryColor : @seafoam;
+@red            : #f00;
+@blue           : #00f;
+@darkfoam        : #1185A8;
+@seafoam        : #bfd1d7;

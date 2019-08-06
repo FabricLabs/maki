@@ -1,0 +1,9 @@
+dom-module#maki-person-icon
+  template
+      a(href="/people/{{data.id}}")
+        img.ui.bordered.image.tooltipped(src="{{data.image.avatar}}")
+
+  script.
+    Polymer({
+      is: 'maki-person-icon'
+    });

@@ -1,0 +1,35 @@
+dom-module#maki-invitation-view
+  template
+    .ui.vertical.stripe.segment.content
+      maki-invitation-card.ui.card(src="/invitations/{{data.id}}")
+    
+  script.
+    Polymer({
+      is: 'maki-invitation-view',
+      properties: {
+        src: { type: String , observer: '_load' },
+        data: { type: Object },
+        state: { type: String },
+        source: { type: String },
+        output: { type: String }
+      },
+      _load: function(uri, back) {
+        var self = this;
+        console.log('[MAKI:INVITATION-VIEW]', '_load', uri, back);
+        self.toggleClass('loading', true);
+
+        // TODO: use this API instead:
+        // fabric.get(self.src, function(err, data) { ... });
+        $.getJSON(self.src, function(data) {
+          self.data = data;
+          self.toggleClass('loading', false);
+        });
+
+      },
+      ready: function() {
+        console.log('[MAKI:INVITATION-VIEW]', 'ready');
+      }
+    });
+
+    
+  

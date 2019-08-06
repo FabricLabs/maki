@@ -1,0 +1,25 @@
+dom-module#maki-peer-list
+  template
+    maki-datastore(name="fabric")
+    h2 Currently Connected Peers
+    .ui.cards
+      template(is="dom-repeat", items="{{peers}}")
+        .ui.card
+          .content
+            .header {{item.id}}
+  script.
+    Polymer({
+      is: 'maki-peer-list',
+      properties: {
+        peers: Array
+      },
+      ready: function() {
+        var self = this;
+        var fabric = document.querySelector('maki-datastore[name=melody]');
+        console.log('[FABRIC:PEER-LIST]', 'ready');
+        fabric._retrieve('/peers', function(err, peers) {
+          console.log('[FABRIC:PEER-LIST]', 'ready _retrieve', err, peers);
+          self.set('peers', peers);
+        });
+      }
+    });

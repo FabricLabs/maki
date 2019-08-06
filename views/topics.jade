@@ -1,0 +1,43 @@
+extends layouts/default
+
+block masthead
+  - if (page && page.masthead)
+    style.
+      .masthead {
+        background: url('#{page.masthead}') no-repeat;
+        background-size: cover;
+      }
+
+  h1 #{topics.length} Topics Under Discussion
+  p We love to talk.  Fabric and Maki are a huge vision, so there's a lot to talk about.  Come join us.
+
+block content
+  //- This is a local interpretation of data.  We download the full dataset once
+  //- and then, _only_ then, run our processing (in our case, a subdivision of
+  //- the data into groups).  If this gets expensive, we simply store the result
+  //- instead of re-calculating it every time.  We might even re-publish our
+  //- work to the network as a resource!
+  - var shuffled = _.shuffle(topics); // topics is defined by Maki automatically
+  - var featured = shuffled.filter(function(x) { return (x.description.length > 0 && x.topic.length > 0 && x.stats.subscribers > 20); }).slice(0, 2);
+
+  .ui.stackable.grid.container
+    .sixteen.wide.column
+      .row(style="margin-top: 2em;")
+        .ui.info.icon.message
+          i.icon.warning
+          .content
+            .header We need your best!
+            p Topics in the Maki Community are like <strong>quest indicators</strong>: they are the subjects we need experts in!  Join the discussion for topics you find interesting, and be sure to <strong>invite your friends</strong>, so we can all build the best things together.
+
+      .row(style="margin-top: 2em;")
+        h2.tooltipped(title="Topics with a description, a topic, and at least 20 subscribers") Featured Topics
+        .ui.two.huge.stackable.cards
+          for topic in featured
+            - var cta = 'Join the Conversation<i class="right chevron icon"></i>';
+            include partials/topic
+
+      .row(style="margin-top: 2em;")
+        h2 All Topics
+        .ui.five.stackable.cards
+          for topic in shuffled
+            include partials/topic

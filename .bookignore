@@ -1,0 +1,6 @@
+scripts/*
+settings/*
+inputs/*
+types/*
+tests/*
+views/*

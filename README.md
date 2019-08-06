@@ -1,8 +1,10 @@
 Maki
 ==============
+![Project Status](https://img.shields.io/badge/status-alpha-red.svg?style=flat-square)
 [![Build Status](https://img.shields.io/travis/martindale/maki.svg?branch=master&style=flat-square)](https://travis-ci.org/martindale/maki)
 [![Coverage Status](https://img.shields.io/coveralls/martindale/maki.svg?style=flat-square)](https://coveralls.io/r/martindale/maki)
-[![Community](https://chat.maki.io/badge.svg)](https://chat.maki.io/)
+[![Total Contributors](https://img.shields.io/github/contributors/martindale/maki.svg?style=flat-square)](https://github.com/martindale/maki/contributors)
+[![Community](https://img.shields.io/matrix/maki:fabric.pub.svg?style=flat-square)](https://chat.fabric.pub)
 
 The complete stack for building extensible apps, faster than ever.  Hand-roll your application by telling Maki what your application does, and it takes care of the rest – without getting in your way if you want to customize it.
 
@@ -14,21 +16,25 @@ We're still in `alpha`!  For the latest work, please use [the `0.3` branch](http
 - **Robust Plugin Ecosystem** Maki is an extensible framework – and there's already a huge list of plugins to provide common (and some not so common!) functionality to your application with almost zero-configuration.  For example, Maki's identity protocol allows us to support both username/password auth and cryptographic identity!
 
 ## Quick Start
-You'll need [node.js](http://nodejs.org) to build a Maki application.   Additionally, [MongoDB](http://mongodb.org) and [Redis](http://redis.org) are the default storage and messaging engines, so you will need to install and configure them to use the defaults, or override them if you'd like to use something different.  We'll be changing this in an upcoming release – see #58 for progress!
+You'll need [node.js](http://nodejs.org) to build a Maki application.
 
-1. Install Maki: `npm install martindale/maki`
-2. Create your app, perhaps in `yourapp.js`:
+1. Install Maki: `npm install --save @fabric/maki`
+2. Create your application, perhaps in `app.js`:
   ```javascript
-  var Maki = require('maki');
-  var myApp = new Maki();
+  const Maki = require('@fabric/maki');
 
-  myApp.define('Widget', {
-    attributes: {
-      name: String
-    }
-  });
+  async function main () {
+    const app = new Maki();
+    await app.define('Widget', {
+      attributes: {
+        name: { type: String }
+      }
+    });
 
-  myApp.start();
+    await app.start();
+  }
+
+  main();
   ```
 3. Start your app: `node yourapp.js` – by default, accessible at [http://localhost:9200](http://localhost:9200)
 
@@ -36,8 +42,12 @@ You'll need [node.js](http://nodejs.org) to build a Maki application.   Addition
 Maki applications allow you to construct pipelines, as follows:
 
 ```javascript
-// same as above
-var Widget = myApp.define('Widget', { attributes: { name: String } });
+// same as above...
+const Widget = await app.define('Widget', {
+  attributes: {
+    name: { type: String }
+  }
+});
 
 Widget.pre('create', function(next, done) {
   var widget = this;
@@ -90,39 +100,18 @@ Maki aims to be as lightweight as possible while still offering a base stack tha
 ## Documentation
 For our documentation, see the `docs/` subfolder.
 
-## Recommended Deployment
-I use [pm2](https://github.com/unitech/pm2) (`npm install pm2 -g`) to manage node apps in production, and I strongly recommend you do, too.  It's got awesome features like log management, process clustering, and automatic startup scripts.
+## Contributors
+- [@martindale](https://github.com/martindale)
+- [@chrisinajar](https://github.com/chrisinajar)
+- [@jlukic](https://github.com/jlukic)
+- [@unusualbob](https://github.com/unusualbob)
+- [@overra](https://github.com/overra)
+- [@unChaz](https://github.com/unChaz)
+- [@toriborealis](https://github.com/toriborealis)
 
-For Maki by itself, `pm2 start maki.js` will produce the following:
-```bash
-> pm2 start maki.js
-PM2 Process launched
-┌──────────┬────┬─────────┬───────┬────────┬───────────┬────────┬─────────────┬─────────────┐
-│ App name │ id │ mode    │ PID   │ status │ restarted │ uptime │      memory │    watching │
-├──────────┼────┼─────────┼───────┼────────┼───────────┼────────┼─────────────┼─────────────┤
-│ maki     │ 0  │ cluster │ 93966 │ online │         0 │ 0s     │ 25.652 MB   │ unactivated │
-└──────────┴────┴─────────┴───────┴────────┴───────────┴────────┴─────────────┴─────────────┘
- Use `pm2 desc[ribe] <id>` to get more details
-```
+Special thanks to [the whole Maki community](https://maki.io/people) for supporting this project with their presence and more.
 
-You can check on running processes using `pm2 ls`.  For example, on a server with multiple running services:
-```bash
-> pm2 ls
-┌────────────┬────┬─────────┬───────┬────────┬───────────┬────────┬──────────────┬─────────────┐
-│ App name   │ id │ mode    │ PID   │ status │ restarted │ uptime │       memory │    watching │
-├────────────┼────┼─────────┼───────┼────────┼───────────┼────────┼──────────────┼─────────────┤
-│ para       │ 0  │ cluster │ 21140 │ online │         0 │ 14d    │  69.734 MB   │ unactivated │
-│ worker     │ 1  │ cluster │ 21142 │ online │         0 │ 14d    │  83.996 MB   │ unactivated │
-│ bot        │ 2  │ cluster │ 21223 │ online │         1 │ 14d    │ 115.543 MB   │ unactivated │
-│ maki       │ 3  │ cluster │ 21154 │ online │         0 │ 14d    │  92.676 MB   │ unactivated │
-│ soundtrack │ 4  │ cluster │ 32655 │ online │         3 │ 18h    │ 324.176 MB   │ unactivated │
-└────────────┴────┴─────────┴───────┴────────┴───────────┴────────┴──────────────┴─────────────┘
- Use `pm2 desc[ribe] <id>` to get more details
-```
-
-For production monitoring, see also `pm2 monit`, `vtop` (available via `npm install vtop -g`), and [StrongLoop](http://strongloop.com/).
-
-Use environment variables for configuration.  See `config/index.js` for a list of configurable values.
+Many, many other contributors deserve recognition for their work on the open source projects that have made Maki possible.  See `package.json` for just a few of them.
 
 ## Spirit
 Please feel free to submit changes to this repo via pull requests!  We're trying to keep this as general and flexible as possible, so anyone can take the project and run with it.

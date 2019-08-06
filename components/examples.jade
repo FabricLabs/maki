@@ -1,0 +1,97 @@
+dom-module#maki-examples
+  template
+    .ui.vertical.segment
+      .ui.container
+        h2 Projects Using Maki
+        p We're really excited to have helped many people build awesome things.  Here's a few of them, including special highlights when they've also shared their code!
+
+        .ui.icon.message
+          i.icon.lab
+          .content
+            .header Building something cool?
+            p Go ahead and <a href="https://github.com/martindale/maki/edit/master/data/examples.json">add it to the list</a>!  We'd love to highlight what you've built.  <strong>Bonus points for being open source!</strong> 🍺
+
+        .ui.divided.items
+          template(is="dom-repeat", items="{{items}}")
+            .item
+              a.ui.tiny.image(href="{{item.uri}}")
+                template(if="{{item.image}}")
+                  img(src="{{item.image}}")
+                template(else="{{item.source}}")
+                  img(src="/img/image.png")
+              .content
+                .header
+                  a(href="{{item.uri}}") {{item.name}}
+                  template(if="{{item.source}}")
+                    |  
+                    a.ui.label(href="{{item.source}}")
+                      i.icon.code
+                      | Source
+                p.description {{item.description}}
+
+  script.
+    Polymer({
+      is: 'maki-examples',
+      listeners: {
+        'datastore:query':  '_handleQuery',
+        'state:change':     '_applyState'
+      },
+      properties: {
+        src: {
+          type: String,
+          observer: '_sourceChanged'
+        },
+        resource: {
+          type: Object
+        },
+        items: {
+          type: Array,
+          notify: true
+        },
+      },
+      _handleQuery: function(e, key) {
+        var self = this;
+        var datastore = document.querySelectorAll('maki-datastore')[0];
+        console.log('[MAKI:COLLECTION]','_handleQuery:', e, key);
+        datastore._retrieve(key, function(err, data) {
+          if (!data) self.fire('datastore:miss', hash);
+          if (err) {
+            //console.error('_handleQuery error:', err);
+            data = [];
+          }
+          self.fire('state:change', data);
+        });
+      },
+      _applyState: function(e) {
+        var self = this;
+        var state = e.detail;
+        
+        if (!(state instanceof Array)) {
+          state = [state];
+        }
+        
+        console.log('applying state', e, state);
+        self.items = state;
+      },
+      _sourceChanged: function(source) {
+        var self = this;
+        var maki = document.querySelectorAll('maki-application')[0];
+        console.log('[MAKI:COLLECTION]', 'collection sourceChanged:', source);
+        self.fire('datastore:query', source);
+      },
+      _sync: function() {
+        var self = this;
+        console.log('[MAKI:COLLECTION]', '_sync');
+        self.fire('datastore:query', self.src);
+      },
+      ready: function() {
+        var self = this;
+        console.log('[MAKI:COLLECTION]', 'ready');
+      },
+      attached: function() {
+        var self = this;
+        var channel = document.querySelectorAll('maki-channel')[0];
+        console.log('[MAKI:COLLECTION]', 'collection is attached:', self.src);
+        channel._subscribe(self.src);
+      }
+    });

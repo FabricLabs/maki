@@ -1,0 +1,25 @@
+dom-module#maki-splash
+  template
+    .ui.vertical.stripe.quote.segment(style="padding-top: 2em;")
+      .ui.equal.width.stackable.internally.celled.grid
+        .center.aligned.row
+          .column
+            h3 "This feels like the invention of the transistor."
+            p(style="margin-top: 4em;") Will Ricketts, SailsJS Contributor
+          .column
+            h3 We're building something new.
+            a.ui.massive.primary.right.labeled.icon.button(href="/people", style="margin-top: 2em;")
+              span
+                i.users.icon
+              |  Come join us.
+              i.icon.right.chevron
+
+  script(src="/js/highlight.pack.js")
+  script.
+    Polymer({
+      is: 'maki-splash',
+      ready: function() {
+        hljs.initHighlightingOnLoad();
+        document.querySelector('maki-masthead').pitch = true;
+      }
+    });
