@@ -68,7 +68,7 @@
     "maki-sessions": "0.0.1",
     "marked": "^0.3.2",
     "moment": "^2.8.4",
-    "mongoose": "^4.9.3",
+    "mongoose": "^5.7.7",
     "mongoose-deep-populate": "^1.1.0",
     "mongoose-json-patch": "^1.0.1",
     "mongoose-slug": "^1.3.1",
