@@ -11,7 +11,7 @@ module.exports = {
     name: process.env.MAKI_SERVICE_NAME || 'Maki' ,
     source: 'https://github.com/martindale/maki',
     // heh.  this silly RFC.
-    authority: process.env.MAKI_SERVICE_AUTHORITY || 'maki.io' ,
+    authority: process.env.MAKI_SERVICE_AUTHORITY || 'maki.fabric.pub' ,
     namespace: NAMESPACE ,
     pitch: 'Made with Maki.',
     mission: process.env.MAKI_SERVICE_MISSION || 'Maki makes building beautiful apps a breeze.',
