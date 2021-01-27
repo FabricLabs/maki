@@ -11,7 +11,7 @@ module.exports = {
     name: process.env.MAKI_SERVICE_NAME || 'Maki' ,
     source: 'https://github.com/martindale/maki',
     // heh.  this silly RFC.
-    authority: process.env.MAKI_SERVICE_AUTHORITY || 'localhost:9200' ,
+    authority: process.env.MAKI_SERVICE_AUTHORITY || 'maki.fabric.pub' ,
     namespace: NAMESPACE ,
     pitch: 'an experimental full-stack framework for cross-platform apps.',
     mission: process.env.MAKI_SERVICE_MISSION || 'Maki makes building beautiful apps a breeze.',
@@ -91,6 +91,12 @@ module.exports = {
   auth: {
     local: {
       enabled: true
+    },
+    slack: {
+      id: 'get from slack',
+      secret: 'get from slack',
+      callback: 'https://maki.fabric.pub/authentications/slack/callback',
+      team: 'get from slack API'
     }
   },
   views: {
